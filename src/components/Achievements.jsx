@@ -1,9 +1,10 @@
 import React from 'react';
-import { ACHIEVEMENTS_DATA } from '../data/mockData';
+import { useConvexState } from '../context/ConvexStateContext';
 import { Trophy, Medal, ShieldCheck } from 'lucide-react';
 
 export default function Achievements() {
-  const { tallies, awards } = ACHIEVEMENTS_DATA;
+  const { achievements } = useConvexState();
+  const { tallies, awards } = achievements;
 
   return (
     <section id="achievements" className="py-20 bg-[var(--bg-main)] transition-colors border-t border-[var(--border-color)]">

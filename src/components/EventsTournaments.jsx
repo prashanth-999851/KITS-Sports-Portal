@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { EVENTS_DATA, FIXTURES_DATA } from '../data/mockData';
+import { useConvexState } from '../context/ConvexStateContext';
 import { Calendar, MapPin, Trophy, ArrowRight } from 'lucide-react';
 
 export default function EventsTournaments({ onRegisterEvent }) {
+  const { events, fixtures } = useConvexState();
   const [activeTab, setActiveTab] = useState("Upcoming");
   const [bracketSport, setBracketSport] = useState("Cricket");
 
-  const filteredEvents = EVENTS_DATA.filter(e => e.category === activeTab);
+  const filteredEvents = events.filter(e => e.category === activeTab);
 
   return (
     <section id="events" className="py-20 bg-[#0F172A] text-white border-t border-slate-800">
@@ -27,7 +28,7 @@ export default function EventsTournaments({ onRegisterEvent }) {
         <div className="p-6 rounded-xl bg-slate-900/50 border border-slate-700 space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700 pb-4">
             <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+              <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping"></span>
               <h3 className="text-lg font-bold text-white">Live Tournament Scoreboard</h3>
             </div>
             <span className="text-xs text-slate-400 font-medium px-3 py-1 rounded-md bg-slate-800 border border-slate-700">
@@ -36,7 +37,7 @@ export default function EventsTournaments({ onRegisterEvent }) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {FIXTURES_DATA.map((fix) => (
+            {fixtures.map((fix) => (
               <div key={fix.id} className="p-4 rounded-lg bg-[#0F172A] border border-slate-700 space-y-3">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-slate-400 truncate max-w-[180px]">{fix.tournament}</span>
@@ -82,7 +83,7 @@ export default function EventsTournaments({ onRegisterEvent }) {
                     : 'border-transparent text-slate-400 hover:text-white'
                 }`}
               >
-                {tab} ({EVENTS_DATA.filter(e => e.category === tab).length})
+                {tab} ({events.filter(e => e.category === tab).length})
               </button>
             ))}
           </div>

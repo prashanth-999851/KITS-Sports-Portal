@@ -1,8 +1,10 @@
 import React from 'react';
-import { EXECUTIVE_BODY } from '../data/mockData';
+import { useConvexState } from '../context/ConvexStateContext';
 import { Mail, Phone, Building } from 'lucide-react';
 
 export default function ExecutiveBody() {
+  const { executiveBody } = useConvexState();
+
   return (
     <section id="executive" className="py-20 bg-[var(--bg-card-subtle)] transition-colors border-t border-[var(--border-color)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
@@ -20,7 +22,7 @@ export default function ExecutiveBody() {
 
         {/* Leadership Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {EXECUTIVE_BODY.map((member, idx) => (
+          {executiveBody.map((member, idx) => (
             <div
               key={idx}
               className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-6 flex flex-col justify-between card-hover"

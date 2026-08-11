@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { GALLERY_CATEGORIES, GALLERY_ITEMS } from '../data/mockData';
+import { useConvexState } from '../context/ConvexStateContext';
+import { GALLERY_CATEGORIES } from '../data/mockData';
 import { Maximize2, X } from 'lucide-react';
 
 export default function Gallery() {
+  const { gallery } = useConvexState();
   const [activeCategory, setActiveCategory] = useState("All");
   const [lightboxImage, setLightboxImage] = useState(null);
 
   const filteredItems = activeCategory === "All"
-    ? GALLERY_ITEMS
-    : GALLERY_ITEMS.filter(item => item.category === activeCategory);
+    ? gallery
+    : gallery.filter(item => item.category === activeCategory);
 
   return (
     <section id="gallery" className="py-20 bg-[var(--bg-main)] transition-colors border-t border-[var(--border-color)]">

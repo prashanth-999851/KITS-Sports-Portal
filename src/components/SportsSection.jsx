@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { SPORTS_LIST } from '../data/mockData';
+import { useConvexState } from '../context/ConvexStateContext';
 import { MapPin, ArrowRight } from 'lucide-react';
 
 export default function SportsSection({ onRegisterSport }) {
+  const { sports } = useConvexState();
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const categories = ["All", "Outdoor", "Indoor", "Track & Field"];
 
   const filteredSports = selectedCategory === "All"
-    ? SPORTS_LIST
-    : SPORTS_LIST.filter(s => s.category.includes(selectedCategory));
+    ? sports
+    : sports.filter(s => s.category.includes(selectedCategory));
 
   return (
     <section id="sports" className="py-20 bg-[var(--bg-main)] transition-colors border-t border-[var(--border-color)]">
@@ -84,18 +85,18 @@ export default function SportsSection({ onRegisterSport }) {
                       <span className="text-[var(--text-muted)]">Faculty Coordinator</span>
                       <span className="font-semibold text-[var(--text-primary)]">{sport.coordinator}</span>
                     </div>
-                    {sport.teamDetails.menCaptain && (
+                    {sport.teamDetails?.menCaptain && (
                       <div className="flex items-center justify-between border-t border-[var(--border-color)] pt-2">
                         <span className="text-[var(--text-muted)]">
-                          {sport.teamDetails.womenCaptain ? "Men Captain" : "Captain"}
+                          {sport.teamDetails?.womenCaptain ? "Men Captain" : "Captain"}
                         </span>
                         <span className="font-semibold text-[var(--text-primary)]">{sport.teamDetails.menCaptain}</span>
                       </div>
                     )}
-                    {sport.teamDetails.womenCaptain && (
+                    {sport.teamDetails?.womenCaptain && (
                       <div className="flex items-center justify-between">
                         <span className="text-[var(--text-muted)]">
-                          {sport.teamDetails.menCaptain ? "Women Captain" : "Captain"}
+                          {sport.teamDetails?.menCaptain ? "Women Captain" : "Captain"}
                         </span>
                         <span className="font-semibold text-[var(--text-primary)]">{sport.teamDetails.womenCaptain}</span>
                       </div>
@@ -105,7 +106,7 @@ export default function SportsSection({ onRegisterSport }) {
                   {/* Venue */}
                   <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-muted)]">
                     <MapPin className="w-3.5 h-3.5 text-amber-500" />
-                    <span>{sport.teamDetails.venue}</span>
+                    <span>{sport.teamDetails?.venue || 'Campus Sports Ground'}</span>
                   </div>
                 </div>
               </div>
