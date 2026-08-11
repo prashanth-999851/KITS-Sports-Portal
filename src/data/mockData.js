@@ -36,7 +36,7 @@ export const SPORTS_LIST = [
     coordinator: "K. Venkata Rao",
     assistantCoordinator: "M. Surya Prakash Rao",
     teamDetails: {
-      menCaptain: "Sk. Jameer Basha (ECE - IV Year)",
+      menCaptain: "Sk. Jameer Bhasha (ECE - IV Year)",
       womenCaptain: "M. Yamini (ECE - III Year)",
       venue: "KKR and KSR Sports Ground"
     }
@@ -100,7 +100,7 @@ export const SPORTS_LIST = [
     coordinator: "K. Venkata Rao",
     assistantCoordinator: "M. Surya Prakash Rao",
     teamDetails: {
-      menCaptain: "K. Vasu Devarao (EEE - IV Year)",
+      menCaptain: "K. Vasudevarao (EEE - IV Year)",
       venue: "KKR and KSR Sports Ground"
     }
   },
@@ -197,127 +197,48 @@ export const CORE_VALUES = [
   }
 ];
 
-export const GOVERNANCE_TREE = [
-  {
-    level: "Institute Leadership",
-    title: "Principal / Director",
-    name: "Dr. K. Rama Krishna Ph.D.",
-    role: "Chief Patron & Appellate Authority",
-    icon: "Building2",
-    details: "Provides strategic vision, institutional funding allocation, and final approval for national tour participation."
-  },
-  {
-    level: "Faculty Governance",
-    title: "Faculty Sports Committee",
-    name: "Prof. M. V. Subba Rao (Convener)",
-    role: "Policy & Budget Committee",
-    icon: "GraduationCap",
-    details: "Supervises club budget, tournament sanctioning, academic relaxation policies, and facility upgrades."
-  },
-  {
-    level: "Executive Director",
-    title: "Physical Director",
-    name: "Dr. G. Subba Rao M.P.Ed., Ph.D.",
-    role: "Head of Physical Education Dept.",
-    icon: "UserCheck",
-    details: "Manages sports infrastructure, appoints coaches, coordinates University trials, and enforces discipline."
-  },
-  {
-    level: "Faculty Coordination",
-    title: "Faculty Sports Coordinator",
-    name: "Prof. K. Venkata Rao",
-    role: "Faculty Liaison",
-    icon: "Briefcase",
-    details: "Coordinates between academic departments, attendance reconciliation, and inter-department tournaments."
-  },
-  {
-    level: "Student Governance",
-    title: "Sports Club Executive Body",
-    name: "President & Core Student Officers",
-    role: "Student Governing Body",
-    icon: "Sparkles",
-    details: "Elected student representatives leading event organization, sponsorships, social media, and player welfare."
-  },
-  {
-    level: "Sport Operations",
-    title: "Sports Coordinators",
-    name: "11 Sport Specific Student Chiefs",
-    role: "Discipline Coordinators",
-    icon: "Target",
-    details: "Responsible for daily practice sessions, equipment management, and squad trials for specific sports."
-  },
-  {
-    level: "Field Leadership",
-    title: "Captains / Vice Captains",
-    name: "22 Team Captains (Men & Women)",
-    role: "On-Field Leaders",
-    icon: "Flag",
-    details: "Lead teams on field, coordinate tactical strategies, motivate teammates, and liaise with match officials."
-  },
-  {
-    level: "General Body",
-    title: "Players / Members",
-    name: "1500+ Registered Student Athletes",
-    role: "Active Sports Club Members",
-    icon: "Users",
-    details: "Participate in daily coaching, intra-college leagues, annual sports meets, and represent the institute."
-  }
-];
-
 export const EXECUTIVE_BODY = [
   {
-    name: "K. Vikranth",
+    name: "M. Bharath Kumar",
     position: "President",
-    department: "Computer Science Engineering (CSE - IV Yr)",
+    department: "Information Technology(IT - IV Yr)",
     photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80",
-    email: "president.sports@kkrksr.ac.in",
-    phone: "+91 98765 43210",
-    badge: "Executive Officer"
+    email: "bharathkumarmaddikunta@gmail.com",
+    phone: "+91 91827 55664"
   },
   {
-    name: "R. Tejaswini",
+    name: "K. Vasudevarao",
     position: "Vice President",
-    department: "Electronics & Comm. Engg (ECE - IV Yr)",
+    department: "Electrical and Electronical Engineering(EEE - IV Yr)",
     photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80",
-    email: "vp.sports@kkrksr.ac.in",
-    phone: "+91 98765 43211",
-    badge: "Executive Officer"
+    email: "vasudevaraokolupuri23@gmail.com",
+    phone: "+91 93909 53342"
   },
   {
-    name: "S. Rohit",
+    name: "Sk. Jameer Bhasha",
     position: "General Secretary",
-    department: "Mechanical Engineering (ME - IV Yr)",
-    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80",
-    email: "secretary.sports@kkrksr.ac.in",
-    phone: "+91 98765 43212",
-    badge: "Core Administrator"
+    department: "Electronical and Communicational Engineering (ECE - IV Yr)",
+    photo: "../../../assets/images/Executives/jameer.jpeg",
+    email: "jameerbhasha66@gmail.com",
+    phone: "+91 79897 96426"
   },
   {
     name: "P. Anusha",
     position: "Joint Secretary",
     department: "Electrical & Electronics Engg (EEE - III Yr)",
-    photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80",
-    email: "jointsec.sports@kkrksr.ac.in",
-    phone: "+91 98765 43213",
-    badge: "Operations Head"
+    photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=600&q=80"
   },
   {
     name: "B. Karthik",
     position: "Treasurer",
     department: "Civil Engineering (Civil - IV Yr)",
-    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80",
-    email: "treasurer.sports@kkrksr.ac.in",
-    phone: "+91 98765 43214",
-    badge: "Finance & Logistics"
+    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80"
   },
   {
     name: "V. Sai Kumar",
     position: "Chief Sports Coordinator",
     department: "Computer Science Engineering (CSE - IV Yr)",
-    photo: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=600&q=80",
-    email: "coordinator.sports@kkrksr.ac.in",
-    phone: "+91 98765 43215",
-    badge: "Sports Liaison"
+    photo: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=600&q=80"
   }
 ];
 

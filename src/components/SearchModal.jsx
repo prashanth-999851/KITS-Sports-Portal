@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SPORTS_LIST, EVENTS_DATA, GOVERNANCE_TREE, RULES_CONSTITUTION } from '../data/mockData';
+import { SPORTS_LIST, EVENTS_DATA, EXECUTIVE_BODY, RULES_CONSTITUTION } from '../data/mockData';
 import { Search, X, Trophy, Calendar, User, BookOpen, ArrowRight } from 'lucide-react';
 
 export default function SearchModal({ isOpen, onClose, onSelectResult }) {
@@ -11,7 +11,7 @@ export default function SearchModal({ isOpen, onClose, onSelectResult }) {
 
   const matchingSports = q ? SPORTS_LIST.filter(s => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)) : [];
   const matchingEvents = q ? EVENTS_DATA.filter(e => e.title.toLowerCase().includes(q) || e.sport.toLowerCase().includes(q)) : [];
-  const matchingGov = q ? GOVERNANCE_TREE.filter(g => g.title.toLowerCase().includes(q) || g.name.toLowerCase().includes(q)) : [];
+  const matchingGov = q ? EXECUTIVE_BODY.filter(g => (g.position && g.position.toLowerCase().includes(q)) || g.name.toLowerCase().includes(q)) : [];
   const matchingRules = q ? RULES_CONSTITUTION.filter(r => r.title.toLowerCase().includes(q) || r.content.toLowerCase().includes(q)) : [];
 
   const hasResults = matchingSports.length > 0 || matchingEvents.length > 0 || matchingGov.length > 0 || matchingRules.length > 0;
@@ -113,7 +113,7 @@ export default function SearchModal({ isOpen, onClose, onSelectResult }) {
                   className="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-amber-500/30 flex items-center justify-between cursor-pointer"
                 >
                   <div>
-                    <h4 className="font-bold text-white text-sm">{g.title}</h4>
+                    <h4 className="font-bold text-white text-sm">{g.position || g.title}</h4>
                     <p className="text-[11px] text-amber-400">{g.name}</p>
                   </div>
                   <ArrowRight className="w-4 h-4 text-amber-400" />

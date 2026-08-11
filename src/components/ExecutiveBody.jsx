@@ -44,13 +44,10 @@ export default function ExecutiveBody() {
                   </div>
 
                   <div>
-                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30">
-                      {member.badge}
-                    </span>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors mt-1">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
                       {member.name}
                     </h3>
-                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-1">
                       {member.position}
                     </p>
                   </div>
@@ -63,28 +60,34 @@ export default function ExecutiveBody() {
                 </div>
 
                 {/* Contact Buttons */}
-                <div className="space-y-2 text-xs">
-                  <a
-                    href={`mailto:${member.email}`}
-                    className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition"
-                  >
-                    <Mail className="w-4 h-4 text-amber-500" />
-                    <span className="truncate">{member.email}</span>
-                  </a>
+                {(member.email || member.phone) && (
+                  <div className="space-y-2 text-xs">
+                    {member.email && (
+                      <a
+                        href={`mailto:${member.email}`}
+                        className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition"
+                      >
+                        <Mail className="w-4 h-4 text-amber-500" />
+                        <span className="truncate">{member.email}</span>
+                      </a>
+                    )}
 
-                  <a
-                    href={`tel:${member.phone}`}
-                    className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition"
-                  >
-                    <Phone className="w-4 h-4 text-amber-500" />
-                    <span>{member.phone}</span>
-                  </a>
-                </div>
+                    {member.phone && (
+                      <a
+                        href={`tel:${member.phone}`}
+                        className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition"
+                      >
+                        <Phone className="w-4 h-4 text-amber-500" />
+                        <span>{member.phone}</span>
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Card Footer */}
               <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                <span>KKR & KSR Executive Council</span>
+                <span>KKR and KSR Student Council</span>
                 <ShieldCheck className="w-4 h-4 text-amber-500" />
               </div>
             </div>
