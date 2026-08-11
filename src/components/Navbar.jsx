@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sun, Moon, Search, Bell, Menu, X, Shield, ChevronRight, UserCheck } from 'lucide-react';
+import { Sun, Moon, Search, Bell, Menu, X, ChevronDown, UserCheck } from 'lucide-react';
 
 export default function Navbar({
   darkMode,
@@ -16,15 +16,14 @@ export default function Navbar({
 
   const navLinks = [
     { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About Us' },
-    { id: 'values', label: 'Core Values' },
-    { id: 'sports', label: 'Sports (11)' },
-    { id: 'executive', label: 'Executive Body' },
-    { id: 'events', label: 'Events & Fixtures' },
+    { id: 'about', label: 'About' },
+    { id: 'sports', label: 'Sports' },
+    { id: 'executive', label: 'Leadership' },
+    { id: 'events', label: 'Events' },
     { id: 'achievements', label: 'Achievements' },
     { id: 'membership', label: 'Membership' },
     { id: 'gallery', label: 'Gallery' },
-    { id: 'rules', label: 'Rulebook' },
+    { id: 'rules', label: 'Rules' },
     { id: 'contact', label: 'Contact' },
   ];
 
@@ -38,177 +37,173 @@ export default function Navbar({
   };
 
   return (
-    <header className="sticky top-0 z-50 transition-colors duration-300 bg-white/90 dark:bg-slate-950/95 backdrop-blur-md border-b border-amber-500/20 shadow-lg">
-      {/* Top Announcement Bar */}
-      <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 py-1 px-4 text-xs font-bold tracking-wide flex justify-between items-center overflow-hidden">
-        <div className="flex items-center gap-2 animate-pulse">
-          <span className="bg-slate-950 text-amber-400 px-2 py-0.5 rounded-full text-[10px] uppercase">Live</span>
-          <span>Annual Sports Meet 2026 'KRIDA PRATIBHA' Registrations Open!</span>
+    <header className="sticky top-0 z-50 transition-colors duration-300">
+      {/* Top Info Bar */}
+      <div className="bg-[#0F172A] text-white py-1.5 px-4 text-xs font-medium flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
+          <span>Annual Sports Meet 2026 'KRIDA PRATIBHA' — Registrations Open</span>
         </div>
-        <div className="hidden md:flex items-center gap-4 text-[11px]">
-          <span>📍 KKR & KSR Institute Campus, Guntur</span>
-          <span>📞 Sports Desk: +91 91827 55664</span>
+        <div className="hidden md:flex items-center gap-5 text-[11px] text-slate-300">
+          <span>📍 KKR & KSR Institute, Guntur</span>
+          <span>📞 +91 91827 55664</span>
           <button 
             onClick={() => handleNavClick('admin')}
-            className="font-extrabold underline hover:text-slate-800 transition"
+            className="text-amber-400 hover:text-amber-300 font-semibold transition-colors"
           >
-            Admin Console Portal
+            Admin Portal
           </button>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
-          
-          {/* Logo & Brand */}
-          <div 
-            onClick={() => handleNavClick('home')}
-            className="flex items-center gap-3 cursor-pointer group"
-          >
-            <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-amber-400 shadow-md group-hover:scale-105 transition-transform duration-300 bg-slate-900">
-              <img 
-                src="/kkr_ksr_logo.jpg" 
-                alt="KKR & KSR Sports Club Emblem" 
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=100";
-                }}
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors">
-                  KKR & KSR
-                </span>
-                <span className="text-xs px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-bold uppercase">
-                  Sports Club
-                </span>
+      {/* Main Navigation */}
+      <div className="bg-[var(--bg-card)] border-b border-[var(--border-color)] shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Logo & Brand */}
+            <div 
+              onClick={() => handleNavClick('home')}
+              className="flex items-center gap-3 cursor-pointer group"
+            >
+              <div className="w-10 h-10 rounded-lg overflow-hidden border border-[var(--border-color)] group-hover:border-amber-400 transition-colors bg-slate-100 dark:bg-slate-800">
+                <img 
+                  src="/assets/images/logo.png" 
+                  alt="KITS Sports Club" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=100";
+                  }}
+                />
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-wide">
-                Institute of Technology & Sciences
-              </p>
+              <div>
+                <h1 className="text-base font-bold text-[var(--text-primary)] leading-tight">
+                  KITS Sports Club
+                </h1>
+                <p className="text-[10px] text-[var(--text-muted)] font-medium">
+                  Official Sports Portal
+                </p>
+              </div>
             </div>
-          </div>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2">
-            {navLinks.slice(0, 8).map((link) => (
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {navLinks.slice(0, 7).map((link) => (
+                <button
+                  key={link.id}
+                  onClick={() => handleNavClick(link.id)}
+                  className={`px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 ${
+                    activeSection === link.id
+                      ? 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)]'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              ))}
+
+              {/* More Dropdown */}
+              <div className="relative group">
+                <button className="px-3 py-2 rounded-lg text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] flex items-center gap-1 transition-colors">
+                  More <ChevronDown className="w-3 h-3" />
+                </button>
+                <div className="absolute right-0 top-full mt-1 w-44 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] shadow-xl p-1.5 hidden group-hover:block">
+                  {navLinks.slice(7).map((link) => (
+                    <button
+                      key={link.id}
+                      onClick={() => handleNavClick(link.id)}
+                      className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] transition-colors"
+                    >
+                      {link.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </nav>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1.5">
+              {/* Search */}
               <button
-                key={link.id}
-                onClick={() => handleNavClick(link.id)}
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-                  activeSection === link.id
-                    ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 shadow-sm'
-                    : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60'
-                }`}
+                onClick={onOpenSearch}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] transition-colors"
+                title="Search (Ctrl+K)"
               >
-                {link.label}
+                <Search className="w-[18px] h-[18px]" />
               </button>
-            ))}
 
-            {/* Dropdown More */}
-            <div className="relative group">
-              <button className="px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 flex items-center gap-1">
-                More <ChevronRight className="w-3 h-3 rotate-90" />
+              {/* Notifications */}
+              <button
+                onClick={onOpenNotifications}
+                className="relative p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] transition-colors"
+                title="Notifications"
+              >
+                <Bell className="w-[18px] h-[18px]" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
               </button>
-              <div className="absolute right-0 top-full mt-2 w-48 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-2 hidden group-hover:block transition-all">
-                {navLinks.slice(8).map((link) => (
-                  <button
-                    key={link.id}
-                    onClick={() => handleNavClick(link.id)}
-                    className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
-                  >
-                    {link.label}
-                  </button>
-                ))}
-              </div>
+
+              {/* Theme Toggle */}
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] transition-colors"
+                title={darkMode ? "Light Mode" : "Dark Mode"}
+              >
+                {darkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+              </button>
+
+              {/* Register CTA */}
+              <button
+                onClick={onOpenMembership}
+                className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors shadow-sm"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                Register
+              </button>
+
+              {/* Mobile Menu Toggle */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)]"
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
             </div>
-          </nav>
 
-          {/* Action Buttons & Utilities */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Search Trigger */}
-            <button
-              onClick={onOpenSearch}
-              className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
-              title="Search Portal (Ctrl+K)"
-            >
-              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-
-            {/* Notifications Popover Trigger */}
-            <button
-              onClick={onOpenNotifications}
-              className="relative p-2 rounded-full text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
-              title="Notifications"
-            >
-              <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-bounce">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Dark/Light Mode Toggle */}
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-full text-slate-600 dark:text-slate-300 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition"
-              title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              {darkMode ? <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />}
-            </button>
-
-            {/* Join Club / Membership CTA */}
-            <button
-              onClick={onOpenMembership}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 shadow-lg shadow-amber-500/20 hover:scale-105 transition-transform"
-            >
-              <UserCheck className="w-4 h-4" />
-              Join Club
-            </button>
-
-            {/* Mobile Menu Toggle Button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
           </div>
-
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-4 pt-2 pb-6 space-y-2 animate-fadeIn shadow-2xl">
+        <div className="lg:hidden bg-[var(--bg-card)] border-b border-[var(--border-color)] px-4 pt-2 pb-5 space-y-1 animate-fadeIn shadow-lg">
           {navLinks.map((link) => (
             <button
               key={link.id}
               onClick={() => handleNavClick(link.id)}
-              className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition ${
+              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 activeSection === link.id
-                  ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30'
-                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900'
+                  ? 'text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--bg-card-subtle)]'
               }`}
             >
               {link.label}
             </button>
           ))}
-          <div className="pt-2 flex flex-col gap-2">
+          <div className="pt-3 flex flex-col gap-2">
             <button
               onClick={() => { setMobileMenuOpen(false); onOpenMembership(); }}
-              className="w-full py-3 rounded-xl text-sm font-extrabold bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 text-center shadow-lg"
+              className="w-full py-2.5 rounded-lg text-sm font-bold bg-[#1E3A8A] text-white text-center shadow-sm"
             >
-              Join Club / Student Portal
+              Register for Membership
             </button>
             <button
               onClick={() => { setMobileMenuOpen(false); onOpenAdmin(); }}
-              className="w-full py-2.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-center border border-slate-300 dark:border-slate-700"
+              className="w-full py-2 rounded-lg text-xs font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] text-center border border-[var(--border-color)]"
             >
-              Admin Dashboard Login
+              Admin Dashboard
             </button>
           </div>
         </div>

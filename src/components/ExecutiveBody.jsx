@@ -1,37 +1,34 @@
 import React from 'react';
 import { EXECUTIVE_BODY } from '../data/mockData';
-import { Mail, Phone, ShieldCheck, User, Sparkles, Building } from 'lucide-react';
+import { Mail, Phone, Building } from 'lucide-react';
 
 export default function ExecutiveBody() {
   return (
-    <section id="executive" className="py-20 bg-slate-50 dark:bg-slate-950/90 transition-colors border-t border-slate-200 dark:border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <section id="executive" className="py-20 bg-[var(--bg-card-subtle)] transition-colors border-t border-[var(--border-color)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-widest">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Student Leadership</span>
-          </div>
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white">
-            SPORTS CLUB <span className="gold-gradient-text">EXECUTIVE BODY</span>
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Student Leadership</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)]">
+            Executive <span className="accent-text">Body</span>
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base">
+          <p className="text-[var(--text-secondary)] text-sm">
             Meet the student office bearers leading tournament organization, team logistics, player welfare, and institutional sports representation.
           </p>
         </div>
 
-        {/* Executive Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Leadership Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {EXECUTIVE_BODY.map((member, idx) => (
             <div
               key={idx}
-              className="group relative rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500/50 shadow-lg p-6 transition-all duration-300 hover:-translate-y-2 flex flex-col justify-between"
+              className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-6 flex flex-col justify-between card-hover"
             >
-              <div className="space-y-6">
-                {/* Photo & Badge */}
+              <div className="space-y-4">
+                {/* Photo & Name */}
                 <div className="flex items-center gap-4">
-                  <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-2 border-amber-400/80 shadow-lg group-hover:scale-105 transition-transform bg-slate-950">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card-subtle)]">
                     <img
                       src={member.photo}
                       alt={member.name}
@@ -42,42 +39,40 @@ export default function ExecutiveBody() {
                       }}
                     />
                   </div>
-
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors">
+                    <h3 className="text-base font-bold text-[var(--text-primary)]">
                       {member.name}
                     </h3>
-                    <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-1">
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
                       {member.position}
-                    </p>
+                    </span>
                   </div>
                 </div>
 
-                {/* Department Info */}
-                <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800">
-                  <Building className="w-4 h-4 text-amber-500 shrink-0" />
+                {/* Department */}
+                <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">
+                  <Building className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
                   <span>{member.department}</span>
                 </div>
 
-                {/* Contact Buttons */}
+                {/* Contact */}
                 {(member.email || member.phone) && (
-                  <div className="space-y-2 text-xs">
+                  <div className="space-y-1.5 text-xs">
                     {member.email && (
                       <a
                         href={`mailto:${member.email}`}
-                        className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition"
+                        className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       >
-                        <Mail className="w-4 h-4 text-amber-500" />
+                        <Mail className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                         <span className="truncate">{member.email}</span>
                       </a>
                     )}
-
                     {member.phone && (
                       <a
                         href={`tel:${member.phone}`}
-                        className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition"
+                        className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       >
-                        <Phone className="w-4 h-4 text-amber-500" />
+                        <Phone className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                         <span>{member.phone}</span>
                       </a>
                     )}
@@ -85,10 +80,9 @@ export default function ExecutiveBody() {
                 )}
               </div>
 
-              {/* Card Footer */}
-              <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                <span>KKR and KSR Student Council</span>
-                <ShieldCheck className="w-4 h-4 text-amber-500" />
+              {/* Footer */}
+              <div className="mt-5 pt-4 border-t border-[var(--border-color)] text-[11px] text-[var(--text-muted)] font-medium">
+                KKR & KSR Student Sports Council
               </div>
             </div>
           ))}

@@ -17,10 +17,12 @@ import SearchModal from './components/SearchModal';
 import RegistrationModal from './components/RegistrationModal';
 import NotificationsModal from './components/NotificationsModal';
 import { INITIAL_STUDENT_APPLICATIONS, FIXTURES_DATA } from './data/mockData';
+import { ClipboardList, UserCheck, Activity, FileText } from 'lucide-react';
 
 export default function App() {
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const [currentView, setCurrentView] = useState('portal'); // 'portal', 'rules', or 'contact'
 
   // Application State
   const [applications, setApplications] = useState(INITIAL_STUDENT_APPLICATIONS);
@@ -76,40 +78,119 @@ export default function App() {
     setRegModalData({ isOpen: true, sportName: "", eventName });
   };
 
+  const handleNavigate = (id) => {
+    if (id === 'rules') {
+      setCurrentView('rules');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (id === 'contact') {
+      setCurrentView('contact');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      setCurrentView('portal');
+      setActiveSection(id);
+      setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    }
+  };
+
+  const quickActions = [
+    {
+      icon: ClipboardList,
+      title: "Sports Registration",
+      desc: "Register for any of our 11 sports disciplines",
+      action: () => handleNavigate('membership')
+    },
+    {
+      icon: UserCheck,
+      title: "Membership Status",
+      desc: "Track your application and approval status",
+      action: () => handleNavigate('membership')
+    },
+    {
+      icon: Activity,
+      title: "Live Scores",
+      desc: "View live match scores and tournament fixtures",
+      action: () => handleNavigate('events')
+    },
+    {
+      icon: FileText,
+      title: "Rules & Constitution",
+      desc: "Read official rules & eligibility charter",
+      action: () => handleNavigate('rules')
+    }
+  ];
+
+  // If viewing the Rules & Regulations standalone page:
+  if (currentView === 'rules') {
+    return (
+      <RulesRegulations
+        onBack={() => {
+          setCurrentView('portal');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
+  }
+
+  // If viewing the Contact Us standalone page:
+  if (currentView === 'contact') {
+    return (
+      <ContactSection
+        onBack={() => {
+          setCurrentView('portal');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-amber-500 selection:text-slate-950 font-sans">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans transition-colors duration-300">
       
       {/* Top Fixed Header Navbar */}
       <Navbar
         darkMode={darkMode}
         setDarkMode={setDarkMode}
         activeSection={activeSection}
-        setActiveSection={setActiveSection}
+        setActiveSection={handleNavigate}
         onOpenSearch={() => setSearchOpen(true)}
         onOpenNotifications={() => setNotifOpen(true)}
         unreadCount={notifications.length}
-        onOpenMembership={() => {
-          setActiveSection('membership');
-          document.getElementById('membership')?.scrollIntoView({ behavior: 'smooth' });
-        }}
-        onOpenAdmin={() => {
-          setActiveSection('admin');
-          document.getElementById('admin')?.scrollIntoView({ behavior: 'smooth' });
-        }}
+        onOpenMembership={() => handleNavigate('membership')}
+        onOpenAdmin={() => handleNavigate('admin')}
       />
 
       {/* Main Page Content */}
       <main>
         <Hero
-          onJoinClick={() => {
-            setActiveSection('membership');
-            document.getElementById('membership')?.scrollIntoView({ behavior: 'smooth' });
-          }}
-          onExploreClick={() => {
-            setActiveSection('sports');
-            document.getElementById('sports')?.scrollIntoView({ behavior: 'smooth' });
-          }}
+          onJoinClick={() => handleNavigate('membership')}
+          onExploreClick={() => handleNavigate('sports')}
         />
+
+        {/* Quick Actions Section */}
+        <section className="py-12 bg-[var(--bg-main)]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {quickActions.map((action, idx) => {
+                const Icon = action.icon;
+                return (
+                  <button
+                    key={idx}
+                    onClick={action.action}
+                    className="group p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-amber-400 text-left transition-all duration-200 card-hover"
+                  >
+                    <div className="w-11 h-11 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-4 group-hover:bg-amber-100 dark:group-hover:bg-amber-500/20 transition-colors">
+                      <Icon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <h3 className="text-sm font-bold text-[var(--text-primary)] mb-1">{action.title}</h3>
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{action.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </section>
 
         <AboutUs />
 
@@ -130,8 +211,6 @@ export default function App() {
 
         <Gallery />
 
-        <RulesRegulations />
-
         <AdminDashboard
           applications={applications}
           onUpdateAppStatus={handleUpdateAppStatus}
@@ -139,21 +218,16 @@ export default function App() {
           onUpdateFixtureScore={handleUpdateFixtureScore}
           onBroadcastNotification={handleBroadcastNotification}
         />
-
-        <ContactSection />
       </main>
 
       {/* Institutional Footer */}
-      <Footer setActiveSection={setActiveSection} />
+      <Footer setActiveSection={handleNavigate} />
 
       {/* Interactive Global Modals */}
       <SearchModal
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
-        onSelectResult={(secId) => {
-          setActiveSection(secId);
-          document.getElementById(secId)?.scrollIntoView({ behavior: 'smooth' });
-        }}
+        onSelectResult={(secId) => handleNavigate(secId)}
       />
 
       <RegistrationModal
