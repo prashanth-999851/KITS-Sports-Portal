@@ -40,8 +40,6 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
     { path: '/admin/students', label: 'Students', icon: Users },
     { path: '/admin/memberships', label: 'Memberships', icon: UserCheck },
     { path: '/admin/sports', label: 'Sports Panels', icon: Trophy },
-    { path: '/admin/events', label: 'Events & Matches', icon: Calendar },
-    { path: '/admin/live-scores', label: 'Live Scores', icon: Activity, badge: 'LIVE' },
     { path: '/admin/achievements', label: 'Achievements', icon: Award },
     { path: '/admin/jntuk-players', label: 'JNTUK Representation', icon: ShieldCheck },
     { path: '/admin/executive-body', label: 'Executive Body', icon: Sparkles },

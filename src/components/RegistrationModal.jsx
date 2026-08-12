@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { ButtonSpinner } from './LoadingSkeleton';
+import { useToast } from '../context/ToastContext';
 import { X, CheckCircle2, Trophy, Send } from 'lucide-react';
 
 export default function RegistrationModal({ sportName, eventName, isOpen, onClose, onAddApplication }) {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     rollNumber: "",
@@ -29,8 +31,10 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
       });
       setTrackingId(generatedId || `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`);
       setSubmitted(true);
+      showToast(`Registration submitted for ${targetName}!`, 'success');
     } catch (err) {
       console.error("Registration error:", err);
+      showToast('Registration failed: ' + (err.message || 'Unknown error'), 'error');
     } finally {
       setIsSubmitting(false);
     }

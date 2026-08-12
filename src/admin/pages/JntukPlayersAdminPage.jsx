@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
+import { useToast } from '../../context/ToastContext';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Award, Plus, Edit, Trash2, X, Search, Calendar, MapPin, Trophy, ShieldCheck, User, Loader2 } from 'lucide-react';
@@ -12,6 +13,7 @@ export default function JntukPlayersAdminPage() {
     deleteJntukPlayer, 
     isLoading 
   } = useConvexState();
+  const { showToast } = useToast();
 
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedSport, setSelectedSport] = useState('All');
@@ -67,7 +69,7 @@ export default function JntukPlayersAdminPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.studentName || !formData.rollNumber || !formData.academicYear) {
-      alert('Please fill out student name, roll number, and academic year.');
+      showToast('Please fill out student name, roll number, and academic year.', 'warning');
       return;
     }
 
@@ -75,14 +77,16 @@ export default function JntukPlayersAdminPage() {
     try {
       if (editingPlayer) {
         await updateJntukPlayer(editingPlayer.id, formData);
+        showToast(`Updated record for ${formData.studentName}`, 'success');
       } else {
         await addJntukPlayer(formData);
+        showToast(`Added ${formData.studentName} to JNTUK Roster`, 'success');
       }
       setShowModal(false);
       setEditingPlayer(null);
     } catch (err) {
       console.error(err);
-      alert('Failed to save record: ' + (err.message || 'Unknown error'));
+      showToast('Failed to save record: ' + (err.message || 'Unknown error'), 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -90,7 +94,12 @@ export default function JntukPlayersAdminPage() {
 
   const handleDelete = async (id, name) => {
     if (window.confirm(`Are you sure you want to remove ${name} from JNTUK Represented Players roster?`)) {
-      await deleteJntukPlayer(id);
+      try {
+        await deleteJntukPlayer(id);
+        showToast(`Removed ${name} from roster`, 'info');
+      } catch (err) {
+        showToast('Failed to remove player: ' + err.message, 'error');
+      }
     }
   };
 

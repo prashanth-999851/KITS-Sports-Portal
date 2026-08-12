@@ -6,7 +6,6 @@ import CoreValues from '../components/CoreValues';
 import SportsSection from '../components/SportsSection';
 import ExecutiveBody from '../components/ExecutiveBody';
 import Achievements from '../components/Achievements';
-import JntukPlayersSection from '../components/JntukPlayersSection';
 import MembershipPortal from '../components/MembershipPortal';
 import Gallery from '../components/Gallery';
 import ContactSection from '../components/ContactSection';
@@ -85,8 +84,6 @@ export default function MainPortalView({ darkMode, setDarkMode }) {
         <ExecutiveBody />
 
         <Achievements />
-
-        <JntukPlayersSection />
 
         <MembershipPortal
           applications={applications}

@@ -42,6 +42,14 @@ export default function Navbar({
   const handleNavClick = (id) => {
     setActiveSection(id);
     setMobileMenuOpen(false);
+    if (id === 'about') {
+      window.location.href = '/about';
+      return;
+    }
+    if (id === 'jntuk-players') {
+      window.location.href = '/jntuk-stars';
+      return;
+    }
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });

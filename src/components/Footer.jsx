@@ -36,6 +36,10 @@ export default function Footer({ setActiveSection }) {
                 <li key={sec}>
                   <button
                     onClick={() => {
+                      if (sec === 'about') {
+                        window.location.href = '/about';
+                        return;
+                      }
                       setActiveSection(sec);
                       document.getElementById(sec)?.scrollIntoView({ behavior: 'smooth' });
                     }}
@@ -53,6 +57,7 @@ export default function Footer({ setActiveSection }) {
             <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Resources</h5>
             <ul className="space-y-1.5">
               {[
+                { id: 'jntuk-stars', label: 'JNTUK Stars Roster', url: '/jntuk-stars' },
                 { id: 'membership', label: 'Membership Portal' },
                 { id: 'gallery', label: 'Gallery' },
                 { id: 'rules', label: 'Constitution' },
@@ -61,6 +66,10 @@ export default function Footer({ setActiveSection }) {
                 <li key={item.id}>
                   <button
                     onClick={() => {
+                      if (item.url) {
+                        window.location.href = item.url;
+                        return;
+                      }
                       setActiveSection(item.id);
                       document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
                     }}

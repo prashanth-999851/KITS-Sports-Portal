@@ -46,22 +46,6 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
   }),
 
-  events: defineTable({
-    title: v.string(),
-    description: v.string(),
-    date: v.string(),
-    venue: v.string(),
-    sport: v.optional(v.string()),
-    category: v.optional(v.string()),
-    posterStorageId: v.optional(v.string()),
-    imageUrl: v.optional(v.string()),
-    registrationLimit: v.optional(v.number()),
-    registeredCount: v.optional(v.number()),
-    status: v.string(),
-    isPublished: v.optional(v.boolean()),
-    createdAt: v.string(),
-  }),
-
   registrations: defineTable({
     trackingId: v.string(),
     studentName: v.string(),
@@ -82,19 +66,6 @@ export default defineSchema({
     status: v.string(),
     appliedDate: v.string(),
     remarks: v.string(),
-  }),
-
-  matches: defineTable({
-    tournament: v.string(),
-    team1: v.string(),
-    team2: v.string(),
-    score1: v.string(),
-    score2: v.string(),
-    result: v.string(),
-    date: v.string(),
-    status: v.string(),
-    overs: v.optional(v.string()),
-    venue: v.optional(v.string()),
   }),
 
   achievements: defineTable({

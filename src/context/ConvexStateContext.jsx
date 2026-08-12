@@ -22,8 +22,6 @@ export function ConvexStateProvider({ children }) {
 
   // ========== CONVEX QUERIES (Real-time reactive) ==========
   const qSports = useQuery(api.sports.list);
-  const qEvents = useQuery(api.events.list);
-  const qFixtures = useQuery(api.matches.list);
   const qAchievements = useQuery(api.achievements.list);
   const qExecutiveBody = useQuery(api.executiveMembers.list);
   const qApplications = useQuery(api.registrations.list);
@@ -38,11 +36,9 @@ export function ConvexStateProvider({ children }) {
   const qRules = useQuery(api.rules.list);
   const qJntukPlayers = useQuery(api.jntukPlayers.list);
 
-  const isLoading = qSports === undefined || qEvents === undefined || qExecutiveBody === undefined || qSettings === undefined || qAchievements === undefined;
+  const isLoading = qSports === undefined || qExecutiveBody === undefined || qSettings === undefined || qAchievements === undefined;
 
   const rawSports = qSports ?? [];
-  const rawEvents = qEvents ?? [];
-  const rawFixtures = qFixtures ?? [];
   const rawAchievements = qAchievements ?? [];
   const rawExecutiveBody = qExecutiveBody ?? [];
   const rawApplications = qApplications ?? [];
@@ -73,37 +69,6 @@ export function ConvexStateProvider({ children }) {
       womenCaptain: s.womenCaptain,
       venue: s.venue,
     },
-  }));
-
-  // Events: components expect { id, title, category, sport, date, venue, status, description, image }
-  const events = rawEvents.map(e => ({
-    id: e._id,
-    title: e.title,
-    category: e.category || "Upcoming",
-    sport: e.sport || "",
-    date: e.date,
-    venue: e.venue,
-    status: e.status,
-    description: e.description,
-    image: e.imageUrl || "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800",
-    registrationLimit: e.registrationLimit,
-    registeredCount: e.registeredCount,
-    isPublished: e.isPublished,
-  }));
-
-  // Fixtures/Matches: components expect { id, tournament, team1, team2, score1, score2, result, date, status }
-  const fixtures = rawFixtures.map(f => ({
-    id: f._id,
-    tournament: f.tournament,
-    team1: f.team1,
-    team2: f.team2,
-    score1: f.score1,
-    score2: f.score2,
-    result: f.result,
-    date: f.date,
-    status: f.status,
-    overs: f.overs,
-    venue: f.venue,
   }));
 
   // Achievements: components expect { tallies: { gold, silver, bronze, trophies }, awards: [...] }
@@ -282,11 +247,6 @@ export function ConvexStateProvider({ children }) {
   const createSport = useMutation(api.sports.create);
   const updateSportMut = useMutation(api.sports.update);
   const removeSport = useMutation(api.sports.remove);
-  const createEvent = useMutation(api.events.create);
-  const updateEventMut = useMutation(api.events.update);
-  const removeEvent = useMutation(api.events.remove);
-  const createMatch = useMutation(api.matches.create);
-  const updateMatchScore = useMutation(api.matches.updateScore);
   const createAchievement = useMutation(api.achievements.create);
   const removeAchievementMut = useMutation(api.achievements.remove);
   const broadcastNotif = useMutation(api.notifications.broadcast);
@@ -294,8 +254,6 @@ export function ConvexStateProvider({ children }) {
   const createDocument = useMutation(api.documents.create);
   const createGalleryItem = useMutation(api.gallery.create);
   const removeGalleryItemMut = useMutation(api.gallery.remove);
-  const removeFixtureMut = useMutation(api.matches.remove);
-  const clearAllFixturesMut = useMutation(api.matches.clearAll);
   const createUser = useMutation(api.users.create);
   const toggleUserActiveMut = useMutation(api.users.toggleActive);
   const createExecutiveMemberMut = useMutation(api.executiveMembers.create);
@@ -465,75 +423,6 @@ export function ConvexStateProvider({ children }) {
   const deleteSport = async (id) => {
     await removeSport({ id });
     await logAction('DELETE_SPORT', `Deleted sport ID: ${id}`);
-  };
-
-  // Events CRUD
-  const addEvent = async (eventData) => {
-    await createEvent({
-      title: eventData.title,
-      description: eventData.description,
-      date: eventData.date,
-      venue: eventData.venue,
-      sport: eventData.sport,
-      category: eventData.category,
-      imageUrl: eventData.image || eventData.imageUrl,
-      registrationLimit: eventData.registrationLimit,
-      status: eventData.status || "Upcoming",
-      isPublished: eventData.isPublished ?? true,
-    });
-    await logAction('ADD_EVENT', `Added new event: ${eventData.title}`);
-  };
-
-  const updateEvent = async (id, eventData) => {
-    const updates = {};
-    if (eventData.title !== undefined) updates.title = eventData.title;
-    if (eventData.description !== undefined) updates.description = eventData.description;
-    if (eventData.date !== undefined) updates.date = eventData.date;
-    if (eventData.venue !== undefined) updates.venue = eventData.venue;
-    if (eventData.sport !== undefined) updates.sport = eventData.sport;
-    if (eventData.category !== undefined) updates.category = eventData.category;
-    if (eventData.image !== undefined) updates.imageUrl = eventData.image;
-    if (eventData.imageUrl !== undefined) updates.imageUrl = eventData.imageUrl;
-    if (eventData.status !== undefined) updates.status = eventData.status;
-    if (eventData.isPublished !== undefined) updates.isPublished = eventData.isPublished;
-    if (eventData.registrationLimit !== undefined) updates.registrationLimit = eventData.registrationLimit;
-    if (eventData.registeredCount !== undefined) updates.registeredCount = eventData.registeredCount;
-
-    await updateEventMut({ id, ...updates });
-    await logAction('UPDATE_EVENT', `Updated event ID: ${id}`);
-  };
-
-  const deleteEvent = async (id) => {
-    await removeEvent({ id });
-    await logAction('DELETE_EVENT', `Deleted event ID: ${id}`);
-  };
-
-  // Live Scores Management
-  const updateFixtureScore = async (id, score1, score2, status, overs, result) => {
-    const updates = {};
-    if (score1 !== undefined) updates.score1 = score1;
-    if (score2 !== undefined) updates.score2 = score2;
-    if (status) updates.status = status;
-    if (overs) updates.overs = overs;
-    if (result) updates.result = result;
-
-    await updateMatchScore({ id, ...updates });
-    await logAction('UPDATE_SCORE', `Updated live match scores for ID: ${id}`);
-  };
-
-  const addFixture = async (fixtureData) => {
-    await createMatch({
-      tournament: fixtureData.tournament,
-      team1: fixtureData.team1,
-      team2: fixtureData.team2,
-      score1: fixtureData.score1 || "0",
-      score2: fixtureData.score2 || "0",
-      result: fixtureData.result || "Match in progress",
-      date: fixtureData.date,
-      status: fixtureData.status || "LIVE",
-      venue: fixtureData.venue,
-    });
-    await logAction('ADD_FIXTURE', `Created new match: ${fixtureData.team1} vs ${fixtureData.team2}`);
   };
 
   // Achievements
@@ -712,8 +601,6 @@ export function ConvexStateProvider({ children }) {
       currentUser,
       users,
       sports,
-      events,
-      fixtures,
       achievements,
       executiveBody,
       jntukPlayers,
@@ -737,13 +624,6 @@ export function ConvexStateProvider({ children }) {
       addSport,
       updateSport,
       deleteSport,
-      addEvent,
-      updateEvent,
-      deleteEvent,
-      updateFixtureScore,
-      addFixture,
-      deleteFixture,
-      deleteAllFixtures,
       addAchievement,
       deleteAchievement,
       broadcastNotification,

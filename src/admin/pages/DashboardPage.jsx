@@ -6,7 +6,7 @@ import { Users, UserCheck, Clock, XCircle, Trophy, Calendar, Activity, Award, Ba
 import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 export default function DashboardPage() {
-  const { applications, sports, events, fixtures, achievements, isLoading } = useConvexState();
+  const { applications, sports, jntukPlayers = [], executiveBody = [], achievements, isLoading } = useConvexState();
 
   if (isLoading) {
     return <LoadingSpinner text="Loading Admin Dashboard Analytics..." />;
@@ -16,7 +16,6 @@ export default function DashboardPage() {
   const approvedApps = applications.filter(a => a.status === 'Approved').length;
   const pendingApps = applications.filter(a => a.status === 'Pending').length;
   const rejectedApps = applications.filter(a => a.status === 'Rejected').length;
-  const liveMatches = fixtures.filter(f => f.status === 'LIVE').length;
 
   const statsCards = [
     { label: 'Total Registrations', value: totalApps, icon: Users, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10' },
@@ -24,8 +23,8 @@ export default function DashboardPage() {
     { label: 'Pending Applications', value: pendingApps, icon: Clock, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
     { label: 'Rejected Applications', value: rejectedApps, icon: XCircle, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-500/10' },
     { label: 'Active Sports Panels', value: sports.length, icon: Trophy, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-500/10' },
-    { label: 'Total Events', value: events.length, icon: Calendar, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
-    { label: 'Live Matches', value: liveMatches, icon: Activity, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
+    { label: 'JNTUK Athletes', value: jntukPlayers.length, icon: Calendar, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+    { label: 'Leadership Roster', value: executiveBody.length, icon: Activity, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
     { label: 'Championship Trophies', value: achievements.tallies.trophies, icon: Award, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-500/10' }
   ];
 

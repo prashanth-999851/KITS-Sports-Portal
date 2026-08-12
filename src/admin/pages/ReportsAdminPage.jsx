@@ -5,7 +5,7 @@ import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 
 export default function ReportsAdminPage() {
-  const { applications, sports, events, achievements } = useConvexState();
+  const { applications, sports, achievements } = useConvexState();
   const [reportType, setReportType] = useState('Registration');
 
   const generatePDF = () => {
@@ -29,8 +29,10 @@ export default function ReportsAdminPage() {
         y += 6;
       });
     } else {
-      events.forEach((evt, i) => {
-        doc.text(`${i + 1}. ${evt.title} - ${evt.date} (${evt.venue})`, 14, y);
+      doc.text("Achievements & Honors Summary:", 14, y);
+      y += 8;
+      (achievements.awards || []).forEach((ach, i) => {
+        doc.text(`${i + 1}. ${ach.title} - ${ach.recipient} (${ach.category})`, 14, y);
         y += 6;
       });
     }
@@ -45,7 +47,7 @@ export default function ReportsAdminPage() {
     } else if (reportType === 'Sports') {
       wsData = sports.map(s => ({ Name: s.name, Category: s.category, Coordinator: s.coordinator }));
     } else {
-      wsData = events.map(e => ({ Title: e.title, Sport: e.sport, Date: e.date, Venue: e.venue }));
+      wsData = (achievements.awards || []).map(a => ({ Title: a.title, Recipient: a.recipient, Category: a.category }));
     }
 
     const ws = XLSX.utils.json_to_sheet(wsData);
@@ -64,8 +66,8 @@ export default function ReportsAdminPage() {
       <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-6 shadow-sm">
         <div className="space-y-3">
           <label className="block text-xs font-semibold text-[var(--text-secondary)]">Select Report Type</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {['Registration', 'Sports', 'Events', 'Achievements'].map((type) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {['Registration', 'Sports', 'Achievements'].map((type) => (
               <button
                 key={type}
                 onClick={() => setReportType(type)}
@@ -81,7 +83,7 @@ export default function ReportsAdminPage() {
 
         <div className="p-4 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-xs text-[var(--text-secondary)] space-y-2">
           <h4 className="font-bold text-[var(--text-primary)]">{reportType} Report Preview Metadata</h4>
-          <p>Records Included: <strong className="text-[var(--text-primary)]">{reportType === 'Registration' ? applications.length : reportType === 'Sports' ? sports.length : events.length} items</strong></p>
+          <p>Records Included: <strong className="text-[var(--text-primary)]">{reportType === 'Registration' ? applications.length : reportType === 'Sports' ? sports.length : (achievements.awards || []).length} items</strong></p>
           <p>Security Classification: Official Institutional Document</p>
         </div>
 

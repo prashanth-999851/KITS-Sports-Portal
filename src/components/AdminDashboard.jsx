@@ -5,8 +5,6 @@ import { Shield, Bell, FileDown, Send } from 'lucide-react';
 export default function AdminDashboard({
   applications,
   onUpdateAppStatus,
-  fixtures,
-  onUpdateFixtureScore,
   onBroadcastNotification
 }) {
   const [activeTab, setActiveTab] = useState("Applications");
@@ -37,7 +35,6 @@ export default function AdminDashboard({
     { id: "Applications", label: `Applications (${applications.length})` },
     { id: "Players", label: "Player Database" },
     { id: "Attendance", label: "Attendance" },
-    { id: "Tournaments", label: "Scores" },
     { id: "Broadcast", label: "Broadcast" },
     { id: "Forms", label: "Forms" }
   ];

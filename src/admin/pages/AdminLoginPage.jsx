@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useConvexState } from '../../context/ConvexStateContext';
+import { useToast } from '../../context/ToastContext';
 import { ButtonSpinner } from '../../components/LoadingSkeleton';
 import { Lock, Mail, ShieldCheck, Eye, EyeOff, KeyRound, AlertCircle } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const { login } = useConvexState();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -27,9 +29,11 @@ export default function AdminLoginPage() {
     setIsLoggingIn(true);
     try {
       await login(email, password);
+      showToast('Authenticated as Admin!', 'success');
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || 'Failed to authenticate.');
+      showToast('Authentication failed: ' + (err.message || 'Invalid credentials'), 'error');
     } finally {
       setIsLoggingIn(false);
     }

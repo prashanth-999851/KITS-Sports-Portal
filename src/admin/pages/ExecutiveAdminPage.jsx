@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
+import { useToast } from '../../context/ToastContext';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { 
@@ -14,6 +15,7 @@ export default function ExecutiveAdminPage() {
     deleteExecutiveMember, 
     isLoading 
   } = useConvexState();
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState('All'); // 'All' | 'Executive Body' | 'Student Officer'
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,7 +67,7 @@ export default function ExecutiveAdminPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.position) {
-      alert('Please provide member name and position/designation.');
+      showToast('Please provide member name and position/designation.', 'warning');
       return;
     }
 
@@ -73,14 +75,16 @@ export default function ExecutiveAdminPage() {
     try {
       if (editingMember) {
         await updateExecutiveMember(editingMember.id, formData);
+        showToast(`Updated profile for ${formData.name}`, 'success');
       } else {
         await addExecutiveMember(formData);
+        showToast(`Added ${formData.name} to Leadership Roster`, 'success');
       }
       setShowModal(false);
       setEditingMember(null);
     } catch (err) {
       console.error(err);
-      alert('Failed to save member: ' + (err.message || 'Unknown error'));
+      showToast('Failed to save member: ' + (err.message || 'Unknown error'), 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +92,12 @@ export default function ExecutiveAdminPage() {
 
   const handleDelete = async (id, name) => {
     if (window.confirm(`Are you sure you want to remove ${name} from the leadership roster?`)) {
-      await deleteExecutiveMember(id);
+      try {
+        await deleteExecutiveMember(id);
+        showToast(`Removed ${name} from leadership roster`, 'info');
+      } catch (err) {
+        showToast('Failed to remove member: ' + err.message, 'error');
+      }
     }
   };
 
