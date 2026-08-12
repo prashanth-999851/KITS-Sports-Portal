@@ -6,6 +6,7 @@ import { ConvexStateProvider } from '../context/ConvexStateContext';
 
 // Public Components
 import MainPortalView from '../views/MainPortalView';
+import AboutView from '../views/AboutView';
 import RulesRegulations from '../components/RulesRegulations';
 import ContactSection from '../components/ContactSection';
 
@@ -23,6 +24,7 @@ import EventsAdminPage from '../admin/pages/EventsAdminPage';
 import LiveScoresAdminPage from '../admin/pages/LiveScoresAdminPage';
 import AchievementsAdminPage from '../admin/pages/AchievementsAdminPage';
 import ExecutiveAdminPage from '../admin/pages/ExecutiveAdminPage';
+import JntukPlayersAdminPage from '../admin/pages/JntukPlayersAdminPage';
 import DocumentsAdminPage from '../admin/pages/DocumentsAdminPage';
 import GalleryAdminPage from '../admin/pages/GalleryAdminPage';
 import NotificationsAdminPage from '../admin/pages/NotificationsAdminPage';
@@ -38,6 +40,7 @@ export default function AppRouter({ darkMode, setDarkMode }) {
           
           {/* Public Routes */}
           <Route path="/" element={<MainPortalView darkMode={darkMode} setDarkMode={setDarkMode} />} />
+          <Route path="/about" element={<AboutView onBack={() => window.location.href = '/'} />} />
           <Route path="/rules" element={<RulesRegulations onBack={() => window.location.href = '/'} />} />
           <Route path="/contact" element={<ContactSection onBack={() => window.location.href = '/'} />} />
 
@@ -63,6 +66,7 @@ export default function AppRouter({ darkMode, setDarkMode }) {
             <Route path="events" element={<EventsAdminPage />} />
             <Route path="live-scores" element={<LiveScoresAdminPage />} />
             <Route path="achievements" element={<AchievementsAdminPage />} />
+            <Route path="jntuk-players" element={<JntukPlayersAdminPage />} />
             <Route path="executive-body" element={<ExecutiveAdminPage />} />
             <Route path="documents" element={<DocumentsAdminPage />} />
             <Route path="gallery" element={<GalleryAdminPage />} />

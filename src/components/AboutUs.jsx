@@ -81,28 +81,6 @@ export default function AboutUs() {
           </div>
         </div>
 
-        {/* Facilities */}
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[var(--border-color)] pb-4">
-            <div>
-              <h3 className="text-xl font-bold text-[var(--text-primary)]">World-Class Sports Facilities</h3>
-              <p className="text-[var(--text-muted)] text-xs">State-of-the-art infrastructure spread over 15 acres of dedicated sports complex.</p>
-            </div>
-            <span className="text-xs text-amber-600 dark:text-amber-400 font-bold px-3 py-1.5 rounded-md bg-amber-50 dark:bg-amber-500/10">
-              6 Major Venues
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {facilities.map((fac, idx) => (
-              <div key={idx} className="p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-2 card-hover">
-                <h4 className="text-sm font-bold text-[var(--text-primary)]">{fac.title}</h4>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{fac.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
       </div>
     </section>
   );

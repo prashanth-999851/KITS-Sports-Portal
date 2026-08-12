@@ -1,10 +1,16 @@
 import React from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
-import { Users, UserCheck, Clock, XCircle, Trophy, Calendar, Activity, Award } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { LoadingSpinner } from '../../components/LoadingSkeleton';
+import EmptyState from '../../components/EmptyState';
+import { Users, UserCheck, Clock, XCircle, Trophy, Calendar, Activity, Award, BarChart2, PieChart as PieIcon, FileText } from 'lucide-react';
+import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 export default function DashboardPage() {
-  const { applications, sports, events, fixtures, achievements } = useConvexState();
+  const { applications, sports, events, fixtures, achievements, isLoading } = useConvexState();
+
+  if (isLoading) {
+    return <LoadingSpinner text="Loading Admin Dashboard Analytics..." />;
+  }
 
   const totalApps = applications.length;
   const approvedApps = applications.filter(a => a.status === 'Approved').length;
@@ -23,29 +29,45 @@ export default function DashboardPage() {
     { label: 'Championship Trophies', value: achievements.tallies.trophies, icon: Award, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-500/10' }
   ];
 
-  // Chart Data
-  const monthlyData = [
-    { month: 'Jan', applications: 45, approved: 38 },
-    { month: 'Feb', applications: 72, approved: 60 },
-    { month: 'Mar', applications: 120, approved: 105 },
-    { month: 'Apr', applications: 95, approved: 82 },
-    { month: 'May', applications: 60, approved: 52 },
-    { month: 'Jun', applications: 110, approved: 98 },
-    { month: 'Jul', applications: 185, approved: 160 },
-    { month: 'Aug', applications: totalApps + 40, approved: approvedApps + 30 },
-  ];
+  // Dynamic Monthly Data Calculation from Real Applications
+  const monthlyMap = {};
+  applications.forEach(app => {
+    const rawDate = app.appliedDate || app.createdAt;
+    let monthStr = 'Aug';
+    if (rawDate) {
+      const dateObj = new Date(rawDate);
+      if (!isNaN(dateObj.getTime())) {
+        monthStr = dateObj.toLocaleString('en-US', { month: 'short' });
+      }
+    }
+    if (!monthlyMap[monthStr]) {
+      monthlyMap[monthStr] = { month: monthStr, applications: 0, approved: 0 };
+    }
+    monthlyMap[monthStr].applications += 1;
+    if (app.status === 'Approved') {
+      monthlyMap[monthStr].approved += 1;
+    }
+  });
+  const monthlyData = Object.values(monthlyMap);
 
-  const sportsParticipation = [
-    { name: 'Cricket', count: 320 },
-    { name: 'Football', count: 280 },
-    { name: 'Basketball', count: 210 },
-    { name: 'Volleyball', count: 190 },
-    { name: 'Badminton', count: 240 },
-    { name: 'Athletics', count: 260 },
-    { name: 'Chess', count: 140 },
-  ];
+  // Dynamic Sports Participation Calculation from Real Applications
+  const sportsCountMap = {};
+  applications.forEach(app => {
+    const prefs = Array.isArray(app.preferredSports) ? app.preferredSports : [app.preferredSports];
+    prefs.forEach(sp => {
+      if (sp) {
+        sportsCountMap[sp] = (sportsCountMap[sp] || 0) + 1;
+      }
+    });
+  });
+  const sportsParticipation = Object.keys(sportsCountMap).map(sp => ({
+    name: sp,
+    count: sportsCountMap[sp]
+  }));
 
-  const pieColors = ['#1E3A8A', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#F59E0B', '#10B981'];
+  const pieColors = ['#1E3A8A', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#F59E0B', '#10B981', '#EC4899', '#8B5CF6'];
+
+  const recentApplications = applications.slice(0, 5);
 
   return (
     <div className="space-y-8">
@@ -89,35 +111,51 @@ export default function DashboardPage() {
             <span className="text-xs text-[var(--text-muted)] font-medium">Monthly Intake 2026</span>
           </div>
 
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthlyData}>
-                <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} />
-                <YAxis stroke="#94A3B8" fontSize={11} />
-                <Tooltip />
-                <Area type="monotone" dataKey="applications" stroke="#1E3A8A" fill="#1E3A8A" fillOpacity={0.2} name="Applications" />
-                <Area type="monotone" dataKey="approved" stroke="#10B981" fill="#10B981" fillOpacity={0.2} name="Approved" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+          {monthlyData.length === 0 ? (
+            <EmptyState
+              title="No Analytics Data Available Yet"
+              description="Minimum registration records required to generate monthly trend charts."
+              icon={BarChart2}
+            />
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={monthlyData}>
+                  <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} />
+                  <YAxis stroke="#94A3B8" fontSize={11} />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="applications" stroke="#1E3A8A" fill="#1E3A8A" fillOpacity={0.2} name="Applications" />
+                  <Area type="monotone" dataKey="approved" stroke="#10B981" fill="#10B981" fillOpacity={0.2} name="Approved" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
         {/* Sports Participation Pie (4 cols) */}
         <div className="lg:col-span-4 p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
           <h3 className="text-sm font-bold text-[var(--text-primary)]">Sports Participation</h3>
 
-          <div className="h-64 flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie data={sportsParticipation} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name }) => name}>
-                  {sportsParticipation.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          {sportsParticipation.length === 0 ? (
+            <EmptyState
+              title="No Participation Data"
+              description="No student sports preferences recorded yet."
+              icon={PieIcon}
+            />
+          ) : (
+            <div className="h-64 flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={sportsParticipation} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name }) => name}>
+                    {sportsParticipation.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </div>
 
       </div>
@@ -126,42 +164,49 @@ export default function DashboardPage() {
       <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
         <h3 className="text-sm font-bold text-[var(--text-primary)]">Recent Membership Requests</h3>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[var(--bg-card-subtle)] text-[var(--text-muted)] uppercase font-bold border-b border-[var(--border-color)]">
-              <tr>
-                <th className="p-3">ID</th>
-                <th className="p-3">Student Name</th>
-                <th className="p-3">Roll & Department</th>
-                <th className="p-3">Preferred Sports</th>
-                <th className="p-3">Applied Date</th>
-                <th className="p-3">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-secondary)]">
-              {applications.slice(0, 5).map((app) => (
-                <tr key={app.id} className="hover:bg-[var(--bg-card-subtle)]">
-                  <td className="p-3 font-mono font-semibold text-blue-600 dark:text-blue-400">{app.id}</td>
-                  <td className="p-3 font-bold text-[var(--text-primary)]">{app.name}</td>
-                  <td className="p-3">{app.rollNumber} ({app.department})</td>
-                  <td className="p-3">{Array.isArray(app.preferredSports) ? app.preferredSports.join(", ") : app.preferredSports}</td>
-                  <td className="p-3 text-[var(--text-muted)]">{app.appliedDate}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      app.status === 'Approved' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' :
-                      app.status === 'Rejected' ? 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400' :
-                      'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400'
-                    }`}>
-                      {app.status}
-                    </span>
-                  </td>
+        {recentApplications.length === 0 ? (
+          <EmptyState
+            title="No Recent Membership Requests"
+            description="There are currently no student registration requests in the system."
+            icon={FileText}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[var(--bg-card-subtle)] text-[var(--text-muted)] uppercase font-bold border-b border-[var(--border-color)]">
+                <tr>
+                  <th className="p-3">ID</th>
+                  <th className="p-3">Student Name</th>
+                  <th className="p-3">Roll & Department</th>
+                  <th className="p-3">Preferred Sports</th>
+                  <th className="p-3">Applied Date</th>
+                  <th className="p-3">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-secondary)]">
+                {recentApplications.map((app) => (
+                  <tr key={app.id} className="hover:bg-[var(--bg-card-subtle)]">
+                    <td className="p-3 font-mono font-semibold text-blue-600 dark:text-blue-400">{app.id}</td>
+                    <td className="p-3 font-bold text-[var(--text-primary)]">{app.name}</td>
+                    <td className="p-3">{app.rollNumber} ({app.department})</td>
+                    <td className="p-3">{Array.isArray(app.preferredSports) ? app.preferredSports.join(", ") : app.preferredSports}</td>
+                    <td className="p-3 text-[var(--text-muted)]">{app.appliedDate}</td>
+                    <td className="p-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        app.status === 'Approved' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' :
+                        app.status === 'Rejected' ? 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400' :
+                        'bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                      }`}>
+                        {app.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
-
     </div>
   );
 }

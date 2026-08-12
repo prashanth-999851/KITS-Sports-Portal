@@ -1,17 +1,24 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
-import { Bell, Send, Megaphone, Trash2 } from 'lucide-react';
+import EmptyState from '../../components/EmptyState';
+import { Bell, Send, Megaphone, Trash2, Loader2 } from 'lucide-react';
 
 export default function NotificationsAdminPage() {
   const { notifications, broadcastNotification, clearNotifications } = useConvexState();
   const [message, setMessage] = useState('');
   const [type, setType] = useState('Announcement');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleBroadcast = (e) => {
+  const handleBroadcast = async (e) => {
     e.preventDefault();
     if (!message.trim()) return;
-    broadcastNotification(message, type);
-    setMessage('');
+    setIsSubmitting(true);
+    try {
+      await broadcastNotification(message, type);
+      setMessage('');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,10 +70,20 @@ export default function NotificationsAdminPage() {
 
         <button
           type="submit"
-          className="w-full py-2.5 rounded-lg text-xs font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] flex items-center justify-center gap-2"
+          disabled={isSubmitting}
+          className="w-full py-2.5 rounded-lg text-xs font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          <Send className="w-4 h-4" />
-          <span>Broadcast Notification Live</span>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Broadcasting Live...</span>
+            </>
+          ) : (
+            <>
+              <Send className="w-4 h-4" />
+              <span>Broadcast Notification Live</span>
+            </>
+          )}
         </button>
       </form>
 
@@ -74,23 +91,31 @@ export default function NotificationsAdminPage() {
       <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
         <h3 className="text-sm font-bold text-[var(--text-primary)]">Active Campus Alerts ({notifications.length})</h3>
 
-        <div className="space-y-3">
-          {notifications.map((n) => (
-            <div key={n.id} className="p-4 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className={`font-bold uppercase text-[10px] px-2 py-0.5 rounded ${
-                  n.type === 'Emergency' ? 'bg-red-500 text-white' :
-                  n.type === 'Match Update' ? 'bg-rose-500 text-white' :
-                  'bg-blue-600 text-white'
-                }`}>
-                  {n.type}
-                </span>
-                <span className="text-[var(--text-muted)]">{n.time}</span>
+        {notifications.length === 0 ? (
+          <EmptyState
+            title="No Active Notifications"
+            description="Use the form above to broadcast official notifications to the public website."
+            icon={Bell}
+          />
+        ) : (
+          <div className="space-y-3">
+            {notifications.map((n) => (
+              <div key={n.id} className="p-4 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className={`font-bold uppercase text-[10px] px-2 py-0.5 rounded ${
+                    n.type === 'Emergency' ? 'bg-red-500 text-white' :
+                    n.type === 'Match Update' ? 'bg-rose-500 text-white' :
+                    'bg-blue-600 text-white'
+                  }`}>
+                    {n.type}
+                  </span>
+                  <span className="text-[var(--text-muted)]">{n.time}</span>
+                </div>
+                <p className="text-xs text-[var(--text-primary)] font-medium leading-relaxed pt-1">{n.message}</p>
               </div>
-              <p className="text-xs text-[var(--text-primary)] font-medium leading-relaxed pt-1">{n.message}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

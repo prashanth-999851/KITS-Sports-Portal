@@ -1,10 +1,14 @@
 import React from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
-import { Trophy, Medal, ShieldCheck } from 'lucide-react';
+import { CardSkeleton } from './LoadingSkeleton';
+import EmptyState from './EmptyState';
+import { Trophy, Medal, Award, ShieldCheck } from 'lucide-react';
 
 export default function Achievements() {
-  const { achievements } = useConvexState();
+  const { achievements, isLoading } = useConvexState();
   const { tallies, awards } = achievements;
+
+  const isTallyLoading = isLoading || !tallies?.isLoaded;
 
   return (
     <section id="achievements" className="py-20 bg-[var(--bg-main)] transition-colors border-t border-[var(--border-color)]">
@@ -22,31 +26,43 @@ export default function Achievements() {
         </div>
 
         {/* Medal Tally */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
-          <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-2 card-hover">
-            <Trophy className="w-7 h-7 text-blue-700 dark:text-blue-400 mx-auto" />
-            <h3 className="text-3xl font-extrabold text-blue-700 dark:text-blue-400">{tallies.trophies}</h3>
-            <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Trophies</p>
+        {isTallyLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            {[1, 2, 3, 4].map(n => (
+              <div key={n} className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-3 animate-pulse">
+                <div className="w-8 h-8 rounded-full bg-[var(--bg-card-subtle)] mx-auto"></div>
+                <div className="h-8 w-16 bg-[var(--bg-card-subtle)] rounded mx-auto"></div>
+                <div className="h-3 w-20 bg-[var(--bg-card-subtle)] rounded mx-auto"></div>
+              </div>
+            ))}
           </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-2 card-hover">
+              <Trophy className="w-7 h-7 text-blue-700 dark:text-blue-400 mx-auto" />
+              <h3 className="text-3xl font-extrabold text-blue-700 dark:text-blue-400">{tallies.trophies}</h3>
+              <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Trophies</p>
+            </div>
 
-          <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-2 card-hover">
-            <Medal className="w-7 h-7 text-amber-500 mx-auto" />
-            <h3 className="text-3xl font-extrabold text-amber-500">{tallies.gold}</h3>
-            <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Gold Medals</p>
-          </div>
+            <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-2 card-hover">
+              <Medal className="w-7 h-7 text-amber-500 mx-auto" />
+              <h3 className="text-3xl font-extrabold text-amber-500">{tallies.gold}</h3>
+              <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Gold Medals</p>
+            </div>
 
-          <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-2 card-hover">
-            <Medal className="w-7 h-7 text-slate-400 mx-auto" />
-            <h3 className="text-3xl font-extrabold text-slate-400">{tallies.silver}</h3>
-            <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Silver Medals</p>
-          </div>
+            <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-2 card-hover">
+              <Medal className="w-7 h-7 text-slate-400 mx-auto" />
+              <h3 className="text-3xl font-extrabold text-slate-400">{tallies.silver}</h3>
+              <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Silver Medals</p>
+            </div>
 
-          <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-2 card-hover">
-            <Medal className="w-7 h-7 text-amber-700 mx-auto" />
-            <h3 className="text-3xl font-extrabold text-amber-700">{tallies.bronze}</h3>
-            <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Bronze Medals</p>
+            <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-2 card-hover">
+              <Medal className="w-7 h-7 text-amber-700 mx-auto" />
+              <h3 className="text-3xl font-extrabold text-amber-700">{tallies.bronze}</h3>
+              <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Bronze Medals</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Awards */}
         <div className="space-y-6">

@@ -3,7 +3,7 @@ import { v } from "convex/values";
 
 export default defineSchema({
   roles: defineTable({
-    name: v.string(), // "Super Admin", "Faculty Coordinator", "Sports Coordinator", "Event Manager", "Content Manager", "Sports Captain"
+    name: v.string(),
     permissions: v.array(v.string()),
   }),
 
@@ -28,7 +28,7 @@ export default defineSchema({
     gender: v.string(),
     sportId: v.string(),
     photoStorageId: v.optional(v.string()),
-    status: v.string(), // "Approved", "Pending", "Rejected", "Suspended"
+    status: v.string(),
     createdAt: v.string(),
   }).index("by_rollNumber", ["rollNumber"]),
 
@@ -41,8 +41,9 @@ export default defineSchema({
     menCaptain: v.optional(v.string()),
     womenCaptain: v.optional(v.string()),
     venue: v.string(),
-    schedule: v.string(),
+    schedule: v.optional(v.string()),
     imageStorageId: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
   }),
 
   events: defineTable({
@@ -50,12 +51,14 @@ export default defineSchema({
     description: v.string(),
     date: v.string(),
     venue: v.string(),
-    sportId: v.string(),
+    sport: v.optional(v.string()),
+    category: v.optional(v.string()),
     posterStorageId: v.optional(v.string()),
-    registrationLimit: v.number(),
-    registeredCount: v.number(),
-    status: v.string(), // "Upcoming", "Ongoing", "Completed"
-    isPublished: v.boolean(),
+    imageUrl: v.optional(v.string()),
+    registrationLimit: v.optional(v.number()),
+    registeredCount: v.optional(v.number()),
+    status: v.string(),
+    isPublished: v.optional(v.boolean()),
     createdAt: v.string(),
   }),
 
@@ -68,7 +71,7 @@ export default defineSchema({
     email: v.string(),
     phone: v.string(),
     preferredSports: v.array(v.string()),
-    status: v.string(), // "Pending", "Approved", "Rejected"
+    status: v.string(),
     remarks: v.string(),
     appliedDate: v.string(),
   }).index("by_trackingId", ["trackingId"]),
@@ -89,9 +92,9 @@ export default defineSchema({
     score2: v.string(),
     result: v.string(),
     date: v.string(),
-    status: v.string(), // "LIVE", "PAUSED", "FINAL"
+    status: v.string(),
     overs: v.optional(v.string()),
-    venue: v.string(),
+    venue: v.optional(v.string()),
   }),
 
   achievements: defineTable({
@@ -100,8 +103,9 @@ export default defineSchema({
     category: v.string(),
     achievement: v.string(),
     imageStorageId: v.optional(v.string()),
-    year: v.string(),
-    medalType: v.string(), // "Gold", "Silver", "Bronze", "Trophy"
+    imageUrl: v.optional(v.string()),
+    year: v.optional(v.string()),
+    medalType: v.optional(v.string()),
   }),
 
   executiveMembers: defineTable({
@@ -111,6 +115,8 @@ export default defineSchema({
     email: v.optional(v.string()),
     phone: v.optional(v.string()),
     photoStorageId: v.optional(v.string()),
+    photoUrl: v.optional(v.string()),
+    memberType: v.optional(v.string()),
     displayOrder: v.number(),
   }),
 
@@ -120,26 +126,42 @@ export default defineSchema({
     fileStorageId: v.optional(v.string()),
     fileSize: v.string(),
     fileType: v.string(),
-    downloadCount: v.number(),
-    version: v.string(),
-    createdAt: v.string(),
+    downloadCount: v.optional(v.number()),
+    version: v.optional(v.string()),
+    createdAt: v.optional(v.string()),
   }),
 
   gallery: defineTable({
     title: v.string(),
     category: v.string(),
-    mediaType: v.string(), // "Image" or "Video"
+    mediaType: v.optional(v.string()),
     mediaStorageId: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
     caption: v.string(),
-    createdAt: v.string(),
+    createdAt: v.optional(v.string()),
   }),
 
   notifications: defineTable({
     title: v.string(),
     message: v.string(),
-    type: v.string(), // "Announcement", "Emergency", "Match Update", "Event Reminder"
+    type: v.string(),
     isActive: v.boolean(),
     createdAt: v.string(),
+  }),
+
+  coreValues: defineTable({
+    title: v.string(),
+    icon: v.string(),
+    color: v.string(),
+    description: v.string(),
+    displayOrder: v.number(),
+  }),
+
+  rules: defineTable({
+    chapter: v.string(),
+    title: v.string(),
+    content: v.string(),
+    displayOrder: v.number(),
   }),
 
   settings: defineTable({
@@ -153,5 +175,19 @@ export default defineSchema({
     action: v.string(),
     details: v.string(),
     timestamp: v.string(),
+  }),
+
+  jntukPlayers: defineTable({
+    studentName: v.string(),
+    rollNumber: v.string(),
+    department: v.string(),
+    sport: v.string(),
+    academicYear: v.string(),
+    tournamentName: v.string(),
+    venueHost: v.optional(v.string()),
+    photoStorageId: v.optional(v.string()),
+    photoUrl: v.optional(v.string()),
+    achievementDetails: v.optional(v.string()),
+    createdAt: v.optional(v.string()),
   }),
 });

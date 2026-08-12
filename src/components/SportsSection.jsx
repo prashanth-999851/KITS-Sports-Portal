@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
-import { MapPin, ArrowRight } from 'lucide-react';
+import { CardSkeleton } from './LoadingSkeleton';
+import EmptyState from './EmptyState';
+import { MapPin, ArrowRight, Trophy } from 'lucide-react';
 
 export default function SportsSection({ onRegisterSport }) {
-  const { sports } = useConvexState();
+  const { sports, isLoading } = useConvexState();
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const categories = ["All", "Outdoor", "Indoor", "Track & Field"];
@@ -45,7 +47,16 @@ export default function SportsSection({ onRegisterSport }) {
         </div>
 
         {/* Sports Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isLoading ? (
+          <CardSkeleton count={6} />
+        ) : filteredSports.length === 0 ? (
+          <EmptyState
+            title="No Sports Disciplines Found"
+            description="There are currently no active sports panels under this category."
+            icon={Trophy}
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredSports.map((sport) => (
             <div
               key={sport.id}
@@ -124,7 +135,7 @@ export default function SportsSection({ onRegisterSport }) {
             </div>
           ))}
         </div>
-
+        )}
       </div>
     </section>
   );

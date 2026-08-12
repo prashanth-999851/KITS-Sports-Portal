@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Sun, Moon, Search, Bell, Menu, X, ChevronDown, UserCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sun, Moon, Search, Bell, Menu, X, ChevronDown, UserCheck, Megaphone } from 'lucide-react';
+import { useConvexState } from '../context/ConvexStateContext';
 
 export default function Navbar({
   darkMode,
@@ -12,15 +13,26 @@ export default function Navbar({
   onOpenMembership,
   onOpenAdmin
 }) {
+  const { notifications = [] } = useConvexState();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeNotifIdx, setActiveNotifIdx] = useState(0);
+
+  useEffect(() => {
+    if (notifications.length > 1) {
+      const interval = setInterval(() => {
+        setActiveNotifIdx(prev => (prev + 1) % notifications.length);
+      }, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [notifications.length]);
 
   const navLinks = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
     { id: 'sports', label: 'Sports' },
     { id: 'executive', label: 'Leadership' },
-    { id: 'events', label: 'Events' },
     { id: 'achievements', label: 'Achievements' },
+    { id: 'jntuk-players', label: 'JNTUK Stars' },
     { id: 'membership', label: 'Membership' },
     { id: 'gallery', label: 'Gallery' },
     { id: 'rules', label: 'Rules' },
@@ -36,23 +48,43 @@ export default function Navbar({
     }
   };
 
+  const currentNotification = notifications[activeNotifIdx] || notifications[0];
+
   return (
     <header className="sticky top-0 z-50 transition-colors duration-300">
-      {/* Top Info Bar */}
-      <div className="bg-[#0F172A] text-white py-1.5 px-4 text-xs font-medium flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 bg-red-500 rounded-full inline-block"></span>
-          <span>Annual Sports Meet 2026 'KRIDA PRATIBHA' — Registrations Open</span>
+      {/* Top Dynamic Notification Ticker Bar */}
+      <div className="bg-[#0F172A] text-white py-1.5 px-4 text-xs font-medium flex justify-between items-center overflow-hidden">
+        <div className="flex items-center gap-2 max-w-full overflow-hidden">
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+          </span>
+
+          {currentNotification ? (
+            <div className="flex items-center gap-2 truncate">
+              {currentNotification.type && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 uppercase ${
+                  currentNotification.type === 'Emergency' ? 'bg-red-600 text-white' :
+                  currentNotification.type === 'Match Update' ? 'bg-amber-600 text-white' :
+                  'bg-blue-600 text-white'
+                }`}>
+                  {currentNotification.type}
+                </span>
+              )}
+              <span className="truncate text-slate-200">
+                {currentNotification.message}
+              </span>
+            </div>
+          ) : (
+            <span className="text-slate-300 truncate">
+              Welcome to KKR & KSR Sports Club Portal • Official Sports Directorate
+            </span>
+          )}
         </div>
-        <div className="hidden md:flex items-center gap-5 text-[11px] text-slate-300">
+
+        <div className="hidden md:flex items-center gap-5 text-[11px] text-slate-300 shrink-0 ml-4">
           <span>📍 KKR & KSR Institute, Guntur</span>
           <span>📞 +91 91827 55664</span>
-          <button 
-            onClick={() => handleNavClick('admin')}
-            className="text-amber-400 hover:text-amber-300 font-semibold transition-colors"
-          >
-            Admin Portal
-          </button>
         </div>
       </div>
 

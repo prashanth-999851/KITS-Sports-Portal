@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
-import { Calendar, Plus, Edit, Trash2, MapPin, Eye, EyeOff, X } from 'lucide-react';
+import { CardSkeleton } from '../../components/LoadingSkeleton';
+import EmptyState from '../../components/EmptyState';
+import { Calendar, Plus, Edit, Trash2, MapPin, Eye, EyeOff, X, Upload, Loader2 } from 'lucide-react';
 
 export default function EventsAdminPage() {
-  const { events, addEvent, updateEvent, deleteEvent } = useConvexState();
+  const { events, addEvent, updateEvent, deleteEvent, isLoading } = useConvexState();
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -18,6 +21,17 @@ export default function EventsAdminPage() {
     registrationLimit: 200,
     image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800'
   });
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, image: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleEdit = (evt) => {
     setEditingEvent(evt);
@@ -35,15 +49,20 @@ export default function EventsAdminPage() {
     setShowModal(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingEvent) {
-      updateEvent(editingEvent.id, formData);
-    } else {
-      addEvent(formData);
+    setIsSubmitting(true);
+    try {
+      if (editingEvent) {
+        await updateEvent(editingEvent.id, formData);
+      } else {
+        await addEvent(formData);
+      }
+      setShowModal(false);
+      setEditingEvent(null);
+    } finally {
+      setIsSubmitting(false);
     }
-    setShowModal(false);
-    setEditingEvent(null);
   };
 
   const togglePublish = (evt) => {
@@ -68,12 +87,21 @@ export default function EventsAdminPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {isLoading ? (
+        <CardSkeleton count={4} />
+      ) : events.length === 0 ? (
+        <EmptyState
+          title="No Events Scheduled Yet"
+          description="Click 'Create New Event' above to publish annual meets or tournaments."
+          icon={Calendar}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {events.map((evt) => (
           <div key={evt.id} className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden flex flex-col justify-between card-hover">
             <div>
               <div className="relative h-44">
-                <img src={evt.image} alt={evt.title} className="w-full h-full object-cover" />
+                <img src={evt.image} alt={evt.title} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800"; }} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 <div className="absolute top-3 left-3 flex gap-2">
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#1E3A8A] text-white">{evt.sport}</span>
@@ -120,6 +148,7 @@ export default function EventsAdminPage() {
           </div>
         ))}
       </div>
+      )}
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
@@ -161,13 +190,35 @@ export default function EventsAdminPage() {
                 </div>
               </div>
 
+              {/* Upload Image Section */}
+              <div className="space-y-2 border border-[var(--border-color)] p-3 rounded-lg bg-[var(--bg-card-subtle)]">
+                <label className="block text-[var(--text-secondary)] font-semibold">Event Poster / Banner Image</label>
+
+                <div>
+                  <label className="block text-[11px] text-[var(--text-muted)] mb-1">Upload File from Computer:</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="w-full text-xs text-[var(--text-secondary)] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-500/10 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer"
+                  />
+                </div>
+
+
+                {formData.image && (
+                  <div className="h-28 rounded overflow-hidden border border-[var(--border-color)] mt-2">
+                    <img src={formData.image} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800"; }} />
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Description *</label>
                 <textarea required rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className={inputClass} />
               </div>
 
-              <button type="submit" className="w-full py-2.5 rounded-lg font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF]">
-                {editingEvent ? 'Save Changes' : 'Create & Publish Event'}
+              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] disabled:opacity-50 flex items-center justify-center gap-2">
+                {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Performing Action...</span></> : (editingEvent ? 'Save Changes' : 'Create & Publish Event')}
               </button>
             </form>
           </div>

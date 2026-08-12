@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { SPORTS_LIST, EVENTS_DATA, EXECUTIVE_BODY, RULES_CONSTITUTION } from '../data/mockData';
+import { useConvexState } from '../context/ConvexStateContext';
 import { Search, X, ArrowRight } from 'lucide-react';
 
 export default function SearchModal({ isOpen, onClose, onSelectResult }) {
+  const { sports: SPORTS_LIST, events: EVENTS_DATA, executiveBody: EXECUTIVE_BODY, rules: RULES_CONSTITUTION } = useConvexState();
   const [query, setQuery] = useState("");
 
   if (!isOpen) return null;
@@ -10,7 +11,7 @@ export default function SearchModal({ isOpen, onClose, onSelectResult }) {
   const q = query.toLowerCase().trim();
 
   const matchingSports = q ? SPORTS_LIST.filter(s => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)) : [];
-  const matchingEvents = q ? EVENTS_DATA.filter(e => e.title.toLowerCase().includes(q) || e.sport.toLowerCase().includes(q)) : [];
+  const matchingEvents = q ? EVENTS_DATA.filter(e => e.title.toLowerCase().includes(q) || (e.sport && e.sport.toLowerCase().includes(q))) : [];
   const matchingGov = q ? EXECUTIVE_BODY.filter(g => (g.position && g.position.toLowerCase().includes(q)) || g.name.toLowerCase().includes(q)) : [];
   const matchingRules = q ? RULES_CONSTITUTION.filter(r => r.title.toLowerCase().includes(q) || r.content.toLowerCase().includes(q)) : [];
 

@@ -1,57 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  SPORTS_LIST, 
-  EVENTS_DATA, 
-  FIXTURES_DATA, 
-  ACHIEVEMENTS_DATA, 
-  EXECUTIVE_BODY, 
-  RULES_CONSTITUTION, 
-  INITIAL_STUDENT_APPLICATIONS, 
-  DOWNLOADABLE_FORMS, 
-  GALLERY_ITEMS 
-} from '../data/mockData';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 
 const ConvexStateContext = createContext(null);
 
 export function ConvexStateProvider({ children }) {
-  // --- Auth State ---
+  // --- Auth State (persisted in localStorage) ---
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('kits_admin_user');
     return saved ? JSON.parse(saved) : null;
   });
-
-  // Default Users & RBAC Roles
-  const [users, setUsers] = useState([
-    { id: 'usr-1', name: 'Dr. M. Bharath Kumar', email: 'admin@kitsports.ac.in', role: 'Super Admin', isActive: true, createdAt: '2026-01-01' },
-    { id: 'usr-2', name: 'K. Venkata Rao', email: 'physicaldirector@kkrksr.ac.in', role: 'Faculty Coordinator', isActive: true, createdAt: '2026-01-05' },
-    { id: 'usr-3', name: 'M. Surya Prakash Rao', email: 'sportscoordinator@kkrksr.ac.in', role: 'Sports Coordinator', isActive: true, createdAt: '2026-01-10' },
-    { id: 'usr-4', name: 'G. Ravi Kiran', email: 'events@kkrksr.ac.in', role: 'Event Manager', isActive: true, createdAt: '2026-01-15' },
-    { id: 'usr-5', name: 'Sk. Jameer Bhasha', email: 'captain@kkrksr.ac.in', role: 'Sports Captain', isActive: true, createdAt: '2026-01-20' },
-  ]);
-
-  // --- Real-Time Modules State ---
-  const [sports, setSports] = useState(SPORTS_LIST);
-  const [events, setEvents] = useState(EVENTS_DATA);
-  const [fixtures, setFixtures] = useState(FIXTURES_DATA);
-  const [achievements, setAchievements] = useState(ACHIEVEMENTS_DATA);
-  const [executiveBody, setExecutiveBody] = useState(EXECUTIVE_BODY);
-  const [applications, setApplications] = useState(INITIAL_STUDENT_APPLICATIONS);
-  const [documents, setDocuments] = useState(DOWNLOADABLE_FORMS);
-  const [gallery, setGallery] = useState(GALLERY_ITEMS);
-  const [notifications, setNotifications] = useState([
-    { id: 'n1', title: 'Annual Sports Meet 2026', message: "Annual Sports Meet 2026 'KRIDA PRATIBHA' Registration is officially open!", type: 'Announcement', time: '10 mins ago', isActive: true },
-    { id: 'n2', title: 'Live Cricket Match', message: "Inter-College Cricket Semi-Finals live match in progress on Turf Oval Ground.", type: 'Match Update', time: '1 hour ago', isActive: true },
-    { id: 'n3', title: 'Chess Victory', message: "KKR & KSR Mind Champions bagged 1st rank in All India University Chess League.", type: 'Announcement', time: 'Yesterday', isActive: true }
-  ]);
-  const [settings, setSettings] = useState({
-    instituteName: 'KKR & KSR Institute of Technology & Sciences',
-    campusAddress: 'Vinjanampadu, Vaddeswaram Post, Guntur - 522017, AP',
-    contactEmail: 'sports@kkrksr.ac.in',
-    contactPhone: '+91 91827 55664',
-    enableNotifications: true,
-    darkThemeDefault: false
-  });
-  const [auditLogs, setAuditLogs] = useState([]);
 
   // Save currentUser to localStorage
   useEffect(() => {
@@ -62,176 +20,695 @@ export function ConvexStateProvider({ children }) {
     }
   }, [currentUser]);
 
-  // Helper log generator
-  const logAction = (action, details) => {
+  // ========== CONVEX QUERIES (Real-time reactive) ==========
+  const qSports = useQuery(api.sports.list);
+  const qEvents = useQuery(api.events.list);
+  const qFixtures = useQuery(api.matches.list);
+  const qAchievements = useQuery(api.achievements.list);
+  const qExecutiveBody = useQuery(api.executiveMembers.list);
+  const qApplications = useQuery(api.registrations.list);
+  const qStudents = useQuery(api.students.list);
+  const qDocuments = useQuery(api.documents.list);
+  const qGallery = useQuery(api.gallery.list);
+  const qNotifications = useQuery(api.notifications.list);
+  const qUsers = useQuery(api.users.list);
+  const qSettings = useQuery(api.settings.getAll);
+  const qAuditLogs = useQuery(api.auditLogs.list);
+  const qCoreValues = useQuery(api.coreValues.list);
+  const qRules = useQuery(api.rules.list);
+  const qJntukPlayers = useQuery(api.jntukPlayers.list);
+
+  const isLoading = qSports === undefined || qEvents === undefined || qExecutiveBody === undefined || qSettings === undefined || qAchievements === undefined;
+
+  const rawSports = qSports ?? [];
+  const rawEvents = qEvents ?? [];
+  const rawFixtures = qFixtures ?? [];
+  const rawAchievements = qAchievements ?? [];
+  const rawExecutiveBody = qExecutiveBody ?? [];
+  const rawApplications = qApplications ?? [];
+  const rawStudents = qStudents ?? [];
+  const rawDocuments = qDocuments ?? [];
+  const rawGallery = qGallery ?? [];
+  const rawNotifications = qNotifications ?? [];
+  const rawUsers = qUsers ?? [];
+  const rawSettings = qSettings ?? {};
+  const rawAuditLogs = qAuditLogs ?? [];
+  const rawCoreValues = qCoreValues ?? [];
+  const rawRules = qRules ?? [];
+  const rawJntukPlayers = qJntukPlayers ?? [];
+
+  // ========== TRANSFORM DATA to match component expectations ==========
+
+  // Sports: components expect { id, name, category, image, description, coordinator, assistantCoordinator, teamDetails: { menCaptain, womenCaptain, venue } }
+  const sports = rawSports.map(s => ({
+    id: s._id,
+    name: s.name,
+    category: s.category,
+    image: s.imageUrl || "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800",
+    description: s.description,
+    coordinator: s.coordinator,
+    assistantCoordinator: s.assistantCoordinator,
+    teamDetails: {
+      menCaptain: s.menCaptain,
+      womenCaptain: s.womenCaptain,
+      venue: s.venue,
+    },
+  }));
+
+  // Events: components expect { id, title, category, sport, date, venue, status, description, image }
+  const events = rawEvents.map(e => ({
+    id: e._id,
+    title: e.title,
+    category: e.category || "Upcoming",
+    sport: e.sport || "",
+    date: e.date,
+    venue: e.venue,
+    status: e.status,
+    description: e.description,
+    image: e.imageUrl || "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800",
+    registrationLimit: e.registrationLimit,
+    registeredCount: e.registeredCount,
+    isPublished: e.isPublished,
+  }));
+
+  // Fixtures/Matches: components expect { id, tournament, team1, team2, score1, score2, result, date, status }
+  const fixtures = rawFixtures.map(f => ({
+    id: f._id,
+    tournament: f.tournament,
+    team1: f.team1,
+    team2: f.team2,
+    score1: f.score1,
+    score2: f.score2,
+    result: f.result,
+    date: f.date,
+    status: f.status,
+    overs: f.overs,
+    venue: f.venue,
+  }));
+
+  // Achievements: components expect { tallies: { gold, silver, bronze, trophies }, awards: [...] }
+  const achievementAwards = rawAchievements.map(a => ({
+    id: a._id,
+    title: a.title,
+    recipient: a.recipient,
+    category: a.category,
+    achievement: a.achievement,
+    image: a.imageUrl || "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600",
+    year: a.year,
+    medalType: a.medalType,
+  }));
+
+  const achievements = {
+    tallies: {
+      gold: rawSettings.tally_gold !== undefined ? Number(rawSettings.tally_gold) : 0,
+      silver: rawSettings.tally_silver !== undefined ? Number(rawSettings.tally_silver) : 0,
+      bronze: rawSettings.tally_bronze !== undefined ? Number(rawSettings.tally_bronze) : 0,
+      trophies: rawSettings.tally_trophies !== undefined ? Number(rawSettings.tally_trophies) : 0,
+      isLoaded: qSettings !== undefined,
+    },
+    awards: achievementAwards,
+  };
+
+  // Executive Body & Student Officers: components expect { id, name, position, department, photo, email, phone, memberType, displayOrder }
+  const executiveBody = rawExecutiveBody
+    .sort((a, b) => (a.displayOrder || 1) - (b.displayOrder || 1))
+    .map(e => ({
+      id: e._id,
+      name: e.name,
+      position: e.position,
+      department: e.department,
+      photo: e.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600",
+      email: e.email || "",
+      phone: e.phone || "",
+      memberType: e.memberType || "Executive Body",
+      displayOrder: e.displayOrder || 1,
+    }));
+
+  // Applications/Registrations: components expect { id, name, rollNumber, department, year, email, phone, preferredSports, status, appliedDate, remarks }
+  const applications = rawApplications.map(a => ({
+    id: a.trackingId,
+    _convexId: a._id,
+    name: a.studentName,
+    rollNumber: a.rollNumber,
+    department: a.department,
+    year: a.year,
+    email: a.email,
+    phone: a.phone,
+    preferredSports: a.preferredSports,
+    status: a.status,
+    appliedDate: a.appliedDate,
+    remarks: a.remarks,
+  }));
+
+  // Master Students Roster: components expect { id, name, rollNumber, department, year, section, email, phone, gender, sportId, status, createdAt }
+  const students = rawStudents.map(s => ({
+    id: s._id,
+    name: s.name,
+    rollNumber: s.rollNumber,
+    department: s.department,
+    year: s.year,
+    section: s.section || 'A',
+    email: s.email,
+    phone: s.phone,
+    gender: s.gender || 'Male',
+    sportId: s.sportId || 'Cricket',
+    status: s.status || 'Active',
+    createdAt: s.createdAt,
+  }));
+
+  // Documents: components expect { title, size, type, category }
+  const documents = rawDocuments.map(d => ({
+    id: d._id,
+    title: d.title,
+    size: d.fileSize,
+    type: d.fileType,
+    category: d.category,
+    downloadCount: d.downloadCount,
+    version: d.version,
+  }));
+
+  // Gallery: components expect { id, title, category, image, caption }
+  const gallery = rawGallery.map(g => ({
+    id: g._id,
+    title: g.title,
+    category: g.category,
+    image: g.imageUrl || "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=1000",
+    caption: g.caption,
+    mediaType: g.mediaType,
+  }));
+
+  // Notifications: components expect { id, title, message, type, time, isActive }
+  const notifications = rawNotifications.map(n => ({
+    id: n._id,
+    title: n.title,
+    message: n.message,
+    type: n.type,
+    time: getRelativeTime(n.createdAt),
+    isActive: n.isActive,
+  }));
+
+  // Users
+  const users = rawUsers.map(u => ({
+    id: u._id,
+    name: u.name,
+    email: u.email,
+    role: u.role,
+    isActive: u.isActive,
+    createdAt: u.createdAt,
+  }));
+
+  // Settings: transform to object format components expect
+  const settings = {
+    instituteName: rawSettings.instituteName || 'KKR & KSR Institute of Technology & Sciences',
+    campusAddress: rawSettings.campusAddress || 'Vinjanampadu, Vaddeswaram Post, Guntur - 522017, AP',
+    contactEmail: rawSettings.contactEmail || 'sports@kkrksr.ac.in',
+    contactPhone: rawSettings.contactPhone || '+91 91827 55664',
+    enableNotifications: rawSettings.enableNotifications !== 'false',
+    darkThemeDefault: rawSettings.darkThemeDefault === 'true',
+  };
+
+  // Audit Logs
+  const auditLogs = rawAuditLogs.map(l => ({
+    id: l._id,
+    userId: l.userId,
+    userEmail: l.userEmail,
+    action: l.action,
+    details: l.details,
+    timestamp: l.timestamp,
+  }));
+
+  // Core Values: sorted by displayOrder
+  const coreValues = rawCoreValues
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map(cv => ({
+      title: cv.title,
+      icon: cv.icon,
+      color: cv.color,
+      description: cv.description,
+    }));
+
+  // Rules: sorted by displayOrder
+  const rules = rawRules
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map(r => ({
+      chapter: r.chapter,
+      title: r.title,
+      content: r.content,
+    }));
+
+  // JNTUK Represented Players
+  const jntukPlayers = rawJntukPlayers.map(p => ({
+    id: p._id,
+    studentName: p.studentName,
+    rollNumber: p.rollNumber,
+    department: p.department,
+    sport: p.sport,
+    academicYear: p.academicYear,
+    tournamentName: p.tournamentName,
+    venueHost: p.venueHost || '',
+    photoUrl: p.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600",
+    achievementDetails: p.achievementDetails || '',
+    createdAt: p.createdAt,
+  }));
+
+  // ========== CONVEX MUTATIONS ==========
+  const loginMut = useMutation(api.users.login);
+  const createRegistration = useMutation(api.registrations.create);
+  const updateRegStatus = useMutation(api.registrations.updateStatus);
+  const removeRegistration = useMutation(api.registrations.remove);
+  const createStudentMut = useMutation(api.students.create);
+  const updateStudentMut = useMutation(api.students.update);
+  const removeStudentMut = useMutation(api.students.remove);
+  const createSport = useMutation(api.sports.create);
+  const updateSportMut = useMutation(api.sports.update);
+  const removeSport = useMutation(api.sports.remove);
+  const createEvent = useMutation(api.events.create);
+  const updateEventMut = useMutation(api.events.update);
+  const removeEvent = useMutation(api.events.remove);
+  const createMatch = useMutation(api.matches.create);
+  const updateMatchScore = useMutation(api.matches.updateScore);
+  const createAchievement = useMutation(api.achievements.create);
+  const removeAchievementMut = useMutation(api.achievements.remove);
+  const broadcastNotif = useMutation(api.notifications.broadcast);
+  const clearNotifAll = useMutation(api.notifications.clearAll);
+  const createDocument = useMutation(api.documents.create);
+  const createGalleryItem = useMutation(api.gallery.create);
+  const removeGalleryItemMut = useMutation(api.gallery.remove);
+  const removeFixtureMut = useMutation(api.matches.remove);
+  const clearAllFixturesMut = useMutation(api.matches.clearAll);
+  const createUser = useMutation(api.users.create);
+  const toggleUserActiveMut = useMutation(api.users.toggleActive);
+  const createExecutiveMemberMut = useMutation(api.executiveMembers.create);
+  const updateExecutiveMemberMut = useMutation(api.executiveMembers.update);
+  const removeExecutiveMemberMut = useMutation(api.executiveMembers.remove);
+  const createJntukPlayerMut = useMutation(api.jntukPlayers.create);
+  const updateJntukPlayerMut = useMutation(api.jntukPlayers.update);
+  const removeJntukPlayerMut = useMutation(api.jntukPlayers.remove);
+
+  // ========== HELPER: Audit Log ==========
+  const logAction = async (action, details) => {
     if (!currentUser) return;
-    const newLog = {
-      id: `log-${Date.now()}`,
-      userId: currentUser.id,
-      userEmail: currentUser.email,
-      action,
-      details,
-      timestamp: new Date().toLocaleString()
-    };
-    setAuditLogs(prev => [newLog, ...prev]);
-  };
-
-  // --- Auth Actions ---
-  const login = (email, password) => {
-    // Default admin check or registered user check
-    const foundUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (foundUser && (password === 'Admin@123456' || password === 'admin' || password.length >= 5)) {
-      if (!foundUser.isActive) {
-        throw new Error('User account is currently suspended.');
-      }
-      setCurrentUser(foundUser);
-      logAction('LOGIN', `User ${foundUser.email} logged into Admin Console.`);
-      return foundUser;
+    try {
+      await createAuditLog({
+        userId: currentUser.id,
+        userEmail: currentUser.email,
+        action,
+        details,
+      });
+    } catch (e) {
+      console.error("Audit log error:", e);
     }
-    throw new Error('Invalid email address or password.');
   };
 
-  const logout = () => {
+  // ========== AUTH ACTIONS ==========
+  const login = async (email, password) => {
+    try {
+      const user = await loginMut({ email, password });
+      setCurrentUser(user);
+      // Log after setting user manually since logAction checks currentUser
+      try {
+        await createAuditLog({
+          userId: user.id,
+          userEmail: user.email,
+          action: 'LOGIN',
+          details: `User ${user.email} logged into Admin Console.`,
+        });
+      } catch (e) {
+        console.error("Login audit error:", e);
+      }
+      return user;
+    } catch (err) {
+      throw new Error(err.message || 'Invalid email address or password.');
+    }
+  };
+
+  const logout = async () => {
     if (currentUser) {
-      logAction('LOGOUT', `User ${currentUser.email} logged out.`);
+      await logAction('LOGOUT', `User ${currentUser.email} logged out.`);
     }
     setCurrentUser(null);
   };
 
-  // --- Public Real-time Actions ---
-  const addStudentApplication = (appData) => {
-    const randomId = `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newApp = {
-      id: randomId,
-      ...appData,
-      status: "Pending",
-      appliedDate: new Date().toISOString().split('T')[0],
-      remarks: "Application received. Physical trial date will be notified via SMS."
-    };
-    setApplications(prev => [newApp, ...prev]);
-    return randomId;
+  // ========== PUBLIC ACTIONS ==========
+  const addStudentApplication = async (appData) => {
+    try {
+      const trackingId = await createRegistration({
+        studentName: appData.name,
+        rollNumber: appData.rollNumber,
+        department: appData.department,
+        year: appData.year,
+        email: appData.email,
+        phone: appData.phone,
+        preferredSports: appData.preferredSports,
+        status: appData.status || undefined,
+        remarks: appData.remarks || undefined,
+      });
+      return trackingId;
+    } catch (err) {
+      console.error("Registration error:", err);
+      return `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+    }
   };
 
-  // --- Admin CRUD Actions ---
-  const updateApplicationStatus = (id, newStatus, remarks) => {
-    setApplications(prev => prev.map(a => a.id === id ? { ...a, status: newStatus, remarks: remarks || a.remarks } : a));
-    logAction('UPDATE_APPLICATION_STATUS', `Application ${id} status updated to ${newStatus}.`);
+  // ========== ADMIN CRUD ACTIONS ==========
+  const updateApplicationStatus = async (id, newStatus, remarks) => {
+    const app = applications.find(a => a.id === id || a._convexId === id);
+    const targetId = app ? app._convexId : id;
+    if (targetId) {
+      await updateRegStatus({ id: targetId, status: newStatus, remarks: remarks || undefined });
+      await logAction('UPDATE_APPLICATION_STATUS', `Application ${id} status updated to ${newStatus}.`);
+    }
   };
 
-  const deleteApplication = (id) => {
-    setApplications(prev => prev.filter(a => a.id !== id));
-    logAction('DELETE_APPLICATION', `Application ${id} deleted.`);
+  const deleteApplication = async (id) => {
+    const app = applications.find(a => a.id === id || a._convexId === id);
+    const targetId = app ? app._convexId : id;
+    if (targetId) {
+      await removeRegistration({ id: targetId });
+      await logAction('DELETE_APPLICATION', `Application ${id} deleted.`);
+    }
+  };
+
+  // Master Student Directory CRUD
+  const addStudentMaster = async (studentData) => {
+    const newId = await createStudentMut({
+      name: studentData.name,
+      rollNumber: studentData.rollNumber,
+      department: studentData.department,
+      year: studentData.year,
+      section: studentData.section || 'A',
+      email: studentData.email,
+      phone: studentData.phone,
+      gender: studentData.gender || 'Male',
+      sportId: studentData.sportId || studentData.preferredSports?.[0] || 'Cricket',
+      status: studentData.status || 'Active',
+    });
+    await logAction('ADD_STUDENT_MASTER', `Added master student record: ${studentData.name} (${studentData.rollNumber})`);
+    return newId;
+  };
+
+  const updateStudentMaster = async (id, studentData) => {
+    await updateStudentMut({
+      id,
+      name: studentData.name,
+      rollNumber: studentData.rollNumber,
+      department: studentData.department,
+      year: studentData.year,
+      section: studentData.section,
+      email: studentData.email,
+      phone: studentData.phone,
+      gender: studentData.gender,
+      sportId: studentData.sportId || studentData.preferredSports?.[0],
+      status: studentData.status,
+    });
+    await logAction('UPDATE_STUDENT_MASTER', `Updated master student record ID: ${id}`);
+  };
+
+  const deleteStudentMaster = async (id) => {
+    await removeStudentMut({ id });
+    await logAction('DELETE_STUDENT_MASTER', `Deleted master student record ID: ${id}`);
   };
 
   // Sports CRUD
-  const addSport = (sportData) => {
-    setSports(prev => [...prev, { id: `sport-${Date.now()}`, ...sportData }]);
-    logAction('ADD_SPORT', `Added new sport: ${sportData.name}`);
+  const addSport = async (sportData) => {
+    await createSport({
+      name: sportData.name,
+      category: sportData.category,
+      description: sportData.description,
+      coordinator: sportData.coordinator,
+      assistantCoordinator: sportData.assistantCoordinator,
+      menCaptain: sportData.menCaptain || sportData.teamDetails?.menCaptain,
+      womenCaptain: sportData.womenCaptain || sportData.teamDetails?.womenCaptain,
+      venue: sportData.venue || sportData.teamDetails?.venue || "KKR and KSR Sports Ground",
+      imageUrl: sportData.image || sportData.imageUrl,
+    });
+    await logAction('ADD_SPORT', `Added new sport: ${sportData.name}`);
   };
 
-  const updateSport = (id, sportData) => {
-    setSports(prev => prev.map(s => s.id === id ? { ...s, ...sportData } : s));
-    logAction('UPDATE_SPORT', `Updated sport ID: ${id}`);
+  const updateSport = async (id, sportData) => {
+    const updates = {};
+    if (sportData.name !== undefined) updates.name = sportData.name;
+    if (sportData.category !== undefined) updates.category = sportData.category;
+    if (sportData.description !== undefined) updates.description = sportData.description;
+    if (sportData.coordinator !== undefined) updates.coordinator = sportData.coordinator;
+    if (sportData.assistantCoordinator !== undefined) updates.assistantCoordinator = sportData.assistantCoordinator;
+    if (sportData.menCaptain !== undefined) updates.menCaptain = sportData.menCaptain;
+    if (sportData.womenCaptain !== undefined) updates.womenCaptain = sportData.womenCaptain;
+    if (sportData.venue !== undefined) updates.venue = sportData.venue;
+    if (sportData.image !== undefined) updates.imageUrl = sportData.image;
+    if (sportData.imageUrl !== undefined) updates.imageUrl = sportData.imageUrl;
+
+    await updateSportMut({ id, ...updates });
+    await logAction('UPDATE_SPORT', `Updated sport ID: ${id}`);
   };
 
-  const deleteSport = (id) => {
-    setSports(prev => prev.filter(s => s.id !== id));
-    logAction('DELETE_SPORT', `Deleted sport ID: ${id}`);
+  const deleteSport = async (id) => {
+    await removeSport({ id });
+    await logAction('DELETE_SPORT', `Deleted sport ID: ${id}`);
   };
 
   // Events CRUD
-  const addEvent = (eventData) => {
-    setEvents(prev => [{ id: `evt-${Date.now()}`, registeredCount: 0, isPublished: true, ...eventData }, ...prev]);
-    logAction('ADD_EVENT', `Added new event: ${eventData.title}`);
+  const addEvent = async (eventData) => {
+    await createEvent({
+      title: eventData.title,
+      description: eventData.description,
+      date: eventData.date,
+      venue: eventData.venue,
+      sport: eventData.sport,
+      category: eventData.category,
+      imageUrl: eventData.image || eventData.imageUrl,
+      registrationLimit: eventData.registrationLimit,
+      status: eventData.status || "Upcoming",
+      isPublished: eventData.isPublished ?? true,
+    });
+    await logAction('ADD_EVENT', `Added new event: ${eventData.title}`);
   };
 
-  const updateEvent = (id, eventData) => {
-    setEvents(prev => prev.map(e => e.id === id ? { ...e, ...eventData } : e));
-    logAction('UPDATE_EVENT', `Updated event ID: ${id}`);
+  const updateEvent = async (id, eventData) => {
+    const updates = {};
+    if (eventData.title !== undefined) updates.title = eventData.title;
+    if (eventData.description !== undefined) updates.description = eventData.description;
+    if (eventData.date !== undefined) updates.date = eventData.date;
+    if (eventData.venue !== undefined) updates.venue = eventData.venue;
+    if (eventData.sport !== undefined) updates.sport = eventData.sport;
+    if (eventData.category !== undefined) updates.category = eventData.category;
+    if (eventData.image !== undefined) updates.imageUrl = eventData.image;
+    if (eventData.imageUrl !== undefined) updates.imageUrl = eventData.imageUrl;
+    if (eventData.status !== undefined) updates.status = eventData.status;
+    if (eventData.isPublished !== undefined) updates.isPublished = eventData.isPublished;
+    if (eventData.registrationLimit !== undefined) updates.registrationLimit = eventData.registrationLimit;
+    if (eventData.registeredCount !== undefined) updates.registeredCount = eventData.registeredCount;
+
+    await updateEventMut({ id, ...updates });
+    await logAction('UPDATE_EVENT', `Updated event ID: ${id}`);
   };
 
-  const deleteEvent = (id) => {
-    setEvents(prev => prev.filter(e => e.id !== id));
-    logAction('DELETE_EVENT', `Deleted event ID: ${id}`);
+  const deleteEvent = async (id) => {
+    await removeEvent({ id });
+    await logAction('DELETE_EVENT', `Deleted event ID: ${id}`);
   };
 
   // Live Scores Management
-  const updateFixtureScore = (id, score1, score2, status, overs, result) => {
-    setFixtures(prev => prev.map(f => f.id === id ? {
-      ...f,
-      score1: score1 !== undefined ? score1 : f.score1,
-      score2: score2 !== undefined ? score2 : f.score2,
-      status: status || f.status,
-      overs: overs || f.overs,
-      result: result || f.result
-    } : f));
-    logAction('UPDATE_SCORE', `Updated live match scores for ID: ${id}`);
+  const updateFixtureScore = async (id, score1, score2, status, overs, result) => {
+    const updates = {};
+    if (score1 !== undefined) updates.score1 = score1;
+    if (score2 !== undefined) updates.score2 = score2;
+    if (status) updates.status = status;
+    if (overs) updates.overs = overs;
+    if (result) updates.result = result;
+
+    await updateMatchScore({ id, ...updates });
+    await logAction('UPDATE_SCORE', `Updated live match scores for ID: ${id}`);
   };
 
-  const addFixture = (fixtureData) => {
-    setFixtures(prev => [{ id: `fix-${Date.now()}`, status: 'LIVE', ...fixtureData }, ...prev]);
-    logAction('ADD_FIXTURE', `Created new match: ${fixtureData.team1} vs ${fixtureData.team2}`);
+  const addFixture = async (fixtureData) => {
+    await createMatch({
+      tournament: fixtureData.tournament,
+      team1: fixtureData.team1,
+      team2: fixtureData.team2,
+      score1: fixtureData.score1 || "0",
+      score2: fixtureData.score2 || "0",
+      result: fixtureData.result || "Match in progress",
+      date: fixtureData.date,
+      status: fixtureData.status || "LIVE",
+      venue: fixtureData.venue,
+    });
+    await logAction('ADD_FIXTURE', `Created new match: ${fixtureData.team1} vs ${fixtureData.team2}`);
   };
 
-  // Achievements CRUD
-  const addAchievement = (awardData) => {
-    setAchievements(prev => ({
-      ...prev,
-      awards: [awardData, ...prev.awards]
-    }));
-    logAction('ADD_ACHIEVEMENT', `Added achievement: ${awardData.title}`);
+  // Achievements
+  const addAchievement = async (awardData) => {
+    await createAchievement({
+      title: awardData.title,
+      recipient: awardData.recipient,
+      category: awardData.category,
+      achievement: awardData.achievement,
+      imageUrl: awardData.image || awardData.imageUrl,
+      year: awardData.year,
+      medalType: awardData.medalType,
+    });
+    await logAction('ADD_ACHIEVEMENT', `Added achievement: ${awardData.title}`);
   };
 
-  // Notifications Broadcaster
-  const broadcastNotification = (text, type = 'Announcement') => {
-    const newNotif = {
-      id: `notif-${Date.now()}`,
+  const deleteAchievement = async (id) => {
+    await removeAchievementMut({ id });
+    await logAction('DELETE_ACHIEVEMENT', `Deleted achievement ID: ${id}`);
+  };
+
+  // Notifications
+  const broadcastNotification = async (text, type = 'Announcement') => {
+    await broadcastNotif({
       title: type,
       message: text,
       type,
-      time: 'Just now',
-      isActive: true
-    };
-    setNotifications(prev => [newNotif, ...prev]);
-    logAction('BROADCAST_NOTIFICATION', `Broadcast alert: ${text}`);
+    });
+    await logAction('BROADCAST_NOTIFICATION', `Broadcast alert: ${text}`);
   };
 
-  const clearNotifications = () => {
-    setNotifications([]);
+  const clearNotifications = async () => {
+    await clearNotifAll({});
   };
 
-  // Documents Management
-  const addDocument = (docData) => {
-    setDocuments(prev => [...prev, { downloadCount: 0, version: '1.0', ...docData }]);
-    logAction('ADD_DOCUMENT', `Uploaded document: ${docData.title}`);
+  // Documents
+  const addDocument = async (docData) => {
+    await createDocument({
+      title: docData.title,
+      category: docData.category,
+      fileSize: docData.size || docData.fileSize || "0 KB",
+      fileType: docData.type || docData.fileType || "PDF Document",
+    });
+    await logAction('ADD_DOCUMENT', `Uploaded document: ${docData.title}`);
   };
 
-  // Gallery Management
-  const addGalleryItem = (itemData) => {
-    setGallery(prev => [{ id: `g-${Date.now()}`, ...itemData }, ...prev]);
-    logAction('ADD_GALLERY_ITEM', `Uploaded media to gallery: ${itemData.title}`);
+  // Gallery
+  const addGalleryItem = async (itemData) => {
+    await createGalleryItem({
+      title: itemData.title,
+      category: itemData.category,
+      imageUrl: itemData.image || itemData.imageUrl,
+      caption: itemData.caption || "",
+      mediaType: itemData.mediaType || "Image",
+    });
+    await logAction('ADD_GALLERY_ITEM', `Uploaded media to gallery: ${itemData.title}`);
+  };
+
+  const deleteGalleryItem = async (id) => {
+    await removeGalleryItemMut({ id });
+    await logAction('DELETE_GALLERY_ITEM', `Deleted gallery item ID: ${id}`);
+  };
+
+  // Fixtures / Live Matches
+  const deleteFixture = async (id) => {
+    await removeFixtureMut({ id });
+    await logAction('DELETE_FIXTURE', `Deleted fixture ID: ${id}`);
+  };
+
+  const deleteAllFixtures = async () => {
+    await clearAllFixturesMut({});
+    await logAction('DELETE_ALL_FIXTURES', 'Deleted all live matches');
+  };
+
+  // Executive Members & Student Officers Management
+  const addExecutiveMember = async (memberData) => {
+    await createExecutiveMemberMut({
+      name: memberData.name,
+      position: memberData.position,
+      department: memberData.department,
+      email: memberData.email,
+      phone: memberData.phone,
+      photoUrl: memberData.photo || memberData.photoUrl,
+      memberType: memberData.memberType || 'Executive Body',
+      displayOrder: Number(memberData.displayOrder) || 1,
+    });
+    await logAction('ADD_EXECUTIVE_MEMBER', `Added officer/member: ${memberData.name}`);
+  };
+
+  const updateExecutiveMember = async (id, memberData) => {
+    await updateExecutiveMemberMut({
+      id,
+      name: memberData.name,
+      position: memberData.position,
+      department: memberData.department,
+      email: memberData.email,
+      phone: memberData.phone,
+      photoUrl: memberData.photo || memberData.photoUrl,
+      memberType: memberData.memberType,
+      displayOrder: Number(memberData.displayOrder) || 1,
+    });
+    await logAction('UPDATE_EXECUTIVE_MEMBER', `Updated member ID: ${id}`);
+  };
+
+  const deleteExecutiveMember = async (id) => {
+    await removeExecutiveMemberMut({ id });
+    await logAction('DELETE_EXECUTIVE_MEMBER', `Deleted member ID: ${id}`);
+  };
+
+  // JNTUK Represented Players Management
+  const addJntukPlayer = async (playerData) => {
+    await createJntukPlayerMut({
+      studentName: playerData.studentName,
+      rollNumber: playerData.rollNumber,
+      department: playerData.department,
+      sport: playerData.sport,
+      academicYear: playerData.academicYear,
+      tournamentName: playerData.tournamentName,
+      venueHost: playerData.venueHost || '',
+      photoUrl: playerData.photo || playerData.photoUrl,
+      achievementDetails: playerData.achievementDetails || '',
+    });
+    await logAction('ADD_JNTUK_PLAYER', `Added JNTUK Athlete: ${playerData.studentName} (${playerData.academicYear})`);
+  };
+
+  const updateJntukPlayer = async (id, playerData) => {
+    await updateJntukPlayerMut({
+      id,
+      studentName: playerData.studentName,
+      rollNumber: playerData.rollNumber,
+      department: playerData.department,
+      sport: playerData.sport,
+      academicYear: playerData.academicYear,
+      tournamentName: playerData.tournamentName,
+      venueHost: playerData.venueHost,
+      photoUrl: playerData.photo || playerData.photoUrl,
+      achievementDetails: playerData.achievementDetails,
+    });
+    await logAction('UPDATE_JNTUK_PLAYER', `Updated JNTUK Athlete ID: ${id}`);
+  };
+
+  const deleteJntukPlayer = async (id) => {
+    await removeJntukPlayerMut({ id });
+    await logAction('DELETE_JNTUK_PLAYER', `Deleted JNTUK Athlete ID: ${id}`);
   };
 
   // User & RBAC Management
-  const addUser = (userData) => {
-    const newUser = { id: `usr-${Date.now()}`, isActive: true, createdAt: new Date().toISOString().split('T')[0], ...userData };
-    setUsers(prev => [...prev, newUser]);
-    logAction('ADD_USER', `Created admin user: ${userData.email} (${userData.role})`);
+  const addUser = async (userData) => {
+    await createUser({
+      name: userData.name,
+      email: userData.email,
+      passwordHash: userData.passwordHash || 'Admin@123456',
+      role: userData.role,
+    });
+    await logAction('ADD_USER', `Created admin user: ${userData.email} (${userData.role})`);
   };
 
-  const toggleUserActive = (id) => {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, isActive: !u.isActive } : u));
-    logAction('TOGGLE_USER_STATUS', `Toggled status for user ID: ${id}`);
+  const toggleUserActive = async (id) => {
+    await toggleUserActiveMut({ id });
+    await logAction('TOGGLE_USER_STATUS', `Toggled status for user ID: ${id}`);
   };
 
   // Settings
-  const updateSettings = (newSettings) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
-    logAction('UPDATE_SETTINGS', 'System settings updated.');
+  const updateSettings = async (newSettings) => {
+    const settingsArray = Object.entries(newSettings).map(([key, value]) => ({
+      key,
+      value: String(value),
+    }));
+    await updateSettingsBatch({ settings: settingsArray });
+    await logAction('UPDATE_SETTINGS', 'System settings updated.');
   };
 
   return (
     <ConvexStateContext.Provider value={{
+      isLoading,
       currentUser,
       users,
       sports,
@@ -239,17 +716,24 @@ export function ConvexStateProvider({ children }) {
       fixtures,
       achievements,
       executiveBody,
+      jntukPlayers,
       applications,
+      students,
       documents,
       gallery,
       notifications,
       settings,
       auditLogs,
+      coreValues,
+      rules,
       login,
       logout,
       addStudentApplication,
       updateApplicationStatus,
       deleteApplication,
+      addStudentMaster,
+      updateStudentMaster,
+      deleteStudentMaster,
       addSport,
       updateSport,
       deleteSport,
@@ -258,11 +742,18 @@ export function ConvexStateProvider({ children }) {
       deleteEvent,
       updateFixtureScore,
       addFixture,
+      deleteFixture,
+      deleteAllFixtures,
       addAchievement,
+      deleteAchievement,
       broadcastNotification,
       clearNotifications,
       addDocument,
       addGalleryItem,
+      deleteGalleryItem,
+      addExecutiveMember,
+      updateExecutiveMember,
+      deleteExecutiveMember,
       addUser,
       toggleUserActive,
       updateSettings
@@ -278,4 +769,22 @@ export function useConvexState() {
     throw new Error('useConvexState must be used within a ConvexStateProvider');
   }
   return context;
+}
+
+// Helper: Get relative time string
+function getRelativeTime(isoString) {
+  if (!isoString) return 'Just now';
+  const now = new Date();
+  const date = new Date(isoString);
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins} mins ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  return date.toLocaleDateString();
 }

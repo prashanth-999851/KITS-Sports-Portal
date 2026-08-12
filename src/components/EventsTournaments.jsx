@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
+import { CardSkeleton } from './LoadingSkeleton';
 import { Calendar, MapPin, Trophy, ArrowRight } from 'lucide-react';
 
 export default function EventsTournaments({ onRegisterEvent }) {
-  const { events, fixtures } = useConvexState();
+  const { events, fixtures, isLoading } = useConvexState();
   const [activeTab, setActiveTab] = useState("Upcoming");
   const [bracketSport, setBracketSport] = useState("Cricket");
 

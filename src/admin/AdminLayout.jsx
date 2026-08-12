@@ -43,6 +43,7 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
     { path: '/admin/events', label: 'Events & Matches', icon: Calendar },
     { path: '/admin/live-scores', label: 'Live Scores', icon: Activity, badge: 'LIVE' },
     { path: '/admin/achievements', label: 'Achievements', icon: Award },
+    { path: '/admin/jntuk-players', label: 'JNTUK Representation', icon: ShieldCheck },
     { path: '/admin/executive-body', label: 'Executive Body', icon: Sparkles },
     { path: '/admin/documents', label: 'Document Center', icon: FileText },
     { path: '/admin/gallery', label: 'Media Gallery', icon: Image },

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ButtonSpinner } from './LoadingSkeleton';
 import { X, CheckCircle2, Trophy, Send } from 'lucide-react';
 
 export default function RegistrationModal({ sportName, eventName, isOpen, onClose, onAddApplication }) {
@@ -6,32 +7,33 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
     name: "",
     rollNumber: "",
     department: "CSE",
-    year: "1st Year",
+    year: "2nd Year",
     email: "",
     phone: ""
   });
   const [submitted, setSubmitted] = useState(false);
   const [trackingId, setTrackingId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
   const targetName = sportName || eventName || "Sports Club";
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const id = `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    setTrackingId(id);
-
-    onAddApplication({
-      id,
-      ...formData,
-      preferredSports: [targetName],
-      status: "Pending",
-      appliedDate: new Date().toISOString().split('T')[0],
-      remarks: `Direct registration for ${targetName}. Practice trial invite sent via SMS.`
-    });
-
-    setSubmitted(true);
+    setIsSubmitting(true);
+    try {
+      const generatedId = await onAddApplication({
+        ...formData,
+        preferredSports: [targetName],
+      });
+      setTrackingId(generatedId || `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Registration error:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -91,12 +93,23 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Roll Number *</label>
-                  <input type="text" required placeholder="23KK1A0589"
-                    value={formData.rollNumber}
-                    onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
+                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Year of Study *</label>
+                  <select
+                    value={formData.year}
+                    onChange={(e) => {
+                      const newYear = e.target.value;
+                      const validDepts = newYear === '4th Year' 
+                        ? ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD']
+                        : ['CSE', 'IT', 'ECE', 'EEE', 'CSM', 'CSD'];
+                      const newDept = validDepts.includes(formData.department) ? formData.department : 'CSE';
+                      setFormData({ ...formData, year: newYear, department: newDept });
+                    }}
                     className={inputClass}
-                  />
+                  >
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Department *</label>
@@ -105,13 +118,39 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                     className={inputClass}
                   >
-                    <option value="CSE">CSE</option>
-                    <option value="ECE">ECE</option>
-                    <option value="EEE">EEE</option>
-                    <option value="Mechanical">Mechanical</option>
-                    <option value="Civil">Civil</option>
-                    <option value="IT">IT</option>
-                    <option value="AI&DS">AI&DS</option>
+                    {(formData.year === '4th Year' 
+                      ? ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD']
+                      : ['CSE', 'IT', 'ECE', 'EEE', 'CSM', 'CSD']
+                    ).map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Roll Number *</label>
+                  <input type="text" required placeholder="23KK1A0589"
+                    value={formData.rollNumber}
+                    onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Section *</label>
+                  <select
+                    value={formData.section || "1"}
+                    onChange={(e) => setFormData({ ...formData, section: e.target.value })}
+                    className={inputClass}
+                  >
+                    {(formData.year === '4th Year' ? (formData.department === 'CSM' ? ['1'] : ['1','2','3']) :
+                      formData.department === 'CSE' ? ['1','2','3','4','5','6','7','8'] :
+                      formData.department === 'IT' ? ['1','2'] :
+                      formData.department === 'CSM' ? (formData.year === '2nd Year' ? ['1','2','3','4','5','6'] : ['1','2','3']) :
+                      formData.department === 'EEE' ? ['1'] : ['1','2','3']).map(sec => (
+                      <option key={sec} value={sec}>Section {sec}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -138,10 +177,17 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-lg font-semibold text-xs bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+              className="w-full py-2.5 rounded-lg font-semibold text-xs bg-[#1E3A8A] hover:bg-[#1E40AF] disabled:opacity-50 text-white transition-colors flex items-center justify-center gap-2"
             >
-              <Send className="w-3.5 h-3.5" />
-              <span>Submit Registration</span>
+              {isSubmitting ? (
+                <ButtonSpinner text="Registering..." />
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Submit Registration</span>
+                </>
+              )}
             </button>
           </form>
         )}

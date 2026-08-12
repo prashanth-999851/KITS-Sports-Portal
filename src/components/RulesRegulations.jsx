@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { RULES_CONSTITUTION } from '../data/mockData';
+import { useConvexState } from '../context/ConvexStateContext';
 import { ArrowLeft, BookOpen, Download, FileText, ChevronRight, CheckCircle, Search, Printer, ShieldCheck, Copy, Check } from 'lucide-react';
 
 export default function RulesRegulations({ onBack }) {
+  const { rules: RULES_CONSTITUTION } = useConvexState();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");

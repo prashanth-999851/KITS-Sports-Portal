@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
-import { GALLERY_CATEGORIES } from '../data/mockData';
 import { Maximize2, X } from 'lucide-react';
 
 export default function Gallery() {
@@ -8,6 +7,8 @@ export default function Gallery() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [lightboxImage, setLightboxImage] = useState(null);
 
+  // Derive categories dynamically from gallery data
+  const GALLERY_CATEGORIES = ["All", ...new Set(gallery.map(item => item.category).filter(Boolean))];
   const filteredItems = activeCategory === "All"
     ? gallery
     : gallery.filter(item => item.category === activeCategory);

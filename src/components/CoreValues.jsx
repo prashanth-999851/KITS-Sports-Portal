@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CORE_VALUES } from '../data/mockData';
+import { useConvexState } from '../context/ConvexStateContext';
 import { Users, ShieldCheck, Award, Crown, Trophy, HeartHandshake, Activity, CheckCircle2, X } from 'lucide-react';
 
 const iconMap = {
@@ -14,6 +14,7 @@ const iconMap = {
 };
 
 export default function CoreValues() {
+  const { coreValues: CORE_VALUES } = useConvexState();
   const [selectedValue, setSelectedValue] = useState(null);
 
   return (

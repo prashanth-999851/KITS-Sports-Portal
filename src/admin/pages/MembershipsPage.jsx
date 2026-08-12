@@ -1,9 +1,11 @@
 import React from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
+import { TableRowSkeleton } from '../../components/LoadingSkeleton';
+import EmptyState from '../../components/EmptyState';
 import { UserCheck, CheckCircle2, XCircle, Clock, AlertCircle } from 'lucide-react';
 
 export default function MembershipsPage() {
-  const { applications, updateApplicationStatus } = useConvexState();
+  const { applications, updateApplicationStatus, isLoading } = useConvexState();
 
   return (
     <div className="space-y-6">
@@ -32,7 +34,16 @@ export default function MembershipsPage() {
       <div className="p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
         <h3 className="text-sm font-bold text-[var(--text-primary)]">Membership Review Queue</h3>
 
-        <div className="overflow-x-auto">
+        {isLoading ? (
+          <TableRowSkeleton rows={5} />
+        ) : applications.length === 0 ? (
+          <EmptyState
+            title="No Membership Applications"
+            description="There are currently no student membership applications in the review queue."
+            icon={UserCheck}
+          />
+        ) : (
+          <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-[var(--bg-card-subtle)] text-[var(--text-muted)] uppercase font-bold border-b border-[var(--border-color)]">
               <tr>
@@ -85,6 +96,7 @@ export default function MembershipsPage() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

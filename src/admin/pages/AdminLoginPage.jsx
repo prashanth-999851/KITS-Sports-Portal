@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useConvexState } from '../../context/ConvexStateContext';
+import { ButtonSpinner } from '../../components/LoadingSkeleton';
 import { Lock, Mail, ShieldCheck, Eye, EyeOff, KeyRound, AlertCircle } from 'lucide-react';
 
 export default function AdminLoginPage() {
@@ -8,25 +9,29 @@ export default function AdminLoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [mode, setMode] = useState('login'); // 'login', 'forgot', 'reset'
+  const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('admin@kitsports.ac.in');
   const [password, setPassword] = useState('Admin@123456');
   const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const from = location.state?.from?.pathname || '/admin/dashboard';
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setIsLoggingIn(true);
     try {
-      login(email, password);
+      await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || 'Failed to authenticate.');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -119,9 +124,14 @@ export default function AdminLoginPage() {
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-lg text-xs font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors shadow-md"
+                disabled={isLoggingIn}
+                className="w-full py-3 rounded-lg text-xs font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] disabled:opacity-50 text-white transition-colors shadow-md flex items-center justify-center"
               >
-                Authenticate & Access Console
+                {isLoggingIn ? (
+                  <ButtonSpinner text="Authenticating..." />
+                ) : (
+                  <span>Authenticate & Access Console</span>
+                )}
               </button>
 
               {/* Demo Credentials Box */}

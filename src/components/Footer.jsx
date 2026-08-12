@@ -32,7 +32,7 @@ export default function Footer({ setActiveSection }) {
           <div className="space-y-2">
             <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Navigation</h5>
             <ul className="space-y-1.5">
-              {['home', 'about', 'sports', 'executive', 'events', 'achievements'].map((sec) => (
+              {['home', 'about', 'sports', 'executive', 'achievements'].map((sec) => (
                 <li key={sec}>
                   <button
                     onClick={() => {
@@ -56,8 +56,7 @@ export default function Footer({ setActiveSection }) {
                 { id: 'membership', label: 'Membership Portal' },
                 { id: 'gallery', label: 'Gallery' },
                 { id: 'rules', label: 'Constitution' },
-                { id: 'contact', label: 'Contact Us' },
-                { id: 'admin', label: 'Admin Portal' }
+                { id: 'contact', label: 'Contact Us' }
               ].map((item) => (
                 <li key={item.id}>
                   <button

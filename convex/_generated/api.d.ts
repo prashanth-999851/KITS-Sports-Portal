@@ -1,0 +1,81 @@
+/* eslint-disable */
+/**
+ * Generated `api` utility.
+ *
+ * THIS CODE IS AUTOMATICALLY GENERATED.
+ *
+ * To regenerate, run `npx convex dev`.
+ * @module
+ */
+
+import type * as achievements from "../achievements.js";
+import type * as auditLogs from "../auditLogs.js";
+import type * as coreValues from "../coreValues.js";
+import type * as documents from "../documents.js";
+import type * as events from "../events.js";
+import type * as executiveMembers from "../executiveMembers.js";
+import type * as gallery from "../gallery.js";
+import type * as jntukPlayers from "../jntukPlayers.js";
+import type * as matches from "../matches.js";
+import type * as notifications from "../notifications.js";
+import type * as registrations from "../registrations.js";
+import type * as rules from "../rules.js";
+import type * as seed from "../seed.js";
+import type * as settings from "../settings.js";
+import type * as sports from "../sports.js";
+import type * as students from "../students.js";
+import type * as users from "../users.js";
+
+import type {
+  ApiFromModules,
+  FilterApi,
+  FunctionReference,
+} from "convex/server";
+
+declare const fullApi: ApiFromModules<{
+  achievements: typeof achievements;
+  auditLogs: typeof auditLogs;
+  coreValues: typeof coreValues;
+  documents: typeof documents;
+  events: typeof events;
+  executiveMembers: typeof executiveMembers;
+  gallery: typeof gallery;
+  jntukPlayers: typeof jntukPlayers;
+  matches: typeof matches;
+  notifications: typeof notifications;
+  registrations: typeof registrations;
+  rules: typeof rules;
+  seed: typeof seed;
+  settings: typeof settings;
+  sports: typeof sports;
+  students: typeof students;
+  users: typeof users;
+}>;
+
+/**
+ * A utility for referencing Convex functions in your app's public API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
+export declare const api: FilterApi<
+  typeof fullApi,
+  FunctionReference<any, "public">
+>;
+
+/**
+ * A utility for referencing Convex functions in your app's internal API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = internal.myModule.myFunction;
+ * ```
+ */
+export declare const internal: FilterApi<
+  typeof fullApi,
+  FunctionReference<any, "internal">
+>;
+
+export declare const components: {};

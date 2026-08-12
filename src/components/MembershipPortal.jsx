@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
-import { SPORTS_LIST } from '../data/mockData';
+import { useConvexState } from '../context/ConvexStateContext';
+import { ButtonSpinner } from './LoadingSkeleton';
 import { UserCheck, Search, CheckCircle2, AlertCircle, FileText, Send } from 'lucide-react';
 
 export default function MembershipPortal({ applications, onAddApplication }) {
+  const { sports: SPORTS_LIST } = useConvexState();
   const [activeTab, setActiveTab] = useState("Apply");
   const [trackingCode, setTrackingCode] = useState("");
   const [trackedApp, setTrackedApp] = useState(null);
   const [searchAttempted, setSearchAttempted] = useState(false);
   const [submittedCode, setSubmittedCode] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
     rollNumber: "",
     department: "CSE",
-    year: "1st Year",
+    year: "2nd Year",
     email: "",
     phone: "",
     preferredSports: []
@@ -30,41 +33,71 @@ export default function MembershipPortal({ applications, onAddApplication }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.preferredSports.length === 0) {
       alert("Please select at least one preferred sport.");
       return;
     }
 
-    const randomId = `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newApp = {
-      id: randomId,
-      ...formData,
-      status: "Pending",
-      appliedDate: new Date().toISOString().split('T')[0],
-      remarks: "Application received. Physical trial date will be notified via SMS."
-    };
-
-    onAddApplication(newApp);
-    setSubmittedCode(randomId);
-
-    setFormData({
-      name: "",
-      rollNumber: "",
-      department: "CSE",
-      year: "1st Year",
-      email: "",
-      phone: "",
-      preferredSports: []
-    });
+    setIsSubmitting(true);
+    try {
+      const trackingId = await onAddApplication(formData);
+      setSubmittedCode(trackingId || `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+      setFormData({
+        name: "",
+        rollNumber: "",
+        department: "CSE",
+        year: "1st Year",
+        email: "",
+        phone: "",
+        preferredSports: []
+      });
+    } catch (err) {
+      console.error("Submission error:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const { students = [] } = useConvexState();
 
   const handleTrackSearch = (e) => {
     e.preventDefault();
     setSearchAttempted(true);
-    const found = applications.find(a => a.id.toLowerCase().trim() === trackingCode.toLowerCase().trim());
-    setTrackedApp(found || null);
+    const code = trackingCode.toLowerCase().trim();
+    
+    // Check applications first
+    const foundApp = applications.find(a => 
+      (a.id && a.id.toLowerCase().trim() === code) || 
+      (a.rollNumber && a.rollNumber.toLowerCase().trim() === code)
+    );
+
+    if (foundApp) {
+      setTrackedApp(foundApp);
+      return;
+    }
+
+    // Check master students roster next
+    const foundStudent = students.find(s => 
+      (s.rollNumber && s.rollNumber.toLowerCase().trim() === code) ||
+      (s.email && s.email.toLowerCase().trim() === code)
+    );
+
+    if (foundStudent) {
+      setTrackedApp({
+        id: foundStudent.rollNumber,
+        name: foundStudent.name,
+        rollNumber: foundStudent.rollNumber,
+        department: foundStudent.department,
+        year: foundStudent.year,
+        preferredSports: [foundStudent.sportId],
+        status: foundStudent.status === 'Active' ? 'Approved' : foundStudent.status,
+        remarks: `Official registered athlete in ${foundStudent.sportId} squad. Status: ${foundStudent.status}.`
+      });
+    } else {
+      setTrackedApp(null);
+    }
   };
 
   const inputClass = "w-full px-3.5 py-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors";
@@ -159,33 +192,53 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                     />
                   </div>
                   <div>
+                    <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Year of Study *</label>
+                    <select
+                      value={formData.year}
+                      onChange={(e) => {
+                        const newYear = e.target.value;
+                        const validDepts = newYear === '4th Year' 
+                          ? ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD']
+                          : ['CSE', 'IT', 'ECE', 'EEE', 'CSM', 'CSD'];
+                        const newDept = validDepts.includes(formData.department) ? formData.department : 'CSE';
+                        setFormData({ ...formData, year: newYear, department: newDept });
+                      }}
+                      className={inputClass}
+                    >
+                      <option value="2nd Year">2nd Year</option>
+                      <option value="3rd Year">3rd Year</option>
+                      <option value="4th Year">4th Year</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Department *</label>
                     <select
                       value={formData.department}
                       onChange={(e) => setFormData({ ...formData, department: e.target.value })}
                       className={inputClass}
                     >
-                      <option value="CSE">CSE (Computer Science)</option>
-                      <option value="ECE">ECE (Electronics & Comm)</option>
-                      <option value="EEE">EEE (Electrical & Electronics)</option>
-                      <option value="Mechanical">Mechanical Engineering</option>
-                      <option value="Civil">Civil Engineering</option>
-                      <option value="IT">Information Technology</option>
-                      <option value="AI&DS">AI & Data Science</option>
-                      <option value="MBA/MCA">MBA / MCA</option>
+                      {(formData.year === '4th Year'
+                        ? ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD']
+                        : ['CSE', 'IT', 'ECE', 'EEE', 'CSM', 'CSD']
+                      ).map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Year of Study *</label>
+                    <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Section *</label>
                     <select
-                      value={formData.year}
-                      onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                      value={formData.section || "1"}
+                      onChange={(e) => setFormData({ ...formData, section: e.target.value })}
                       className={inputClass}
                     >
-                      <option value="1st Year">1st Year</option>
-                      <option value="2nd Year">2nd Year</option>
-                      <option value="3rd Year">3rd Year</option>
-                      <option value="4th Year">4th Year</option>
+                      {(formData.year === '4th Year' ? (formData.department === 'CSM' ? ['1'] : ['1','2','3']) :
+                        formData.department === 'CSE' ? ['1','2','3','4','5','6','7','8'] :
+                        formData.department === 'IT' ? ['1','2'] :
+                        formData.department === 'CSM' ? (formData.year === '2nd Year' ? ['1','2','3','4','5','6'] : ['1','2','3']) :
+                        formData.department === 'EEE' ? ['1'] : ['1','2','3']).map(sec => (
+                        <option key={sec} value={sec}>Section {sec}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -234,10 +287,17 @@ export default function MembershipPortal({ applications, onAddApplication }) {
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-lg text-sm font-semibold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors flex items-center justify-center gap-2"
+                  disabled={isSubmitting}
+                  className="w-full py-3 rounded-lg text-sm font-semibold bg-[#1E3A8A] hover:bg-[#1E40AF] disabled:opacity-50 text-white transition-colors flex items-center justify-center gap-2"
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Submit Application</span>
+                  {isSubmitting ? (
+                    <ButtonSpinner text="Submitting Application..." />
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Submit Application</span>
+                    </>
+                  )}
                 </button>
               </form>
             )}

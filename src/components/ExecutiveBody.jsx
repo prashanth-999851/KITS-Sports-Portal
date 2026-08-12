@@ -1,9 +1,10 @@
 import React from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
+import { CardSkeleton } from './LoadingSkeleton';
 import { Mail, Phone, Building } from 'lucide-react';
 
 export default function ExecutiveBody() {
-  const { executiveBody } = useConvexState();
+  const { executiveBody, isLoading } = useConvexState();
 
   return (
     <section id="executive" className="py-20 bg-[var(--bg-card-subtle)] transition-colors border-t border-[var(--border-color)]">
@@ -21,7 +22,10 @@ export default function ExecutiveBody() {
         </div>
 
         {/* Leadership Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {isLoading ? (
+          <CardSkeleton count={6} />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {executiveBody.map((member, idx) => (
             <div
               key={idx}
@@ -89,6 +93,7 @@ export default function ExecutiveBody() {
             </div>
           ))}
         </div>
+        )}
 
       </div>
     </section>
