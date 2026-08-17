@@ -3,8 +3,9 @@ import { useConvexState } from '../../context/ConvexStateContext';
 import { useToast } from '../../context/ToastContext';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
+import { compressImage } from '../../utils/imageCompressor';
 import { 
-  Users, Plus, Edit, Trash2, X, Mail, Phone, Building, UserCheck, Shield, Sparkles, Filter, CheckCircle, Loader2
+  Users, Plus, Edit, Trash2, X, Mail, Phone, Building, UserCheck, Shield, Loader2
 } from 'lucide-react';
 
 export default function ExecutiveAdminPage() {
@@ -330,7 +331,7 @@ export default function ExecutiveAdminPage() {
                 <input 
                   type="text" 
                   required 
-                  placeholder="e.g. M. Sai Charan" 
+                  placeholder="Enter full name" 
                   value={formData.name} 
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
                   className={inputClass} 
@@ -343,7 +344,7 @@ export default function ExecutiveAdminPage() {
                   <input 
                     type="text" 
                     required 
-                    placeholder="e.g. President / Sports Director" 
+                    placeholder="Enter designation / position" 
                     value={formData.position} 
                     onChange={(e) => setFormData({ ...formData, position: e.target.value })} 
                     className={inputClass} 
@@ -374,7 +375,7 @@ export default function ExecutiveAdminPage() {
                   <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Email Address</label>
                   <input 
                     type="email" 
-                    placeholder="name@kkrksr.ac.in" 
+                    placeholder="Enter email address" 
                     value={formData.email} 
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })} 
                     className={inputClass} 
@@ -384,7 +385,7 @@ export default function ExecutiveAdminPage() {
                   <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Phone Number</label>
                   <input 
                     type="tel" 
-                    placeholder="+91 9876543210" 
+                    placeholder="Enter phone number" 
                     value={formData.phone} 
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
                     className={inputClass} 
@@ -401,14 +402,15 @@ export default function ExecutiveAdminPage() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setFormData(prev => ({ ...prev, photo: reader.result }));
-                        };
-                        reader.readAsDataURL(file);
+                        try {
+                          const compressed = await compressImage(file);
+                          setFormData(prev => ({ ...prev, photo: compressed }));
+                        } catch (err) {
+                          alert("Failed to process image: " + err.message);
+                        }
                       }
                     }}
                     className="w-full text-xs text-[var(--text-secondary)] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-500/10 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer"

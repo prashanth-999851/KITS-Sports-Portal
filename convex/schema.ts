@@ -17,6 +17,15 @@ export default defineSchema({
     createdAt: v.string(),
   }).index("by_email", ["email"]),
 
+  sessions: defineTable({
+    userId: v.id("users"),
+    token: v.string(),
+    createdAt: v.string(),
+    expiresAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_user", ["userId"]),
+
   students: defineTable({
     name: v.string(),
     rollNumber: v.string(),
@@ -38,6 +47,7 @@ export default defineSchema({
     description: v.string(),
     coordinator: v.string(),
     assistantCoordinator: v.optional(v.string()),
+    asstFacultyCoordinator: v.optional(v.string()),
     menCaptain: v.optional(v.string()),
     womenCaptain: v.optional(v.string()),
     venue: v.string(),
@@ -52,9 +62,11 @@ export default defineSchema({
     rollNumber: v.string(),
     department: v.string(),
     year: v.string(),
+    section: v.optional(v.string()),
+    gender: v.optional(v.string()),
     email: v.string(),
     phone: v.string(),
-    preferredSports: v.array(v.string()),
+    preferredSports: v.union(v.array(v.string()), v.string()),
     status: v.string(),
     remarks: v.string(),
     appliedDate: v.string(),
@@ -89,17 +101,6 @@ export default defineSchema({
     photoUrl: v.optional(v.string()),
     memberType: v.optional(v.string()),
     displayOrder: v.number(),
-  }),
-
-  documents: defineTable({
-    title: v.string(),
-    category: v.string(),
-    fileStorageId: v.optional(v.string()),
-    fileSize: v.string(),
-    fileType: v.string(),
-    downloadCount: v.optional(v.number()),
-    version: v.optional(v.string()),
-    createdAt: v.optional(v.string()),
   }),
 
   gallery: defineTable({

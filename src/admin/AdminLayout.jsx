@@ -3,19 +3,13 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useConvexState } from '../context/ConvexStateContext';
 import { 
   LayoutDashboard, 
-  Users, 
   UserCheck, 
   Trophy, 
-  Calendar, 
-  Activity, 
   Award, 
   Sparkles, 
-  FileText, 
   Image, 
   Bell, 
   ShieldCheck, 
-  FileSpreadsheet, 
-  Settings, 
   LogOut, 
   Menu, 
   X, 
@@ -37,18 +31,14 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
 
   const navItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/admin/students', label: 'Students', icon: Users },
     { path: '/admin/memberships', label: 'Memberships', icon: UserCheck },
     { path: '/admin/sports', label: 'Sports Panels', icon: Trophy },
     { path: '/admin/achievements', label: 'Achievements', icon: Award },
     { path: '/admin/jntuk-players', label: 'JNTUK Representation', icon: ShieldCheck },
     { path: '/admin/executive-body', label: 'Executive Body', icon: Sparkles },
-    { path: '/admin/documents', label: 'Document Center', icon: FileText },
     { path: '/admin/gallery', label: 'Media Gallery', icon: Image },
     { path: '/admin/notifications', label: 'Notifications', icon: Bell },
-    { path: '/admin/users', label: 'User & RBAC', icon: ShieldCheck, roles: ['Super Admin'] },
-    { path: '/admin/reports', label: 'Reports', icon: FileSpreadsheet },
-    { path: '/admin/settings', label: 'Settings', icon: Settings }
+    { path: '/admin/users', label: 'Admin & RBAC', icon: ShieldCheck, roles: ['Super Admin'] },
   ];
 
   return (
@@ -72,7 +62,7 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
           {/* Header Logo */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-4">
             <div className="flex items-center gap-3">
-              <img src="/assets/images/logo.png" alt="KITS Logo" className="w-8 h-8 rounded-lg border border-slate-700" onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=100"; }} />
+              <img src="/logo.png" alt="KITS Logo" className="h-8 w-auto object-contain" />
               <div>
                 <h2 className="text-sm font-bold text-white leading-none">KITS Admin</h2>
                 <p className="text-[10px] text-amber-400 font-semibold mt-0.5">Management Portal</p>

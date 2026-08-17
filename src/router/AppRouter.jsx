@@ -18,18 +18,14 @@ import AdminLayout from '../admin/AdminLayout';
 // Admin Pages
 import AdminLoginPage from '../admin/pages/AdminLoginPage';
 import DashboardPage from '../admin/pages/DashboardPage';
-import StudentsPage from '../admin/pages/StudentsPage';
 import MembershipsPage from '../admin/pages/MembershipsPage';
 import SportsAdminPage from '../admin/pages/SportsAdminPage';
 import AchievementsAdminPage from '../admin/pages/AchievementsAdminPage';
 import ExecutiveAdminPage from '../admin/pages/ExecutiveAdminPage';
 import JntukPlayersAdminPage from '../admin/pages/JntukPlayersAdminPage';
-import DocumentsAdminPage from '../admin/pages/DocumentsAdminPage';
 import GalleryAdminPage from '../admin/pages/GalleryAdminPage';
 import NotificationsAdminPage from '../admin/pages/NotificationsAdminPage';
 import UsersAdminPage from '../admin/pages/UsersAdminPage';
-import ReportsAdminPage from '../admin/pages/ReportsAdminPage';
-import SettingsAdminPage from '../admin/pages/SettingsAdminPage';
 import { ToastProvider } from '../context/ToastContext';
 import NotFoundPage from '../pages/NotFoundPage';
 
@@ -49,8 +45,6 @@ export default function AppRouter({ darkMode, setDarkMode }) {
 
             {/* Admin Auth Routes */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/admin/forgot-password" element={<AdminLoginPage />} />
-            <Route path="/admin/reset-password" element={<AdminLoginPage />} />
 
             {/* Protected Admin Console Routes */}
             <Route
@@ -63,13 +57,11 @@ export default function AppRouter({ darkMode, setDarkMode }) {
             >
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="students" element={<StudentsPage />} />
               <Route path="memberships" element={<MembershipsPage />} />
               <Route path="sports" element={<SportsAdminPage />} />
               <Route path="achievements" element={<AchievementsAdminPage />} />
               <Route path="jntuk-players" element={<JntukPlayersAdminPage />} />
               <Route path="executive-body" element={<ExecutiveAdminPage />} />
-              <Route path="documents" element={<DocumentsAdminPage />} />
               <Route path="gallery" element={<GalleryAdminPage />} />
               <Route path="notifications" element={<NotificationsAdminPage />} />
               <Route path="users" element={
@@ -77,8 +69,6 @@ export default function AppRouter({ darkMode, setDarkMode }) {
                   <UsersAdminPage />
                 </ProtectedRoute>
               } />
-              <Route path="reports" element={<ReportsAdminPage />} />
-              <Route path="settings" element={<SettingsAdminPage />} />
             </Route>
 
             {/* Fallback 404 Route */}

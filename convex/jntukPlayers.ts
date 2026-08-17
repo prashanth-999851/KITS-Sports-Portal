@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin, sessionToken } from "./auth";
 
 export const list = query({
   args: {},
@@ -10,6 +11,7 @@ export const list = query({
 
 export const create = mutation({
   args: {
+    sessionToken,
     studentName: v.string(),
     rollNumber: v.string(),
     department: v.string(),
@@ -22,8 +24,10 @@ export const create = mutation({
     achievementDetails: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
+    const { sessionToken: _sessionToken, ...fields } = args;
     return await ctx.db.insert("jntukPlayers", {
-      ...args,
+      ...fields,
       createdAt: new Date().toISOString(),
     });
   },
@@ -31,6 +35,7 @@ export const create = mutation({
 
 export const update = mutation({
   args: {
+    sessionToken,
     id: v.id("jntukPlayers"),
     studentName: v.optional(v.string()),
     rollNumber: v.optional(v.string()),
@@ -44,14 +49,16 @@ export const update = mutation({
     achievementDetails: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    await requireAdmin(ctx, args.sessionToken);
+    const { id, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(id, updates);
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("jntukPlayers") },
+  args: { sessionToken, id: v.id("jntukPlayers") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     await ctx.db.delete(args.id);
   },
 });

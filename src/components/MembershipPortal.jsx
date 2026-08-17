@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
 import { ButtonSpinner } from './LoadingSkeleton';
-import { UserCheck, Search, CheckCircle2, AlertCircle, FileText, Send } from 'lucide-react';
+import { CheckCircle2, AlertCircle, FileText, Send } from 'lucide-react';
+
+const DEFAULT_SPORTS = [
+  "Cricket", "Volleyball", "Basketball", "Badminton",
+  "Football", "Kabaddi", "Table Tennis", "Chess",
+  "Athletics", "Throwball", "Kho-Kho"
+];
 
 export default function MembershipPortal({ applications, onAddApplication }) {
-  const { sports: SPORTS_LIST } = useConvexState();
+  const { sports: rawSports = [] } = useConvexState();
   const [activeTab, setActiveTab] = useState("Apply");
   const [trackingCode, setTrackingCode] = useState("");
   const [trackedApp, setTrackedApp] = useState(null);
@@ -12,46 +18,58 @@ export default function MembershipPortal({ applications, onAddApplication }) {
   const [submittedCode, setSubmittedCode] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Merge loaded sports with fallback to ensure options are always available
+  const availableSports = rawSports.length > 0 
+    ? rawSports.map(s => typeof s === 'string' ? s : s.name).filter(Boolean)
+    : DEFAULT_SPORTS;
+
   const [formData, setFormData] = useState({
     name: "",
     rollNumber: "",
     department: "CSE",
     year: "2nd Year",
+    gender: "Male",
+    section: "Section 1",
     email: "",
     phone: "",
-    preferredSports: []
+    selectedSport: ""
   });
 
-  const handleSportToggle = (sportName) => {
-    setFormData(prev => {
-      const exists = prev.preferredSports.includes(sportName);
-      if (exists) {
-        return { ...prev, preferredSports: prev.preferredSports.filter(s => s !== sportName) };
-      } else {
-        return { ...prev, preferredSports: [...prev.preferredSports, sportName] };
-      }
-    });
+  const handleSportSelect = (sportName) => {
+    setFormData(prev => ({ ...prev, selectedSport: sportName }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.preferredSports.length === 0) {
-      alert("Please select at least one preferred sport.");
+    if (!formData.selectedSport) {
+      alert("Please select your preferred sport discipline.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const trackingId = await onAddApplication(formData);
+      const trackingId = await onAddApplication({
+        name: formData.name,
+        rollNumber: formData.rollNumber,
+        department: formData.department,
+        year: formData.year,
+        gender: formData.gender || "Male",
+        section: formData.section || "Section 1",
+        email: formData.email,
+        phone: formData.phone,
+        preferredSports: [formData.selectedSport]
+      });
       setSubmittedCode(trackingId || `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`);
       setFormData({
         name: "",
         rollNumber: "",
         department: "CSE",
-        year: "1st Year",
+        year: "2nd Year",
+        gender: "Male",
+        section: "Section 1",
         email: "",
         phone: "",
-        preferredSports: []
+        selectedSport: ""
       });
     } catch (err) {
       console.error("Submission error:", err);
@@ -103,37 +121,38 @@ export default function MembershipPortal({ applications, onAddApplication }) {
   const inputClass = "w-full px-3.5 py-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-colors";
 
   return (
-    <section id="membership" className="py-20 bg-[var(--bg-card-subtle)] transition-colors border-t border-[var(--border-color)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+    <section id="membership" className="py-12 sm:py-16 bg-[var(--bg-card-subtle)] transition-colors">
+      <div className="section-divider" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-10">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <p className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Student Gateway</p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)]">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--secondary)] dark:text-blue-400">Student Gateway</p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] section-accent">
             Membership <span className="accent-text">Portal</span>
           </h2>
-          <p className="text-[var(--text-secondary)] text-sm">
+          <p className="text-[var(--text-secondary)] text-sm leading-relaxed pt-2">
             Register as an official Sports Club member, select your sports preferences, and track application status.
           </p>
 
           {/* Tabs */}
-          <div className="flex justify-center gap-3 pt-3">
+          <div className="flex justify-center gap-3 pt-4">
             <button
               onClick={() => setActiveTab("Apply")}
-              className={`px-5 py-2 rounded-lg font-semibold text-xs transition-colors ${
+              className={`px-5 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 ${
                 activeTab === "Apply" 
-                  ? 'bg-[#1E3A8A] text-white shadow-sm' 
-                  : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-color)]'
+                  ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20' 
+                  : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-color)] hover:border-[var(--border-hover)] hover:shadow-sm'
               }`}
             >
               Apply for Membership
             </button>
             <button
               onClick={() => setActiveTab("Track")}
-              className={`px-5 py-2 rounded-lg font-semibold text-xs transition-colors ${
+              className={`px-5 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 ${
                 activeTab === "Track" 
-                  ? 'bg-[#1E3A8A] text-white shadow-sm' 
-                  : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-color)]'
+                  ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20' 
+                  : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-color)] hover:border-[var(--border-hover)] hover:shadow-sm'
               }`}
             >
               Track Application
@@ -176,7 +195,7 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                   <div>
                     <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Full Name *</label>
                     <input
-                      type="text" required placeholder="e.g. M. Sai Charan"
+                      type="text" required placeholder="Enter your full name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className={inputClass}
@@ -185,7 +204,7 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                   <div>
                     <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Roll Number *</label>
                     <input
-                      type="text" required placeholder="e.g. 23KK1A0589"
+                      type="text" required placeholder="Enter your roll number"
                       value={formData.rollNumber}
                       onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
                       className={inputClass}
@@ -207,7 +226,6 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                     >
                       <option value="2nd Year">2nd Year</option>
                       <option value="3rd Year">3rd Year</option>
-                      <option value="4th Year">4th Year</option>
                     </select>
                   </div>
                   <div>
@@ -226,25 +244,35 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                     </select>
                   </div>
                   <div>
+                    <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Gender *</label>
+                    <select
+                      value={formData.gender || "Male"}
+                      onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                      className={inputClass}
+                    >
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Section *</label>
                     <select
-                      value={formData.section || "1"}
+                      value={formData.section || "Section 1"}
                       onChange={(e) => setFormData({ ...formData, section: e.target.value })}
                       className={inputClass}
                     >
-                      {(formData.year === '4th Year' ? (formData.department === 'CSM' ? ['1'] : ['1','2','3']) :
-                        formData.department === 'CSE' ? ['1','2','3','4','5','6','7','8'] :
+                      {(formData.department === 'CSE' ? ['1','2','3','4','5','6','7','8'] :
                         formData.department === 'IT' ? ['1','2'] :
-                        formData.department === 'CSM' ? (formData.year === '2nd Year' ? ['1','2','3','4','5','6'] : ['1','2','3']) :
+                        formData.department === 'CSM' ? ['1','2','3','4','5','6'] :
                         formData.department === 'EEE' ? ['1'] : ['1','2','3']).map(sec => (
-                        <option key={sec} value={sec}>Section {sec}</option>
+                        <option key={sec} value={`Section ${sec}`}>Section {sec}</option>
                       ))}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Institute Email *</label>
                     <input
-                      type="email" required placeholder="name@kkrksr.ac.in"
+                      type="email" required placeholder="Enter your institutional email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className={inputClass}
@@ -253,7 +281,7 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                   <div>
                     <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Phone Number *</label>
                     <input
-                      type="tel" required placeholder="9876543210"
+                      type="tel" required placeholder="Enter your phone number"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className={inputClass}
@@ -262,23 +290,38 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                 </div>
 
                 {/* Sport Selection */}
-                <div className="space-y-2">
-                  <label className="block text-xs font-semibold text-[var(--text-secondary)]">Select Preferred Sports (1 or more) *</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {SPORTS_LIST.map((s) => {
-                      const selected = formData.preferredSports.includes(s.name);
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-[var(--text-secondary)]">
+                      Select Preferred Sport <span className="text-[var(--text-muted)] font-normal">(Choose 1 discipline)</span> *
+                    </label>
+                    {formData.selectedSport && (
+                      <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
+                        Selected: {formData.selectedSport}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                    {availableSports.map((sportName, idx) => {
+                      const selected = formData.selectedSport === sportName;
                       return (
                         <button
-                          key={s.id}
+                          key={idx}
                           type="button"
-                          onClick={() => handleSportToggle(s.name)}
-                          className={`p-2 rounded-lg text-xs font-medium border transition-colors ${
+                          onClick={() => handleSportSelect(sportName)}
+                          className={`p-3 rounded-xl text-xs font-medium border transition-all flex items-center justify-between cursor-pointer ${
                             selected
-                              ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-500/40'
-                              : 'bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[var(--border-hover)]'
+                              ? 'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500 dark:border-blue-400 shadow-md ring-2 ring-blue-500/40 font-bold scale-[1.02]'
+                              : 'bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border-[var(--border-color)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-card)]'
                           }`}
                         >
-                          {s.name}
+                          <span className="truncate">{sportName}</span>
+                          {selected ? (
+                            <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0 ml-1.5"></span>
+                          ) : (
+                            <span className="w-2.5 h-2.5 rounded-full border border-[var(--border-color)] shrink-0 ml-1.5"></span>
+                          )}
                         </button>
                       );
                     })}
@@ -308,11 +351,11 @@ export default function MembershipPortal({ applications, onAddApplication }) {
         {activeTab === "Track" && (
           <div className="max-w-2xl mx-auto p-7 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-sm space-y-5">
             <h3 className="text-base font-bold text-[var(--text-primary)] border-b border-[var(--border-color)] pb-3">Track Application Status</h3>
-            <p className="text-xs text-[var(--text-muted)]">Enter your tracking ID (e.g., KKR-2026-8942) to view trial dates & approval status.</p>
+            <p className="text-xs text-[var(--text-muted)]">Enter your Application Tracking ID or Student Roll Number to view trial dates & approval status.</p>
 
             <form onSubmit={handleTrackSearch} className="flex gap-2">
               <input
-                type="text" required placeholder="e.g. KKR-2026-8942"
+                type="text" required placeholder="Enter Application ID or Roll No."
                 value={trackingCode}
                 onChange={(e) => setTrackingCode(e.target.value)}
                 className={`flex-1 uppercase font-mono tracking-wider ${inputClass}`}
@@ -324,18 +367,6 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                 Search
               </button>
             </form>
-
-            {/* Hint */}
-            <div className="p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-xs text-[var(--text-muted)] flex items-center justify-between">
-              <span>Try: <code className="text-blue-700 dark:text-blue-400 font-mono font-semibold">KKR-2026-8942</code></span>
-              <button
-                type="button"
-                onClick={() => setTrackingCode("KKR-2026-8942")}
-                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
-              >
-                Auto-fill
-              </button>
-            </div>
 
             {searchAttempted && (
               <div className="pt-4 border-t border-[var(--border-color)]">

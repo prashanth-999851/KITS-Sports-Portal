@@ -1,9 +1,11 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin, sessionToken } from "./auth";
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { sessionToken },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     return await ctx.db.query("registrations").collect();
   },
 });
@@ -24,9 +26,11 @@ export const create = mutation({
     rollNumber: v.string(),
     department: v.string(),
     year: v.string(),
+    section: v.optional(v.string()),
+    gender: v.optional(v.string()),
     email: v.string(),
     phone: v.string(),
-    preferredSports: v.array(v.string()),
+    preferredSports: v.union(v.array(v.string()), v.string()),
     status: v.optional(v.string()),
     remarks: v.optional(v.string()),
   },
@@ -38,11 +42,13 @@ export const create = mutation({
       rollNumber: args.rollNumber,
       department: args.department,
       year: args.year,
+      section: args.section || "",
+      gender: args.gender || "Male",
       email: args.email,
       phone: args.phone,
       preferredSports: args.preferredSports,
       status: args.status || "Pending",
-      remarks: args.remarks || "Application received. Physical trial date will be notified via SMS.",
+      remarks: args.remarks || "",
       appliedDate: new Date().toISOString().split("T")[0],
     });
     return trackingId;
@@ -51,63 +57,78 @@ export const create = mutation({
 
 export const updateStatus = mutation({
   args: {
-    id: v.id("registrations"),
+    sessionToken,
+    id: v.string(),
     status: v.string(),
     remarks: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
+    let targetDocId: any = args.id;
+    if (args.id.startsWith("KKR-")) {
+      const doc = await ctx.db
+        .query("registrations")
+        .withIndex("by_trackingId", (q) => q.eq("trackingId", args.id))
+        .first();
+      if (doc) targetDocId = doc._id;
+    }
     const updates: { status: string; remarks?: string } = { status: args.status };
     if (args.remarks !== undefined) {
       updates.remarks = args.remarks;
     }
-    await ctx.db.patch(args.id, updates);
+    await ctx.db.patch(targetDocId, updates);
+  },
+});
 
-    // If status is Approved, auto-sync to master students table
-    if (args.status === 'Approved') {
-      const reg = await ctx.db.get(args.id);
-      if (reg) {
-        const existingStudent = await ctx.db
-          .query("students")
-          .withIndex("by_rollNumber", (q) => q.eq("rollNumber", reg.rollNumber))
-          .first();
-
-        const sportName = Array.isArray(reg.preferredSports) && reg.preferredSports.length > 0
-          ? reg.preferredSports[0]
-          : "General Athletics";
-
-        if (existingStudent) {
-          await ctx.db.patch(existingStudent._id, {
-            name: reg.studentName,
-            department: reg.department,
-            year: reg.year,
-            email: reg.email,
-            phone: reg.phone,
-            sportId: sportName,
-            status: "Active",
-          });
-        } else {
-          await ctx.db.insert("students", {
-            name: reg.studentName,
-            rollNumber: reg.rollNumber,
-            department: reg.department,
-            year: reg.year,
-            section: "A",
-            email: reg.email,
-            phone: reg.phone,
-            gender: "Not Specified",
-            sportId: sportName,
-            status: "Active",
-            createdAt: new Date().toISOString(),
-          });
-        }
+export const update = mutation({
+  args: {
+    sessionToken,
+    id: v.string(),
+    studentName: v.optional(v.string()),
+    rollNumber: v.optional(v.string()),
+    department: v.optional(v.string()),
+    year: v.optional(v.string()),
+    section: v.optional(v.string()),
+    gender: v.optional(v.string()),
+    email: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    preferredSports: v.optional(v.union(v.array(v.string()), v.string())),
+    status: v.optional(v.string()),
+    remarks: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
+    const { id, sessionToken: _, ...updates } = args;
+    let targetDocId: any = id;
+    if (id.startsWith("KKR-")) {
+      const doc = await ctx.db
+        .query("registrations")
+        .withIndex("by_trackingId", (q) => q.eq("trackingId", id))
+        .first();
+      if (doc) targetDocId = doc._id;
+    }
+    const patchData: Record<string, any> = {};
+    for (const [key, value] of Object.entries(updates)) {
+      if (value !== undefined) {
+        patchData[key] = value;
       }
     }
+    await ctx.db.patch(targetDocId, patchData);
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("registrations") },
+  args: { sessionToken, id: v.string() },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.id);
+    await requireAdmin(ctx, args.sessionToken);
+    let targetDocId: any = args.id;
+    if (args.id.startsWith("KKR-")) {
+      const doc = await ctx.db
+        .query("registrations")
+        .withIndex("by_trackingId", (q) => q.eq("trackingId", args.id))
+        .first();
+      if (doc) targetDocId = doc._id;
+    }
+    await ctx.db.delete(targetDocId);
   },
 });

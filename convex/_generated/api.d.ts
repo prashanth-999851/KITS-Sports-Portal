@@ -10,8 +10,8 @@
 
 import type * as achievements from "../achievements.js";
 import type * as auditLogs from "../auditLogs.js";
+import type * as auth from "../auth.js";
 import type * as coreValues from "../coreValues.js";
-import type * as documents from "../documents.js";
 import type * as executiveMembers from "../executiveMembers.js";
 import type * as gallery from "../gallery.js";
 import type * as jntukPlayers from "../jntukPlayers.js";
@@ -32,8 +32,8 @@ import type {
 declare const fullApi: ApiFromModules<{
   achievements: typeof achievements;
   auditLogs: typeof auditLogs;
+  auth: typeof auth;
   coreValues: typeof coreValues;
-  documents: typeof documents;
   executiveMembers: typeof executiveMembers;
   gallery: typeof gallery;
   jntukPlayers: typeof jntukPlayers;

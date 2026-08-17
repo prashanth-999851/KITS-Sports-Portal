@@ -1,7 +1,6 @@
 import React, { useState, useEffect, Component } from 'react';
 import AppRouter from './router/AppRouter';
 
-// Error Boundary to catch runtime crashes and display a useful error instead of a blank blue screen
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
@@ -18,48 +17,52 @@ class ErrorBoundary extends Component {
   }
 
   render() {
+    const showTechnicalDetails = import.meta.env.DEV;
+
     if (this.state.hasError) {
       return (
-        <div style={{ 
-          padding: '40px', 
-          fontFamily: 'Inter, system-ui, sans-serif', 
-          backgroundColor: '#F8FAFC', 
+        <div style={{
+          padding: '40px',
+          fontFamily: 'Inter, system-ui, sans-serif',
+          backgroundColor: '#F8FAFC',
           minHeight: '100vh',
           color: '#0F172A'
         }}>
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px', color: '#DC2626' }}>
-            ⚠️ Something went wrong
+            Something went wrong
           </h1>
           <p style={{ marginBottom: '12px', fontSize: '14px', color: '#475569' }}>
-            The application encountered a runtime error. Check the browser console (F12 → Console) for details.
+            The application encountered a runtime error. Please reload the page or contact the sports office if the issue continues.
           </p>
-          <pre style={{ 
-            padding: '16px', 
-            backgroundColor: '#1E293B', 
-            color: '#F87171', 
-            borderRadius: '8px', 
-            fontSize: '12px', 
-            overflow: 'auto',
-            maxHeight: '300px',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word'
-          }}>
-            {this.state.error && this.state.error.toString()}
-            {'\n\n'}
-            {this.state.errorInfo && this.state.errorInfo.componentStack}
-          </pre>
+          {showTechnicalDetails && (
+            <pre style={{
+              padding: '16px',
+              backgroundColor: '#1E293B',
+              color: '#F87171',
+              borderRadius: '8px',
+              fontSize: '12px',
+              overflow: 'auto',
+              maxHeight: '300px',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word'
+            }}>
+              {this.state.error && this.state.error.toString()}
+              {'\n\n'}
+              {this.state.errorInfo && this.state.errorInfo.componentStack}
+            </pre>
+          )}
           <button
             onClick={() => window.location.reload()}
-            style={{ 
-              marginTop: '20px', 
-              padding: '10px 24px', 
-              backgroundColor: '#1E3A8A', 
-              color: 'white', 
-              border: 'none', 
-              borderRadius: '8px', 
-              fontSize: '14px', 
-              fontWeight: '600', 
-              cursor: 'pointer' 
+            style={{
+              marginTop: '20px',
+              padding: '10px 24px',
+              backgroundColor: '#1E3A8A',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: '600',
+              cursor: 'pointer'
             }}
           >
             Reload Page
@@ -67,6 +70,7 @@ class ErrorBoundary extends Component {
         </div>
       );
     }
+
     return this.props.children;
   }
 }

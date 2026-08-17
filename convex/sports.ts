@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin, sessionToken } from "./auth";
 
 export const list = query({
   args: {},
@@ -17,11 +18,13 @@ export const getById = query({
 
 export const create = mutation({
   args: {
+    sessionToken,
     name: v.string(),
     category: v.string(),
     description: v.string(),
     coordinator: v.string(),
     assistantCoordinator: v.optional(v.string()),
+    asstFacultyCoordinator: v.optional(v.string()),
     menCaptain: v.optional(v.string()),
     womenCaptain: v.optional(v.string()),
     venue: v.string(),
@@ -30,18 +33,22 @@ export const create = mutation({
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("sports", args);
+    await requireAdmin(ctx, args.sessionToken);
+    const { sessionToken: _sessionToken, ...fields } = args;
+    return await ctx.db.insert("sports", fields);
   },
 });
 
 export const update = mutation({
   args: {
+    sessionToken,
     id: v.id("sports"),
     name: v.optional(v.string()),
     category: v.optional(v.string()),
     description: v.optional(v.string()),
     coordinator: v.optional(v.string()),
     assistantCoordinator: v.optional(v.string()),
+    asstFacultyCoordinator: v.optional(v.string()),
     menCaptain: v.optional(v.string()),
     womenCaptain: v.optional(v.string()),
     venue: v.optional(v.string()),
@@ -50,14 +57,16 @@ export const update = mutation({
     imageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    await requireAdmin(ctx, args.sessionToken);
+    const { id, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(id, updates);
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("sports") },
+  args: { sessionToken, id: v.id("sports") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     await ctx.db.delete(args.id);
   },
 });

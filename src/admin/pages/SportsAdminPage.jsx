@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
-import { Trophy, Plus, Edit, Trash2, MapPin, User, X, Image as ImageIcon, Upload, Loader2 } from 'lucide-react';
+import { Trophy, Plus, Edit, Trash2, MapPin, X, Upload, Loader2 } from 'lucide-react';
+import { compressImage } from '../../utils/imageCompressor';
 
 export default function SportsAdminPage() {
   const { sports, addSport, updateSport, deleteSport, isLoading } = useConvexState();
@@ -21,19 +22,23 @@ export default function SportsAdminPage() {
     assistantCoordinator: 'M. Surya Prakash Rao',
     menCaptain: '',
     womenCaptain: '',
-    venue: 'KKR and KSR Sports Ground',
+    coachName: 'K. Satyanarayana',
+    coachTitle: 'Senior Coach',
+    coordinator: 'Dr. P. Suresh',
+    asstFacultyCoordinator: 'M. Surya Prakash Rao',
     schedule: 'Mon - Fri (04:30 PM - 06:30 PM)',
     image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800'
   });
 
-  const handleFileUpload = (e, callback) => {
+  const handleFileUpload = async (e, callback) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        callback(reader.result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        callback(compressed);
+      } catch (err) {
+        alert("Failed to process image: " + err.message);
+      }
     }
   };
 
@@ -43,7 +48,8 @@ export default function SportsAdminPage() {
       name: sport.name,
       category: sport.category,
       description: sport.description,
-      coordinator: sport.coordinator,
+      coordinator: sport.coordinator || 'Dr. P. Suresh',
+      asstFacultyCoordinator: sport.asstFacultyCoordinator || 'M. Surya Prakash Rao',
       assistantCoordinator: sport.assistantCoordinator || '',
       menCaptain: sport.teamDetails?.menCaptain || '',
       womenCaptain: sport.teamDetails?.womenCaptain || '',
@@ -84,6 +90,7 @@ export default function SportsAdminPage() {
         description: formData.description,
         coordinator: formData.coordinator,
         assistantCoordinator: formData.assistantCoordinator,
+        asstFacultyCoordinator: formData.asstFacultyCoordinator,
         teamDetails: {
           menCaptain: formData.menCaptain,
           womenCaptain: formData.womenCaptain,
@@ -134,13 +141,26 @@ export default function SportsAdminPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {sports.map((s) => (
-          <div key={s.id} className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden flex flex-col justify-between card-hover">
+          <div key={s.id} className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden flex flex-col justify-between card-hover min-h-[440px] shadow-sm hover:shadow-md transition-all duration-300">
             <div>
-              <div className="relative h-40 group">
-                <img src={s.image} alt={s.name} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800"; }} />
-                <span className="absolute top-3 left-3 text-[10px] font-bold px-2 py-0.5 rounded bg-[#1E3A8A] text-white">
+              <div className="relative h-48 sm:h-52 group overflow-hidden bg-slate-900">
+                <img
+                  src={s.image}
+                  alt={s.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800";
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+                <span className="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[#1E3A8A] text-white shadow-md">
                   {s.category}
                 </span>
+
+                <div className="absolute bottom-2.5 left-3.5 right-3.5">
+                  <h3 className="text-base font-bold text-white drop-shadow-md">{s.name}</h3>
+                </div>
 
                 {/* Edit Image Quick Action Overlay */}
                 <button
@@ -154,13 +174,34 @@ export default function SportsAdminPage() {
               </div>
 
               <div className="p-4 space-y-3">
-                <h3 className="text-base font-bold text-[var(--text-primary)]">{s.name}</h3>
-                <p className="text-xs text-[var(--text-secondary)] line-clamp-2">{s.description}</p>
-                <div className="p-3 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] space-y-1 text-xs text-[var(--text-secondary)]">
-                  <p>Faculty: <strong className="text-[var(--text-primary)]">{s.coordinator}</strong></p>
-                  {s.teamDetails?.menCaptain && <p>Men Captain: <strong className="text-[var(--text-primary)]">{s.teamDetails.menCaptain}</strong></p>}
-                  {s.teamDetails?.womenCaptain && <p>Women Captain: <strong className="text-[var(--text-primary)]">{s.teamDetails.womenCaptain}</strong></p>}
-                  <p className="text-[var(--text-muted)] flex items-center gap-1 pt-1"><MapPin className="w-3 h-3 text-amber-500" /> {s.teamDetails?.venue || 'Campus Ground'}</p>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-2">{s.description}</p>
+                <div className="p-3 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] space-y-1.5 text-xs text-[var(--text-secondary)]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--text-muted)]">Faculty Coordinator:</span>
+                    <strong className="text-[var(--text-primary)]">{s.coordinator}</strong>
+                  </div>
+                  {s.asstFacultyCoordinator && (
+                    <div className="flex items-center justify-between border-t border-[var(--border-color)] pt-1">
+                      <span className="text-[var(--text-muted)]">Asst. Faculty Coordinator:</span>
+                      <strong className="text-[var(--text-primary)]">{s.asstFacultyCoordinator}</strong>
+                    </div>
+                  )}
+                  {s.teamDetails?.menCaptain && (
+                    <div className="flex items-center justify-between border-t border-[var(--border-color)] pt-1">
+                      <span className="text-[var(--text-muted)]">Men Captain:</span>
+                      <strong className="text-[var(--text-primary)]">{s.teamDetails.menCaptain}</strong>
+                    </div>
+                  )}
+                  {s.teamDetails?.womenCaptain && (
+                    <div className="flex items-center justify-between border-t border-[var(--border-color)] pt-1">
+                      <span className="text-[var(--text-muted)]">Women Captain:</span>
+                      <strong className="text-[var(--text-primary)]">{s.teamDetails.womenCaptain}</strong>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5 pt-1 text-[11px] text-[var(--text-muted)] border-t border-[var(--border-color)]">
+                    <MapPin className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    <span className="truncate">{s.teamDetails?.venue || 'Campus Ground'}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -168,17 +209,17 @@ export default function SportsAdminPage() {
             <div className="p-4 pt-0 flex gap-2">
               <button
                 onClick={() => handleEdit(s)}
-                className="flex-1 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 hover:bg-blue-100 flex items-center justify-center gap-1"
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] transition-all flex items-center justify-center gap-1.5 shadow-sm"
               >
                 <Edit className="w-3 h-3" />
                 <span>Edit Details</span>
               </button>
               <button
                 onClick={() => deleteSport(s.id)}
-                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-red-200 dark:border-red-500/30 transition-colors"
                 title="Delete Sport"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
@@ -235,12 +276,11 @@ export default function SportsAdminPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Sport Name *</label>
-                <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputClass} />
-              </div>
-
               <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Sport Name *</label>
+                  <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inputClass} />
+                </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Category *</label>
                   <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} className={inputClass}>
@@ -250,9 +290,16 @@ export default function SportsAdminPage() {
                     <option value="Mind Sport">Mind Sport</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Faculty Coordinator *</label>
                   <input type="text" required value={formData.coordinator} onChange={(e) => setFormData({ ...formData, coordinator: e.target.value })} className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Asst. Faculty Coordinator *</label>
+                  <input type="text" required value={formData.asstFacultyCoordinator} onChange={(e) => setFormData({ ...formData, asstFacultyCoordinator: e.target.value })} className={inputClass} />
                 </div>
               </div>
 

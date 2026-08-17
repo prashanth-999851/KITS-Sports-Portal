@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin, sessionToken } from "./auth";
 
 export const getAll = query({
   args: {},
@@ -15,10 +16,12 @@ export const getAll = query({
 
 export const update = mutation({
   args: {
+    sessionToken,
     key: v.string(),
     value: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     const existing = await ctx.db
       .query("settings")
       .withIndex("by_key", (q) => q.eq("key", args.key))
@@ -34,9 +37,11 @@ export const update = mutation({
 
 export const updateBatch = mutation({
   args: {
+    sessionToken,
     settings: v.array(v.object({ key: v.string(), value: v.string() })),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     for (const { key, value } of args.settings) {
       const existing = await ctx.db
         .query("settings")

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
 import { CardSkeleton } from './LoadingSkeleton';
 import EmptyState from './EmptyState';
-import { Award, Trophy, Calendar, Search, MapPin, ShieldCheck, UserCheck, Sparkles } from 'lucide-react';
+import { Award, Trophy, Calendar, Search, MapPin, ShieldCheck } from 'lucide-react';
 
 export default function JntukPlayersSection() {
   const { jntukPlayers = [], isLoading } = useConvexState();
@@ -30,7 +30,7 @@ export default function JntukPlayersSection() {
   });
 
   return (
-    <section id="jntuk-players" className="py-20 bg-[var(--bg-card-subtle)] transition-colors border-t border-[var(--border-color)]">
+    <section id="jntuk-players" className="py-12 sm:py-16 bg-[var(--bg-card-subtle)] transition-colors border-t border-[var(--border-color)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* Section Header */}

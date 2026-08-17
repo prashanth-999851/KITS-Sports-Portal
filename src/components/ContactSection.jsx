@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Mail, Phone, MapPin, Send, MessageSquare, CheckCircle, Clock, ShieldAlert, UserCheck, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Send, MessageSquare, CheckCircle, Clock, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 
 export default function ContactSection({ onBack }) {
   const [formState, setFormState] = useState({
@@ -79,36 +79,38 @@ export default function ContactSection({ onBack }) {
       
       {/* Header & Navigation */}
       <header className="sticky top-0 z-40 bg-[var(--bg-card)] border-b border-[var(--border-color)] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={onBack}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors shadow-sm"
+              aria-label="Back to Portal Home"
+              className="inline-flex items-center justify-center p-2 sm:px-3.5 sm:py-1.5 rounded-lg text-xs font-semibold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors shadow-sm shrink-0 active:scale-95 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to Portal Home</span>
+              <span className="hidden sm:inline">Back to Portal Home</span>
             </button>
 
-            <div className="hidden sm:block h-6 w-px bg-[var(--border-color)]" />
+            <div className="hidden sm:block h-6 w-px bg-[var(--border-color)] shrink-0" />
 
-            <div className="flex items-center gap-2.5">
-              <img src="/assets/images/logo.png" alt="KITS Logo" className="w-8 h-8 rounded-md border border-[var(--border-color)]" onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=100"; }} />
-              <div>
-                <h1 className="text-sm font-bold text-[var(--text-primary)] leading-none">
-                  KITS Physical Education & Sports Directorate
+            <div className="flex items-center gap-2 shrink min-w-0">
+              <img src="/logo.png" alt="KITS Logo" className="h-7 sm:h-8 w-auto object-contain shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] leading-tight truncate">
+                  Contact & Helpdesk
                 </h1>
-                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
-                  Official Contact & Helpdesk Portal
+                <p className="text-[9px] sm:text-[10px] text-[var(--text-muted)] truncate hidden sm:block">
+                  Official Physical Education Helpdesk Portal
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 font-semibold">
+          <div className="flex items-center gap-2 text-xs shrink-0">
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 text-[10px] sm:text-xs font-semibold">
               <Clock className="w-3.5 h-3.5" />
-              <span>Desk Open: 08:00 AM - 06:00 PM</span>
+              <span className="hidden sm:inline">Desk Open: 08:00 AM - 06:00 PM</span>
+              <span className="sm:hidden">8AM-6PM</span>
             </span>
           </div>
 
@@ -198,7 +200,7 @@ export default function ContactSection({ onBack }) {
                   <div>
                     <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Full Name *</label>
                     <input
-                      type="text" required placeholder="e.g. M. Bharath Kumar"
+                      type="text" required placeholder="Enter your full name"
                       value={formState.name}
                       onChange={(e) => setFormState({ ...formState, name: e.target.value })}
                       className={inputClass}
@@ -207,7 +209,7 @@ export default function ContactSection({ onBack }) {
                   <div>
                     <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Email Address *</label>
                     <input
-                      type="email" required placeholder="name@kkrksr.ac.in"
+                      type="email" required placeholder="Enter your email address"
                       value={formState.email}
                       onChange={(e) => setFormState({ ...formState, email: e.target.value })}
                       className={inputClass}
@@ -219,7 +221,7 @@ export default function ContactSection({ onBack }) {
                   <div>
                     <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Phone Number *</label>
                     <input
-                      type="tel" required placeholder="9876543210"
+                      type="tel" required placeholder="Enter your phone number"
                       value={formState.phone}
                       onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
                       className={inputClass}
@@ -244,7 +246,7 @@ export default function ContactSection({ onBack }) {
                 <div>
                   <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Subject *</label>
                   <input
-                    type="text" required placeholder="e.g. Inter-College Cricket Trial Registration"
+                    type="text" required placeholder="Enter subject"
                     value={formState.subject}
                     onChange={(e) => setFormState({ ...formState, subject: e.target.value })}
                     className={inputClass}
@@ -254,7 +256,7 @@ export default function ContactSection({ onBack }) {
                 <div>
                   <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5">Message Details *</label>
                   <textarea
-                    required rows={4} placeholder="Please provide specific details regarding your request..."
+                    required rows={4} placeholder="Enter your message details..."
                     value={formState.message}
                     onChange={(e) => setFormState({ ...formState, message: e.target.value })}
                     className={inputClass}

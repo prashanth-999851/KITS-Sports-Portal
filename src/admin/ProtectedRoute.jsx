@@ -6,7 +6,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   const { currentUser } = useConvexState();
   const location = useLocation();
 
-  if (!currentUser) {
+  if (!currentUser?.sessionToken) {
     // Redirect to /admin/login with state return URL
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Target, CheckCircle2, Sparkles, ArrowLeft, Building, Trophy, Users, Shield, Award } from 'lucide-react';
+import { Eye, Target, CheckCircle2, Sparkles, ArrowLeft, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AboutView({ onBack }) {
@@ -28,34 +28,35 @@ export default function AboutView({ onBack }) {
       
       {/* Top Header Bar */}
       <header className="sticky top-0 z-40 bg-[var(--bg-card)] border-b border-[var(--border-color)] shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4">
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={handleBack}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors shadow-sm"
+              aria-label="Back to Portal Home"
+              className="inline-flex items-center justify-center p-2 sm:px-3.5 sm:py-1.5 rounded-lg text-xs font-semibold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors shadow-sm shrink-0 active:scale-95 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to Portal Home</span>
+              <span className="hidden sm:inline">Back to Portal Home</span>
             </button>
 
-            <div className="hidden sm:block h-6 w-px bg-[var(--border-color)]" />
+            <div className="hidden sm:block h-6 w-px bg-[var(--border-color)] shrink-0" />
 
-            <div className="flex items-center gap-2.5">
-              <img src="/assets/images/logo.png" alt="KITS Logo" className="w-8 h-8 rounded-md border border-[var(--border-color)]" onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=100"; }} />
-              <div>
-                <h1 className="text-sm font-bold text-[var(--text-primary)] leading-none">
+            <div className="flex items-center gap-2 shrink min-w-0">
+              <img src="/logo.png" alt="KITS Logo" className="h-7 sm:h-8 w-auto object-contain shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-xs sm:text-sm font-bold text-[var(--text-primary)] leading-tight truncate">
                   About KKR & KSR Sports Directorate
                 </h1>
-                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                <p className="text-[9px] sm:text-[10px] text-[var(--text-muted)] truncate hidden sm:block">
                   Official Athletic Governance & Infrastructure Overview
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] font-medium">
-            <Award className="w-4 h-4 text-amber-500" />
+          <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] font-medium shrink-0">
+            <Award className="w-4 h-4 text-amber-500 shrink-0" />
             <span className="hidden md:inline">Accredited by JNTUK & State Sports Council</span>
           </div>
 

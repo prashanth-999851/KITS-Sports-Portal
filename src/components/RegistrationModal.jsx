@@ -10,6 +10,8 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
     rollNumber: "",
     department: "CSE",
     year: "2nd Year",
+    gender: "Male",
+    section: "Section 1",
     email: "",
     phone: ""
   });
@@ -88,7 +90,7 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
             <div className="space-y-3 text-xs">
               <div>
                 <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Student Name *</label>
-                <input type="text" required placeholder="e.g. M. Sai Charan"
+                <input type="text" required placeholder="Enter your full name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={inputClass}
@@ -112,7 +114,6 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
                   >
                     <option value="2nd Year">2nd Year</option>
                     <option value="3rd Year">3rd Year</option>
-                    <option value="4th Year">4th Year</option>
                   </select>
                 </div>
                 <div>
@@ -135,34 +136,46 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Roll Number *</label>
-                  <input type="text" required placeholder="23KK1A0589"
+                  <input type="text" required placeholder="Enter your roll number"
                     value={formData.rollNumber}
                     onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
                     className={inputClass}
                   />
                 </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Gender *</label>
+                  <select
+                    value={formData.gender || "Male"}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                    className={inputClass}
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Section *</label>
                   <select
-                    value={formData.section || "1"}
+                    value={formData.section || "Section 1"}
                     onChange={(e) => setFormData({ ...formData, section: e.target.value })}
                     className={inputClass}
                   >
-                    {(formData.year === '4th Year' ? (formData.department === 'CSM' ? ['1'] : ['1','2','3']) :
-                      formData.department === 'CSE' ? ['1','2','3','4','5','6','7','8'] :
+                    {(formData.department === 'CSE' ? ['1','2','3','4','5','6','7','8'] :
                       formData.department === 'IT' ? ['1','2'] :
-                      formData.department === 'CSM' ? (formData.year === '2nd Year' ? ['1','2','3','4','5','6'] : ['1','2','3']) :
+                      formData.department === 'CSM' ? ['1','2','3','4','5','6'] :
                       formData.department === 'EEE' ? ['1'] : ['1','2','3']).map(sec => (
-                      <option key={sec} value={sec}>Section {sec}</option>
+                      <option key={sec} value={`Section ${sec}`}>Section {sec}</option>
                     ))}
                   </select>
                 </div>
+              </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Email *</label>
-                  <input type="email" required placeholder="student@kkrksr.ac.in"
+                  <input type="email" required placeholder="Enter your institutional email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className={inputClass}
@@ -170,7 +183,7 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
                 </div>
                 <div>
                   <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Phone *</label>
-                  <input type="tel" required placeholder="9876543210"
+                  <input type="tel" required placeholder="Enter your phone number"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className={inputClass}

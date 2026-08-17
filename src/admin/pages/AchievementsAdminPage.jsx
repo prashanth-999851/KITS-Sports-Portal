@@ -1,32 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
+import { useToast } from '../../context/ToastContext';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
-import { Award, Medal, Trophy, Plus, X, Trash2, Edit, Upload, Loader2 } from 'lucide-react';
+import { Award, Medal, Trophy, Plus, X, Trash2, Edit, Loader2 } from 'lucide-react';
 
 export default function AchievementsAdminPage() {
   const { achievements, addAchievement, deleteAchievement, updateSettings, isLoading } = useConvexState();
+  const { showToast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [showTallyModal, setShowTallyModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const tallyGold = achievements?.tallies?.gold ?? 0;
+  const tallySilver = achievements?.tallies?.silver ?? 0;
+  const tallyBronze = achievements?.tallies?.bronze ?? 0;
+  const tallyTrophies = achievements?.tallies?.trophies ?? 0;
 
   const [tallyData, setTallyData] = useState({
-    gold: achievements.tallies.gold,
-    silver: achievements.tallies.silver,
-    bronze: achievements.tallies.bronze,
-    trophies: achievements.tallies.trophies
+    gold: tallyGold,
+    silver: tallySilver,
+    bronze: tallyBronze,
+    trophies: tallyTrophies
   });
 
   useEffect(() => {
-    if (achievements?.tallies) {
-      setTallyData({
-        gold: achievements.tallies.gold,
-        silver: achievements.tallies.silver,
-        bronze: achievements.tallies.bronze,
-        trophies: achievements.tallies.trophies
-      });
-    }
-  }, [achievements.tallies.gold, achievements.tallies.silver, achievements.tallies.bronze, achievements.tallies.trophies]);
+    setTallyData({
+      gold: tallyGold,
+      silver: tallySilver,
+      bronze: tallyBronze,
+      trophies: tallyTrophies
+    });
+  }, [tallyGold, tallySilver, tallyBronze, tallyTrophies]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -37,14 +41,16 @@ export default function AchievementsAdminPage() {
     image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600'
   });
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, image: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        setFormData(prev => ({ ...prev, image: compressed }));
+      } catch (err) {
+        console.error("Failed to process image:", err);
+        showToast("Failed to process image.", "error");
+      }
     }
   };
 
@@ -53,8 +59,12 @@ export default function AchievementsAdminPage() {
     setIsSubmitting(true);
     try {
       await addAchievement(formData);
+      showToast('Achievement added successfully!', 'success');
       setShowModal(false);
       setFormData({ title: '', recipient: '', category: 'Individual Excellence', achievement: '', medalType: 'Gold', image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600' });
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to add achievement.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -70,7 +80,11 @@ export default function AchievementsAdminPage() {
         tally_bronze: tallyData.bronze,
         tally_trophies: tallyData.trophies
       });
+      showToast('Medal tallies saved and updated successfully!', 'success');
       setShowTallyModal(false);
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to update medal tallies.', 'error');
     } finally {
       setIsSubmitting(false);
     }

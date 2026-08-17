@@ -1,16 +1,19 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin, sessionToken } from "./auth";
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { sessionToken },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     return await ctx.db.query("students").collect();
   },
 });
 
 export const getByRollNumber = query({
-  args: { rollNumber: v.string() },
+  args: { sessionToken, rollNumber: v.string() },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     return await ctx.db
       .query("students")
       .withIndex("by_rollNumber", (q) => q.eq("rollNumber", args.rollNumber))
@@ -20,6 +23,7 @@ export const getByRollNumber = query({
 
 export const create = mutation({
   args: {
+    sessionToken,
     name: v.string(),
     rollNumber: v.string(),
     department: v.string(),
@@ -33,6 +37,7 @@ export const create = mutation({
     status: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     const existing = await ctx.db
       .query("students")
       .withIndex("by_rollNumber", (q) => q.eq("rollNumber", args.rollNumber))
@@ -73,6 +78,7 @@ export const create = mutation({
 
 export const update = mutation({
   args: {
+    sessionToken,
     id: v.id("students"),
     name: v.optional(v.string()),
     rollNumber: v.optional(v.string()),
@@ -86,14 +92,16 @@ export const update = mutation({
     status: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    await requireAdmin(ctx, args.sessionToken);
+    const { id, sessionToken: _sessionToken, ...updates } = args;
     await ctx.db.patch(id, updates);
   },
 });
 
 export const remove = mutation({
-  args: { id: v.id("students") },
+  args: { sessionToken, id: v.id("students") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     await ctx.db.delete(args.id);
   },
 });

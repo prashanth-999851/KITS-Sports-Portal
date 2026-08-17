@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
 import EmptyState from '../../components/EmptyState';
-import { Bell, Send, Megaphone, Trash2, Loader2 } from 'lucide-react';
+import { Bell, Send, Megaphone, Loader2 } from 'lucide-react';
 
 export default function NotificationsAdminPage() {
   const { notifications, broadcastNotification, clearNotifications } = useConvexState();

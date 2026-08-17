@@ -13,52 +13,87 @@ const iconMap = {
   CheckCircle2
 };
 
+const iconColors = [
+  'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400',
+  'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400',
+  'bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400',
+  'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400',
+  'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
+];
+
+function CoreValuesSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 stagger-children">
+      {Array.from({ length: 8 }).map((_, idx) => (
+        <div key={idx} className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-6 space-y-4 animate-slideUp">
+          <div className="w-12 h-12 rounded-lg skeleton-shimmer" />
+          <div className="space-y-2">
+            <div className="h-4 w-2/3 skeleton-shimmer" />
+            <div className="h-3 w-full skeleton-shimmer" />
+            <div className="h-3 w-4/5 skeleton-shimmer" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function CoreValues() {
-  const { coreValues: CORE_VALUES } = useConvexState();
+  const { coreValues: CORE_VALUES, isLoading } = useConvexState();
   const [selectedValue, setSelectedValue] = useState(null);
 
   return (
-    <section id="values" className="py-20 bg-[var(--bg-card-subtle)] transition-colors">
+    <section id="values" className="py-12 sm:py-16 bg-[var(--bg-card-subtle)] transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <p className="text-xs font-bold uppercase tracking-widest text-[var(--text-muted)]">Guiding Principles</p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)]">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--secondary)] dark:text-blue-400">
+            Guiding Principles
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] section-accent">
             Our Core <span className="accent-text">Values</span>
           </h2>
-          <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
+          <p className="text-[var(--text-secondary)] text-sm leading-relaxed pt-2">
             The foundation of KKR & KSR Sports Club is built on eight unshakeable ethical principles that define our athletic character and campus spirit.
           </p>
         </div>
 
         {/* Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {CORE_VALUES.map((val, idx) => {
-            const IconComponent = iconMap[val.icon] || Trophy;
-            return (
-              <div
-                key={idx}
-                onClick={() => setSelectedValue(val)}
-                className="group p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-blue-300 dark:hover:border-blue-500/40 transition-all duration-200 cursor-pointer card-hover"
-              >
-                <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-700 dark:text-blue-400">
-                    <IconComponent className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-[var(--text-primary)] mb-1.5">
-                      {val.title}
-                    </h3>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-3">
-                      {val.description}
-                    </p>
+        {isLoading || !CORE_VALUES || CORE_VALUES.length === 0 ? (
+          <CoreValuesSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 stagger-children">
+            {CORE_VALUES.map((val, idx) => {
+              const IconComponent = iconMap[val.icon] || Trophy;
+              const colorClass = iconColors[idx % iconColors.length];
+              return (
+                <div
+                  key={idx}
+                  onClick={() => setSelectedValue(val)}
+                  className="group p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:border-[var(--secondary)] dark:hover:border-blue-500/40 transition-all duration-300 cursor-pointer card-hover animate-slideUp"
+                >
+                  <div className="space-y-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colorClass} group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-[var(--text-primary)] mb-1.5 group-hover:text-[var(--secondary)] dark:group-hover:text-blue-400 transition-colors">
+                        {val.title}
+                      </h3>
+                      <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-3">
+                        {val.description}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
       </div>
 
@@ -77,14 +112,14 @@ export default function CoreValues() {
               {(() => {
                 const IconComp = iconMap[selectedValue.icon] || Trophy;
                 return (
-                  <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400">
+                  <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
                     <IconComp className="w-7 h-7" />
                   </div>
                 );
               })()}
               <div>
                 <h3 className="text-xl font-bold text-[var(--text-primary)]">{selectedValue.title}</h3>
-                <span className="text-xs text-[var(--text-muted)] font-semibold uppercase">Institutional Core Value</span>
+                <span className="text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wider">Institutional Core Value</span>
               </div>
             </div>
 
@@ -93,7 +128,7 @@ export default function CoreValues() {
             </p>
 
             <div className="p-4 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] space-y-1.5 text-xs text-[var(--text-secondary)]">
-              <span className="font-bold text-blue-700 dark:text-blue-400 uppercase text-[10px]">Field Application</span>
+              <span className="font-bold text-[var(--secondary)] dark:text-blue-400 uppercase text-[10px] tracking-wider">Field Application</span>
               <p>In all university matches, practice sessions, and campus interactions, every KKR & KSR athlete embodies {selectedValue.title} as their top priority.</p>
             </div>
 

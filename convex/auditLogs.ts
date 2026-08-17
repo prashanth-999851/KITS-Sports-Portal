@@ -1,9 +1,11 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdmin, sessionToken } from "./auth";
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { sessionToken },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
     // Return most recent first, limit to 200
     const logs = await ctx.db.query("auditLogs").order("desc").take(200);
     return logs;
@@ -12,15 +14,18 @@ export const list = query({
 
 export const create = mutation({
   args: {
+    sessionToken,
     userId: v.string(),
     userEmail: v.string(),
     action: v.string(),
     details: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
+    const { sessionToken: _sessionToken, ...fields } = args;
     return await ctx.db.insert("auditLogs", {
-      ...args,
-      timestamp: new Date().toLocaleString(),
+      ...fields,
+      timestamp: new Date().toISOString(),
     });
   },
 });
