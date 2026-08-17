@@ -74,24 +74,24 @@ export default function Hero({ onJoinClick, onExploreClick }) {
     { label: "Championship Trophies", value: "75+", icon: Trophy },
     { label: "Sports Disciplines", value: "9+", icon: Activity },
   ];
-
-  const currentSlide = slides[currentSlideIndex] || slides[0];
+  const fallbackSlide = { src: '/hero_sports_banner.jpg', title: 'KKR & KSR Campus Athletics', position: 'center center' };
+  const activeSlides = slides.length > 0 ? slides : [fallbackSlide];
+  const currentSlide = activeSlides[currentSlideIndex] || activeSlides[0];
 
   return (
-    <section 
-      id="home" 
+    <section
+      id="home"
       className="relative min-h-0 sm:min-h-screen flex flex-col justify-start lg:justify-center overflow-hidden bg-[#0A0F1D] select-none text-white"
     >
       {/* DESKTOP VIEW: Full-Bleed Background Slideshow (lg and above) */}
       <div className="hidden lg:block absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {slides.map((slide, index) => {
+        {activeSlides.map((slide, index) => {
           const isActive = index === currentSlideIndex;
           return (
             <div
               key={index}
-              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-                isActive ? 'opacity-100' : 'opacity-0'
-              }`}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100' : 'opacity-0'
+                }`}
             >
               <img
                 src={slide.src}
@@ -109,8 +109,8 @@ export default function Hero({ onJoinClick, onExploreClick }) {
       </div>
 
       {/* Content Container */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 pt-32 sm:pt-36 lg:pt-40 pb-16 sm:pb-20 lg:pb-24">
-        
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 pt-32 sm:pt-36 lg:pt-40 pb-12 sm:pb-16 lg:pb-20">
+
         {/* DESKTOP LAYOUT (Left-Aligned Full-Bleed Content) */}
         <div className="hidden lg:block max-w-xl space-y-5">
 
@@ -150,7 +150,7 @@ export default function Hero({ onJoinClick, onExploreClick }) {
               {stats.map((stat, idx) => {
                 const Icon = stat.icon;
                 return (
-                  <div 
+                  <div
                     key={idx}
                     className="p-5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300 shadow-sm"
                   >
@@ -208,19 +208,18 @@ export default function Hero({ onJoinClick, onExploreClick }) {
 
           {/* Mobile 16:9 Sports Media Card Carousel */}
           <div className="pt-2 max-w-xl mx-auto">
-            <div 
+            <div
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-900 border border-white/15 shadow-2xl select-none"
             >
               {/* Slides */}
-              {slides.map((slide, index) => (
+              {activeSlides.map((slide, index) => (
                 <div
                   key={index}
-                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                    index === currentSlideIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                  }`}
+                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${index === currentSlideIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                    }`}
                 >
                   <img
                     src={slide.src}
@@ -250,7 +249,7 @@ export default function Hero({ onJoinClick, onExploreClick }) {
               {stats.map((stat, idx) => {
                 const Icon = stat.icon;
                 return (
-                  <div 
+                  <div
                     key={idx}
                     className="p-2.5 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-left"
                   >
