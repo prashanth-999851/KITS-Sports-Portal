@@ -9,9 +9,20 @@ import {
   ChevronUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../context/ToastContext';
+import { 
+  validateName, 
+  validateEmail, 
+  validatePhone, 
+  validateSubject, 
+  validateMessage, 
+  sanitizeInput 
+} from '../utils/sanitize';
 
 export default function ContactSection({ onBack }) {
   const navigate = useNavigate();
+  const { showToast } = useToast();
+
   const [formState, setFormState] = useState({
     name: "",
     email: "",
@@ -20,6 +31,9 @@ export default function ContactSection({ onBack }) {
     subject: "",
     message: ""
   });
+
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
 
@@ -35,9 +49,115 @@ export default function ContactSection({ onBack }) {
     }
   };
 
+  const validateField = (field, value) => {
+    let error = "";
+    switch (field) {
+      case "name":
+        if (!value.trim()) {
+          error = "Your full name is required.";
+        } else if (!validateName(value)) {
+          error = "Please enter a valid full name (2-60 letters/spaces).";
+        }
+        break;
+      case "email":
+        if (!value.trim()) {
+          error = "Email address is required.";
+        } else if (!validateEmail(value)) {
+          error = "Please enter a valid email address.";
+        }
+        break;
+      case "phone":
+        if (!value.trim()) {
+          error = "Phone number is required.";
+        } else if (!validatePhone(value)) {
+          error = "Please enter a valid 10-digit mobile number.";
+        }
+        break;
+      case "subject":
+        if (!value.trim()) {
+          error = "Inquiry subject is required.";
+        } else if (!validateSubject(value)) {
+          error = "Subject must be between 3 and 150 characters.";
+        }
+        break;
+      case "message":
+        if (!value.trim()) {
+          error = "Message details are required.";
+        } else if (!validateMessage(value)) {
+          error = "Please provide more details (minimum 10 characters).";
+        }
+        break;
+      default:
+        break;
+    }
+    return error;
+  };
+
+  const handleChange = (field, value) => {
+    setFormState(prev => ({ ...prev, [field]: value }));
+    if (touched[field]) {
+      const err = validateField(field, value);
+      setErrors(prev => ({ ...prev, [field]: err }));
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const err = validateField(field, formState[field]);
+    setErrors(prev => ({ ...prev, [field]: err }));
+  };
+
+  const validateAll = () => {
+    const newErrors = {
+      name: validateField("name", formState.name),
+      email: validateField("email", formState.email),
+      phone: validateField("phone", formState.phone),
+      subject: validateField("subject", formState.subject),
+      message: validateField("message", formState.message),
+    };
+
+    setErrors(newErrors);
+    setTouched({
+      name: true,
+      email: true,
+      phone: true,
+      subject: true,
+      message: true,
+    });
+
+    return !Object.values(newErrors).some(Boolean);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!validateAll()) {
+      showToast("Please fix the errors in the inquiry form.", "warning");
+      return;
+    }
+
+    // Sanitize inputs
+    const sanitizedData = {
+      name: sanitizeInput(formState.name.trim()),
+      email: sanitizeInput(formState.email.trim().toLowerCase()),
+      phone: sanitizeInput(formState.phone.trim()),
+      category: formState.category,
+      subject: sanitizeInput(formState.subject.trim()),
+      message: sanitizeInput(formState.message.trim()),
+    };
+
+    console.log("Inquiry transmitted:", sanitizedData);
     setSubmitted(true);
+    showToast("Your inquiry has been successfully transmitted to the Sports Directorate!", "success");
+  };
+
+  const getInputClass = (fieldName) => {
+    const hasError = touched[fieldName] && errors[fieldName];
+    return `w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border text-slate-800 text-xs focus:bg-white focus:outline-none transition-colors ${
+      hasError 
+        ? 'border-red-400 focus:border-red-500 bg-red-50/30' 
+        : 'border-slate-200 focus:border-[#0b2e5b]'
+    }`;
   };
 
   const faqs = [
@@ -82,8 +202,6 @@ export default function ContactSection({ onBack }) {
       office: "Sports Club, Room No: 29"
     }
   ];
-
-  const inputClass = "w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:border-[#0b2e5b] focus:bg-white focus:outline-none transition-colors";
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300">
@@ -151,58 +269,92 @@ export default function ContactSection({ onBack }) {
             </div>
 
             {submitted ? (
-              <div className="p-6 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-2 animate-fadeIn">
-                <CheckCircle className="w-8 h-8 text-emerald-600 mx-auto" />
-                <h4 className="font-bold text-sm text-slate-800">Inquiry Transmitted Successfully!</h4>
-                <p className="text-xs text-slate-600">
-                  Your ticket has been logged into the Physical Education Directorate system. We will contact you shortly.
+              <div className="p-6 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-3 animate-fadeIn">
+                <CheckCircle className="w-10 h-10 text-emerald-600 mx-auto" />
+                <h4 className="font-bold text-base text-slate-800">Inquiry Transmitted Successfully!</h4>
+                <p className="text-xs text-slate-600 max-w-md mx-auto">
+                  Your message has been received by the Physical Education Directorate desk. A coordinator will review and respond to your email or phone promptly.
                 </p>
+                <button
+                  onClick={() => {
+                    setSubmitted(false);
+                    setFormState({
+                      name: "",
+                      email: "",
+                      phone: "",
+                      category: "General Inquiry",
+                      subject: "",
+                      message: ""
+                    });
+                    setErrors({});
+                    setTouched({});
+                  }}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0b2e5b] text-white hover:bg-[#0d3a73] transition-colors"
+                >
+                  Send Another Inquiry
+                </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Full Name *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text" 
-                      required 
                       placeholder="Enter your full name"
                       value={formState.name}
-                      onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-                      className={inputClass}
+                      onChange={(e) => handleChange("name", e.target.value)}
+                      onBlur={() => handleBlur("name")}
+                      className={getInputClass("name")}
                     />
+                    {touched.name && errors.name && (
+                      <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.name}</p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email Address *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="email" 
-                      required 
-                      placeholder="student@email.com"
+                      placeholder="Enter your email address"
                       value={formState.email}
-                      onChange={(e) => setFormState({ ...formState, email: e.target.value })}
-                      className={inputClass}
+                      onChange={(e) => handleChange("email", e.target.value)}
+                      onBlur={() => handleBlur("email")}
+                      className={getInputClass("email")}
                     />
+                    {touched.email && errors.email && (
+                      <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.email}</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Phone Number *</label>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="tel" 
-                      required 
-                      placeholder="+91 98765 43210"
+                      maxLength={13}
+                      placeholder="Enter your phone number"
                       value={formState.phone}
-                      onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
-                      className={inputClass}
+                      onChange={(e) => handleChange("phone", e.target.value)}
+                      onBlur={() => handleBlur("phone")}
+                      className={getInputClass("phone")}
                     />
+                    {touched.phone && errors.phone && (
+                      <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.phone}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1.5">Inquiry Category *</label>
                     <select
                       value={formState.category}
-                      onChange={(e) => setFormState({ ...formState, category: e.target.value })}
-                      className={inputClass}
+                      onChange={(e) => handleChange("category", e.target.value)}
+                      className={getInputClass("category")}
                     >
                       <option value="General Inquiry">General Inquiry</option>
                       <option value="Trial Registration">Trial Registration</option>
@@ -214,27 +366,37 @@ export default function ContactSection({ onBack }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Subject *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Subject <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text" 
-                    required 
-                    placeholder="Enter subject"
+                    placeholder="Enter inquiry subject"
                     value={formState.subject}
-                    onChange={(e) => setFormState({ ...formState, subject: e.target.value })}
-                    className={inputClass}
+                    onChange={(e) => handleChange("subject", e.target.value)}
+                    onBlur={() => handleBlur("subject")}
+                    className={getInputClass("subject")}
                   />
+                  {touched.subject && errors.subject && (
+                    <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.subject}</p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Message Details *</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Message Details <span className="text-red-500">*</span>
+                  </label>
                   <textarea
-                    required 
                     rows={4} 
                     placeholder="Enter your message details..."
                     value={formState.message}
-                    onChange={(e) => setFormState({ ...formState, message: e.target.value })}
-                    className={inputClass}
+                    onChange={(e) => handleChange("message", e.target.value)}
+                    onBlur={() => handleBlur("message")}
+                    className={getInputClass("message")}
                   />
+                  {touched.message && errors.message && (
+                    <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.message}</p>
+                  )}
                 </div>
 
                 <button

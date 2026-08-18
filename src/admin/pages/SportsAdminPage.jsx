@@ -23,9 +23,6 @@ export default function SportsAdminPage() {
     assistantCoordinator: 'M. Surya Prakash Rao',
     menCaptain: '',
     womenCaptain: '',
-    coachName: 'K. Satyanarayana',
-    coachTitle: 'Senior Coach',
-    coordinator: 'Dr. P. Suresh',
     asstFacultyCoordinator: 'M. Surya Prakash Rao',
     schedule: 'Mon - Fri (04:30 PM - 06:30 PM)',
     image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800'

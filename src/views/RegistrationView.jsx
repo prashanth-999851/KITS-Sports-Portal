@@ -13,6 +13,18 @@ import {
   Clock 
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { 
+  validateName, 
+  validateEmail, 
+  validatePhone, 
+  validateRollNumber, 
+  sanitizeInput 
+} from '../utils/sanitize';
+import { 
+  PUBLIC_ACADEMIC_YEARS, 
+  getAvailableDepartments, 
+  getAvailableSections 
+} from '../constants/academicRules';
 
 const DEFAULT_SPORTS = [
   "Cricket", "Volleyball", "Basketball", "Badminton",
@@ -28,6 +40,7 @@ export default function RegistrationView({ onBack }) {
 
   const [activeTab, setActiveTab] = useState("Apply");
   const [trackingCode, setTrackingCode] = useState("");
+  const [trackError, setTrackError] = useState("");
   const [trackedApp, setTrackedApp] = useState(null);
   const [searchAttempted, setSearchAttempted] = useState(false);
   const [submittedCode, setSubmittedCode] = useState(null);
@@ -42,14 +55,17 @@ export default function RegistrationView({ onBack }) {
   const [formData, setFormData] = useState({
     name: "",
     rollNumber: "",
-    department: "CSE",
     year: "2nd Year",
+    department: "CSE",
     gender: "Male",
     section: "Section 1",
     email: "",
     phone: "",
     selectedSport: preselectedSport || ""
   });
+
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
   useEffect(() => {
     if (preselectedSport) {
@@ -65,28 +81,140 @@ export default function RegistrationView({ onBack }) {
     }
   };
 
+  const validateField = (field, value) => {
+    let error = "";
+    switch (field) {
+      case "name":
+        if (!value.trim()) {
+          error = "Student full name is required.";
+        } else if (!validateName(value)) {
+          error = "Please enter a valid name (2-60 letters, spaces, or standard prefixes).";
+        }
+        break;
+      case "rollNumber":
+        if (!value.trim()) {
+          error = "College roll number is required.";
+        } else if (!validateRollNumber(value)) {
+          error = "Enter a valid KITS roll number (e.g. 24JR1A0501, 25JR1A05A0, or 26JR5A0401).";
+        }
+        break;
+      case "email":
+        if (!value.trim()) {
+          error = "Email address is required.";
+        } else if (!validateEmail(value)) {
+          error = "Please enter a valid email address (e.g. student@kits.ac.in).";
+        }
+        break;
+      case "phone":
+        if (!value.trim()) {
+          error = "Contact phone number is required.";
+        } else if (!validatePhone(value)) {
+          error = "Please enter a valid 10-digit mobile number (e.g. 9876543210).";
+        }
+        break;
+      case "selectedSport":
+        if (!value) {
+          error = "Please select a preferred sport discipline.";
+        }
+        break;
+      default:
+        break;
+    }
+    return error;
+  };
+
+  const handleChange = (field, value) => {
+    let processedValue = value;
+    if (field === "rollNumber") {
+      processedValue = value.toUpperCase().trim();
+    }
+    setFormData(prev => ({ ...prev, [field]: processedValue }));
+    if (touched[field]) {
+      const err = validateField(field, processedValue);
+      setErrors(prev => ({ ...prev, [field]: err }));
+    }
+  };
+
+  const handleYearChange = (newYear) => {
+    const availableDepts = getAvailableDepartments(newYear);
+    const newDept = availableDepts.includes(formData.department) ? formData.department : availableDepts[0];
+    const availableSecs = getAvailableSections(newYear, newDept);
+    const curSecNum = (formData.section || '').replace('Section ', '');
+    const newSecNum = availableSecs.includes(curSecNum) ? curSecNum : availableSecs[0];
+    
+    setFormData(prev => ({
+      ...prev,
+      year: newYear,
+      department: newDept,
+      section: `Section ${newSecNum}`
+    }));
+  };
+
+  const handleDepartmentChange = (newDept) => {
+    const availableSecs = getAvailableSections(formData.year, newDept);
+    const curSecNum = (formData.section || '').replace('Section ', '');
+    const newSecNum = availableSecs.includes(curSecNum) ? curSecNum : availableSecs[0];
+
+    setFormData(prev => ({
+      ...prev,
+      department: newDept,
+      section: `Section ${newSecNum}`
+    }));
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const err = validateField(field, formData[field]);
+    setErrors(prev => ({ ...prev, [field]: err }));
+  };
+
   const handleSportSelect = (sportName) => {
     setFormData(prev => ({ ...prev, selectedSport: sportName }));
+    if (errors.selectedSport) {
+      setErrors(prev => ({ ...prev, selectedSport: "" }));
+    }
+  };
+
+  const validateAll = () => {
+    const newErrors = {
+      name: validateField("name", formData.name),
+      rollNumber: validateField("rollNumber", formData.rollNumber),
+      email: validateField("email", formData.email),
+      phone: validateField("phone", formData.phone),
+      selectedSport: validateField("selectedSport", formData.selectedSport),
+    };
+
+    setErrors(newErrors);
+    setTouched({
+      name: true,
+      rollNumber: true,
+      email: true,
+      phone: true,
+      selectedSport: true,
+    });
+
+    return !Object.values(newErrors).some(Boolean);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.selectedSport) {
-      showToast("Please select your preferred sport discipline.", "warning");
+
+    if (!validateAll()) {
+      showToast("Please correct the highlighted form errors before submitting.", "warning");
       return;
     }
 
     setIsSubmitting(true);
     try {
       const trackingId = await addStudentApplication({
-        name: formData.name,
-        rollNumber: formData.rollNumber,
+        name: sanitizeInput(formData.name.trim()),
+        rollNumber: sanitizeInput(formData.rollNumber.trim().toUpperCase()),
         department: formData.department,
         year: formData.year,
         gender: formData.gender || "Male",
         section: formData.section || "Section 1",
-        email: formData.email,
-        phone: formData.phone,
+        email: sanitizeInput(formData.email.trim().toLowerCase()),
+        phone: sanitizeInput(formData.phone.trim()),
         preferredSports: [formData.selectedSport]
       });
       const finalCode = trackingId || `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -95,14 +223,16 @@ export default function RegistrationView({ onBack }) {
       setFormData({
         name: "",
         rollNumber: "",
-        department: "CSE",
         year: "2nd Year",
+        department: "CSE",
         gender: "Male",
         section: "Section 1",
         email: "",
         phone: "",
         selectedSport: ""
       });
+      setErrors({});
+      setTouched({});
     } catch (err) {
       console.error("Submission error:", err);
       showToast('Registration failed: ' + (err.message || 'Unknown error'), 'error');
@@ -113,8 +243,15 @@ export default function RegistrationView({ onBack }) {
 
   const handleTrackSearch = (e) => {
     e.preventDefault();
-    setSearchAttempted(true);
+    setTrackError("");
     const code = trackingCode.toLowerCase().trim();
+
+    if (!code || code.length < 3) {
+      setTrackError("Please enter at least 3 characters of your Tracking Code or Roll Number.");
+      return;
+    }
+
+    setSearchAttempted(true);
     
     // Check applications first
     const foundApp = applications.find(a => 
@@ -149,7 +286,14 @@ export default function RegistrationView({ onBack }) {
     setTrackedApp(null);
   };
 
-  const inputClass = "w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:border-[#0b2e5b] focus:bg-white focus:outline-none transition-colors";
+  const getInputClass = (fieldName) => {
+    const hasError = touched[fieldName] && errors[fieldName];
+    return `w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border text-slate-800 text-xs focus:bg-white focus:outline-none transition-colors ${
+      hasError 
+        ? 'border-red-400 focus:border-red-500 bg-red-50/30' 
+        : 'border-slate-200 focus:border-[#0b2e5b]'
+    }`;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300">
@@ -269,13 +413,18 @@ export default function RegistrationView({ onBack }) {
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 
                 {/* 1. Sport Selection */}
                 <div className="space-y-2.5">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    1. Select Sport Discipline *
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      1. Select Sport Discipline <span className="text-red-500">*</span>
+                    </label>
+                    {touched.selectedSport && errors.selectedSport && (
+                      <span className="text-[11px] text-red-500 font-semibold">{errors.selectedSport}</span>
+                    )}
+                  </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     {availableSports.map((sport) => {
                       const isSelected = formData.selectedSport === sport;
@@ -305,27 +454,37 @@ export default function RegistrationView({ onBack }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-slate-700 text-xs font-semibold mb-1">Student Full Name *</label>
+                      <label className="block text-slate-700 text-xs font-semibold mb-1">
+                        Student Full Name <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
-                        required
-                        placeholder="Enter full name"
+                        placeholder="Enter student full name"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className={inputClass}
+                        onChange={(e) => handleChange("name", e.target.value)}
+                        onBlur={() => handleBlur("name")}
+                        className={getInputClass("name")}
                       />
+                      {touched.name && errors.name && (
+                        <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.name}</p>
+                      )}
                     </div>
 
                     <div>
-                      <label className="block text-slate-700 text-xs font-semibold mb-1">College Roll Number *</label>
+                      <label className="block text-slate-700 text-xs font-semibold mb-1">
+                        College Roll Number <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
-                        required
-                        placeholder="Enter roll number"
+                        placeholder="Enter college roll number"
                         value={formData.rollNumber}
-                        onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
-                        className={inputClass}
+                        onChange={(e) => handleChange("rollNumber", e.target.value)}
+                        onBlur={() => handleBlur("rollNumber")}
+                        className={getInputClass("rollNumber")}
                       />
+                      {touched.rollNumber && errors.rollNumber && (
+                        <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.rollNumber}</p>
+                      )}
                     </div>
                   </div>
 
@@ -334,13 +493,12 @@ export default function RegistrationView({ onBack }) {
                       <label className="block text-slate-700 text-xs font-semibold mb-1">Year of Study *</label>
                       <select
                         value={formData.year}
-                        onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                        className={inputClass}
+                        onChange={(e) => handleYearChange(e.target.value)}
+                        className={getInputClass("year")}
                       >
-                        <option value="1st Year">1st Year</option>
-                        <option value="2nd Year">2nd Year</option>
-                        <option value="3rd Year">3rd Year</option>
-                        <option value="4th Year">4th Year</option>
+                        {PUBLIC_ACADEMIC_YEARS.map(y => (
+                          <option key={y} value={y}>{y}</option>
+                        ))}
                       </select>
                     </div>
 
@@ -348,32 +506,24 @@ export default function RegistrationView({ onBack }) {
                       <label className="block text-slate-700 text-xs font-semibold mb-1">Department *</label>
                       <select
                         value={formData.department}
-                        onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                        className={inputClass}
+                        onChange={(e) => handleDepartmentChange(e.target.value)}
+                        className={getInputClass("department")}
                       >
-                        <option value="CSE">CSE</option>
-                        <option value="IT">IT</option>
-                        <option value="ECE">ECE</option>
-                        <option value="EEE">EEE</option>
-                        <option value="CSM">CSM</option>
-                        <option value="CSD">CSD</option>
-                        <option value="CAI">CAI</option>
-                        <option value="AIDS">AIDS</option>
-                        <option value="MECH">MECH</option>
-                        <option value="CIVIL">CIVIL</option>
-                        <option value="MBA">MBA</option>
+                        {getAvailableDepartments(formData.year).map(dept => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-slate-700 text-xs font-semibold mb-1">Section</label>
+                      <label className="block text-slate-700 text-xs font-semibold mb-1">Section *</label>
                       <select
                         value={formData.section}
-                        onChange={(e) => setFormData({ ...formData, section: e.target.value })}
-                        className={inputClass}
+                        onChange={(e) => handleChange("section", e.target.value)}
+                        className={getInputClass("section")}
                       >
-                        {['1', '2', '3', '4', '5', '6', '7', '8'].map(s => (
-                          <option key={s} value={`Section ${s}`}>Section {s}</option>
+                        {getAvailableSections(formData.year, formData.department).map(sec => (
+                          <option key={sec} value={`Section ${sec}`}>Section {sec}</option>
                         ))}
                       </select>
                     </div>
@@ -382,8 +532,8 @@ export default function RegistrationView({ onBack }) {
                       <label className="block text-slate-700 text-xs font-semibold mb-1">Gender *</label>
                       <select
                         value={formData.gender}
-                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                        className={inputClass}
+                        onChange={(e) => handleChange("gender", e.target.value)}
+                        className={getInputClass("gender")}
                       >
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
@@ -393,27 +543,38 @@ export default function RegistrationView({ onBack }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-slate-700 text-xs font-semibold mb-1">Email Address *</label>
+                      <label className="block text-slate-700 text-xs font-semibold mb-1">
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="email"
-                        required
                         placeholder="Enter email address"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className={inputClass}
+                        onChange={(e) => handleChange("email", e.target.value)}
+                        onBlur={() => handleBlur("email")}
+                        className={getInputClass("email")}
                       />
+                      {touched.email && errors.email && (
+                        <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.email}</p>
+                      )}
                     </div>
 
                     <div>
-                      <label className="block text-slate-700 text-xs font-semibold mb-1">Contact Phone *</label>
+                      <label className="block text-slate-700 text-xs font-semibold mb-1">
+                        Contact Phone <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="tel"
-                        required
-                        placeholder="Enter phone number"
+                        maxLength={13}
+                        placeholder="Enter contact phone number"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className={inputClass}
+                        onChange={(e) => handleChange("phone", e.target.value)}
+                        onBlur={() => handleBlur("phone")}
+                        className={getInputClass("phone")}
                       />
+                      {touched.phone && errors.phone && (
+                        <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.phone}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -421,11 +582,11 @@ export default function RegistrationView({ onBack }) {
                 {/* Submit CTA */}
                 <button
                   type="submit"
-                  disabled={isSubmitting || !formData.selectedSport}
+                  disabled={isSubmitting}
                   className="w-full py-3 rounded-xl font-bold text-sm bg-[#0b2e5b] hover:bg-[#0d3a73] disabled:opacity-50 text-white transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   {isSubmitting ? (
-                    <ButtonSpinner text="Processing Registration..." />
+                    <ButtonSpinner text="Validating & Submitting..." />
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
@@ -442,18 +603,22 @@ export default function RegistrationView({ onBack }) {
         {/* TAB 2: TRACK STATUS */}
         {activeTab === "Track" && (
           <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
-            <form onSubmit={handleTrackSearch} className="space-y-4">
+            <form onSubmit={handleTrackSearch} className="space-y-4" noValidate>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                 Enter Tracking ID or Roll Number
               </label>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  required
                   placeholder="Enter tracking ID or roll number"
                   value={trackingCode}
-                  onChange={(e) => setTrackingCode(e.target.value)}
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-sm focus:border-[#0b2e5b] focus:bg-white focus:outline-none transition-colors"
+                  onChange={(e) => {
+                    setTrackingCode(e.target.value);
+                    if (trackError) setTrackError("");
+                  }}
+                  className={`flex-1 px-4 py-2.5 rounded-lg bg-slate-50 border text-slate-800 text-sm focus:bg-white focus:outline-none transition-colors ${
+                    trackError ? 'border-red-400 bg-red-50/30' : 'border-slate-200 focus:border-[#0b2e5b]'
+                  }`}
                 />
                 <button
                   type="submit"
@@ -463,6 +628,9 @@ export default function RegistrationView({ onBack }) {
                   <span>Check</span>
                 </button>
               </div>
+              {trackError && (
+                <p className="text-[11px] text-red-500 font-medium">{trackError}</p>
+              )}
             </form>
 
             {searchAttempted && !trackedApp && (

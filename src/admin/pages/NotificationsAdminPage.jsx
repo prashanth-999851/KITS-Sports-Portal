@@ -61,7 +61,7 @@ export default function NotificationsAdminPage() {
           <textarea
             required
             rows={3}
-            placeholder="e.g., Registrations open for JNTUK Inter-University Selections • Annual Sports Meet on March 15th..."
+            placeholder="Enter announcement notification message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="w-full p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] focus:border-blue-500 focus:outline-none transition-colors"

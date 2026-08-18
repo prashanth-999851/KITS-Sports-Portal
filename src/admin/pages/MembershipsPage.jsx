@@ -5,37 +5,17 @@ import EmptyState from '../../components/EmptyState';
 import { UserCheck, Edit, Trash2, Search, Filter, X, Download, RotateCcw, FileSpreadsheet, AlertTriangle, ShieldCheck, Plus, UserPlus } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
+import { 
+  ADMIN_ACADEMIC_YEARS, 
+  getAvailableDepartments, 
+  getAvailableSections 
+} from '../../constants/academicRules';
+
 const ALL_FILTER_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];
-const ADMIN_YEARS = ['2nd Year', '3rd Year', '4th Year'];
+const ADMIN_YEARS = ADMIN_ACADEMIC_YEARS;
 const AVAILABLE_SPORTS = ['Cricket', 'Volleyball', 'Basketball', 'Badminton', 'Kabaddi', 'Kho-Kho', 'Netball', 'Ball-Badminton', 'Athletics'];
 const STATUSES = ['Pending', 'Approved', 'Rejected', 'Suspended'];
 const GENDERS = ['Male', 'Female'];
-
-// Dynamic Department & Section Rules matching Public Registration Form
-const getAvailableDepartments = (year) => {
-  return year === '4th Year'
-    ? ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD']
-    : ['CSE', 'IT', 'ECE', 'EEE', 'CSM', 'CSD'];
-};
-
-const getAvailableSections = (year, department) => {
-  if (year === '4th Year') {
-    return department === 'CSM' ? ['1'] : ['1', '2', '3'];
-  }
-  if (department === 'CSE') {
-    return ['1', '2', '3', '4', '5', '6', '7', '8'];
-  }
-  if (department === 'IT') {
-    return ['1', '2'];
-  }
-  if (department === 'CSM') {
-    return year === '2nd Year' ? ['1', '2', '3', '4', '5', '6'] : ['1', '2', '3'];
-  }
-  if (department === 'EEE') {
-    return ['1'];
-  }
-  return ['1', '2', '3'];
-};
 
 export default function MembershipsPage() {
   const { applications, updateApplicationStatus, updateApplication, deleteApplication, addStudentApplication, isLoading } = useConvexState();
