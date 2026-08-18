@@ -24,32 +24,8 @@ export default function Navbar({
   ];
 
   const handleNavClick = (id) => {
-    setActiveSection(id);
+    setActiveSection?.(id);
     setMobileMenuOpen(false);
-    if (id === 'about') {
-      window.location.href = '/about';
-      return;
-    }
-    if (id === 'jntuk-players') {
-      window.location.href = '/jntuk-players';
-      return;
-    }
-    if (id === 'membership' || id === 'register') {
-      window.location.href = '/register';
-      return;
-    }
-    if (id === 'rules') {
-      window.location.href = '/rules';
-      return;
-    }
-    if (id === 'contact') {
-      window.location.href = '/contact';
-      return;
-    }
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
   };
 
   const hasNotifications = notifications && notifications.length > 0;

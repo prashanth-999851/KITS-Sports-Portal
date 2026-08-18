@@ -10,9 +10,7 @@ import {
   Send, 
   Search, 
   ShieldCheck, 
-  Trophy, 
-  Clock, 
-  Sparkles 
+  Clock 
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 

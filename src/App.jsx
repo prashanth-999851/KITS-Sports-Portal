@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Component } from 'react';
+import React, { Component } from 'react';
 import AppRouter from './router/AppRouter';
 import { FONT_FAMILY } from './constants/fonts';
 import { COLORS } from './constants/theme';

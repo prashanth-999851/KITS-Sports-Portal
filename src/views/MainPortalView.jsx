@@ -7,7 +7,6 @@ import ExecutiveBody from '../components/ExecutiveBody';
 import Achievements from '../components/Achievements';
 import Gallery from '../components/Gallery';
 import Footer from '../components/Footer';
-import { useConvexState } from '../context/ConvexStateContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function MainPortalView() {
