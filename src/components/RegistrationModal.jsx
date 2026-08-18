@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ButtonSpinner } from './LoadingSkeleton';
 import { useToast } from '../context/ToastContext';
 import { X, CheckCircle2, Trophy, Send } from 'lucide-react';
@@ -18,6 +18,17 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
   const [submitted, setSubmitted] = useState(false);
   const [trackingId, setTrackingId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Lock background body scroll when popup modal is open
+  useEffect(() => {
+    if (isOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle || 'unset';
+      };
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -48,58 +59,69 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
     onClose();
   };
 
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs focus:border-blue-500 focus:outline-none transition-colors";
+  const inputClass = "w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:border-[#0b2e5b] focus:bg-white focus:outline-none transition-colors";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-      <div className="relative w-full max-w-lg p-7 rounded-xl glass-modal space-y-5">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto animate-fadeIn"
+      onClick={handleClose}
+    >
+      <div 
+        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 shadow-2xl space-y-5 text-slate-800"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={handleClose}
-          className="absolute top-5 right-5 p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] transition-colors"
+          className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         {submitted ? (
-          <div className="p-5 text-center space-y-3">
-            <CheckCircle2 className="w-14 h-14 text-emerald-600 dark:text-emerald-400 mx-auto" />
-            <h3 className="text-xl font-bold text-[var(--text-primary)]">Registration Confirmed!</h3>
-            <p className="text-xs text-[var(--text-secondary)]">
-              You are now registered for <strong className="text-blue-700 dark:text-blue-400">{targetName}</strong>.
+          <div className="p-4 text-center space-y-3">
+            <CheckCircle2 className="w-14 h-14 text-emerald-600 mx-auto" />
+            <h3 className="text-xl font-bold text-slate-800">Registration Confirmed!</h3>
+            <p className="text-xs text-slate-600">
+              You are now registered for <strong className="text-[#0b2e5b]">{targetName}</strong>.
             </p>
-            <div className="p-3 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] font-mono text-blue-700 dark:text-blue-400 text-lg font-bold">
+            <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 font-mono text-[#0b2e5b] text-lg font-bold">
               ID: {trackingId}
             </div>
             <button
               onClick={handleClose}
-              className="w-full py-2.5 rounded-lg font-semibold text-xs bg-[#1E3A8A] text-white hover:bg-[#1E40AF] transition-colors"
+              className="w-full py-2.5 rounded-lg font-bold text-xs bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-colors cursor-pointer shadow-sm"
             >
               Done & Close
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-[var(--border-color)] pb-3">
-              <Trophy className="w-5 h-5 text-amber-500" />
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-3.5">
+              <div className="p-2 rounded-lg bg-amber-50 text-amber-600">
+                <Trophy className="w-5 h-5" />
+              </div>
               <div>
-                <h3 className="text-base font-bold text-[var(--text-primary)]">Register for {targetName}</h3>
-                <span className="text-xs text-[var(--text-muted)]">KKR & KSR Official Trials 2026</span>
+                <h3 className="text-base font-bold text-[#0b2e5b]">Register for {targetName}</h3>
+                <span className="text-[11px] text-slate-500 font-medium">KKR & KSR Official Trials 2026</span>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Student Name *</label>
-                <input type="text" required placeholder="Enter your full name"
+                <label className="block text-slate-700 mb-1 font-semibold">Student Name *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="Enter your full name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={inputClass}
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Year of Study *</label>
+                  <label className="block text-slate-700 mb-1 font-semibold">Year of Study *</label>
                   <select
                     value={formData.year}
                     onChange={(e) => {
@@ -112,12 +134,14 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
                     }}
                     className={inputClass}
                   >
+                    <option value="1st Year">1st Year</option>
                     <option value="2nd Year">2nd Year</option>
                     <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Department *</label>
+                  <label className="block text-slate-700 mb-1 font-semibold">Department *</label>
                   <select
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
@@ -133,18 +157,20 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Roll Number *</label>
-                  <input type="text" required placeholder="Enter your roll number"
+                  <label className="block text-slate-700 mb-1 font-semibold">Roll Number *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    placeholder="Enter your roll number"
                     value={formData.rollNumber}
                     onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })}
                     className={inputClass}
                   />
                 </div>
-              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Gender *</label>
+                  <label className="block text-slate-700 mb-1 font-semibold">Gender *</label>
                   <select
                     value={formData.gender || "Male"}
                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
@@ -154,8 +180,11 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
                     <option value="Female">Female</option>
                   </select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Section *</label>
+                  <label className="block text-slate-700 mb-1 font-semibold">Section *</label>
                   <select
                     value={formData.section || "Section 1"}
                     onChange={(e) => setFormData({ ...formData, section: e.target.value })}
@@ -169,33 +198,36 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
                     ))}
                   </select>
                 </div>
-              </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Email *</label>
-                  <input type="email" required placeholder="Enter your institutional email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Phone *</label>
-                  <input type="tel" required placeholder="Enter your phone number"
+                  <label className="block text-slate-700 mb-1 font-semibold">Phone *</label>
+                  <input 
+                    type="tel" 
+                    required 
+                    placeholder="Enter phone number"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     className={inputClass}
                   />
                 </div>
               </div>
+
+              <div>
+                <label className="block text-slate-700 mb-1 font-semibold">Email Address *</label>
+                <input 
+                  type="email" 
+                  required 
+                  placeholder="student@email.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2.5 rounded-lg font-semibold text-xs bg-[#1E3A8A] hover:bg-[#1E40AF] disabled:opacity-50 text-white transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-lg font-bold text-xs bg-[#0b2e5b] hover:bg-[#0d3a73] disabled:opacity-50 text-white transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer active:scale-98"
             >
               {isSubmitting ? (
                 <ButtonSpinner text="Registering..." />

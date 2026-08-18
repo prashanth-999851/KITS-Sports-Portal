@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { compressImage } from '../../utils/imageCompressor';
+import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 import { Award, Plus, Edit, Trash2, X, Search, Calendar, MapPin, Trophy, ShieldCheck, Loader2, FileSpreadsheet, RotateCcw } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -200,7 +201,7 @@ export default function JntukPlayersAdminPage() {
           {/* Add Athlete Button */}
           <button
             onClick={handleAddNew}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-all shadow-sm cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-[#0d3a73] hover:bg-[#104a8e] text-white transition-all shadow-sm cursor-pointer whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>Add JNTUK Athlete</span>
@@ -349,7 +350,7 @@ export default function JntukPlayersAdminPage() {
                 
                 {/* Year & Actions Bar */}
                 <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#1E3A8A] text-white">
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#0d3a73] text-white">
                     {player.academicYear}
                   </span>
 
@@ -532,26 +533,15 @@ export default function JntukPlayersAdminPage() {
                 />
               </div>
 
-              {/* Upload Photo */}
-              <div className="space-y-1">
-                <label className="block text-[var(--text-secondary)] font-semibold">Athlete Photo</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      try {
-                        const compressed = await compressImage(file);
-                        setFormData(prev => ({ ...prev, photo: compressed }));
-                      } catch (err) {
-                        alert("Failed to process image: " + err.message);
-                      }
-                    }
-                  }}
-                  className="w-full text-xs text-[var(--text-secondary)] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-500/10 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer"
-                />
-              </div>
+              {/* Upload Athlete Photo with Instagram-style Cropper */}
+              <ImageUploadWithCropper
+                label="Athlete Photo"
+                value={formData.photo}
+                onChange={(croppedUrl) => setFormData(prev => ({ ...prev, photo: croppedUrl }))}
+                aspectRatio="1:1"
+                circularPreview={false}
+                helpText="Crop and adjust player portrait or action photo"
+              />
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border-color)]">
                 <button
@@ -564,7 +554,7 @@ export default function JntukPlayersAdminPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-lg font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-5 py-2 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isSubmitting ? (
                     <>

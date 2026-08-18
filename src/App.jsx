@@ -1,5 +1,7 @@
 import React, { useState, useEffect, Component } from 'react';
 import AppRouter from './router/AppRouter';
+import { FONT_FAMILY } from './constants/fonts';
+import { COLORS } from './constants/theme';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -23,21 +25,21 @@ class ErrorBoundary extends Component {
       return (
         <div style={{
           padding: '40px',
-          fontFamily: 'Inter, system-ui, sans-serif',
-          backgroundColor: '#F8FAFC',
+          fontFamily: FONT_FAMILY,
+          backgroundColor: COLORS.surface.light,
           minHeight: '100vh',
-          color: '#0F172A'
+          color: COLORS.brand.primary
         }}>
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px', color: '#DC2626' }}>
             Something went wrong
           </h1>
-          <p style={{ marginBottom: '12px', fontSize: '14px', color: '#475569' }}>
+          <p style={{ marginBottom: '12px', fontSize: '14px', color: COLORS.text.secondary }}>
             The application encountered a runtime error. Please reload the page or contact the sports office if the issue continues.
           </p>
           {showTechnicalDetails && (
             <pre style={{
               padding: '16px',
-              backgroundColor: '#1E293B',
+              backgroundColor: COLORS.surface.darkCard,
               color: '#F87171',
               borderRadius: '8px',
               fontSize: '12px',
@@ -56,7 +58,7 @@ class ErrorBoundary extends Component {
             style={{
               marginTop: '20px',
               padding: '10px 24px',
-              backgroundColor: '#1E3A8A',
+              backgroundColor: COLORS.brand.secondary,
               color: 'white',
               border: 'none',
               borderRadius: '8px',
@@ -76,19 +78,9 @@ class ErrorBoundary extends Component {
 }
 
 export default function App() {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
-
   return (
     <ErrorBoundary>
-      <AppRouter darkMode={darkMode} setDarkMode={setDarkMode} />
+      <AppRouter />
     </ErrorBoundary>
   );
 }

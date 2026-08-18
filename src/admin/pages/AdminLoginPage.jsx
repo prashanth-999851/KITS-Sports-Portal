@@ -136,7 +136,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0b2e5b] text-white flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         
         {/* Logo Banner */}
@@ -257,7 +257,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={isLoggingIn || lockoutTimer > 0}
-              className="w-full py-3 rounded-lg text-xs font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all shadow-md flex items-center justify-center mt-2"
+              className="w-full py-3 rounded-lg text-xs font-bold bg-[#0d3a73] hover:bg-[#104a8e] disabled:opacity-50 disabled:cursor-not-allowed text-white transition-all shadow-md flex items-center justify-center mt-2"
             >
               {isLoggingIn ? (
                 <ButtonSpinner text="Authenticating..." />

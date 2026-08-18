@@ -31,7 +31,7 @@ export default function UsersAdminPage() {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E3A8A] text-white hover:bg-[#1E40AF]"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#0d3a73] text-white hover:bg-[#104a8e]"
         >
           <UserPlus className="w-3.5 h-3.5" />
           <span>Add Admin User</span>
@@ -115,7 +115,7 @@ export default function UsersAdminPage() {
                 </select>
               </div>
 
-              <button type="submit" className="w-full py-2.5 rounded-lg font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF]">
+              <button type="submit" className="w-full py-2.5 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e]">
                 Create Admin & Assign Role
               </button>
             </form>

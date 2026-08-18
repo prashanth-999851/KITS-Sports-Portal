@@ -4,6 +4,7 @@ import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Trophy, Plus, Edit, Trash2, MapPin, X, Upload, Loader2 } from 'lucide-react';
 import { compressImage } from '../../utils/imageCompressor';
+import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 
 export default function SportsAdminPage() {
   const { sports, addSport, updateSport, deleteSport, isLoading } = useConvexState();
@@ -123,7 +124,7 @@ export default function SportsAdminPage() {
         </div>
         <button
           onClick={() => { setEditingSport(null); setFormData({ name: '', category: 'Outdoor', description: '', coordinator: 'K. Venkata Rao', assistantCoordinator: 'M. Surya Prakash Rao', menCaptain: '', womenCaptain: '', venue: 'KKR and KSR Sports Ground', schedule: 'Mon - Fri (04:30 PM - 06:30 PM)', image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800' }); setShowModal(true); }}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E3A8A] text-white hover:bg-[#1E40AF]"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#0d3a73] text-white hover:bg-[#104a8e]"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Add New Sport</span>
@@ -154,7 +155,7 @@ export default function SportsAdminPage() {
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-                <span className="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[#1E3A8A] text-white shadow-md">
+                <span className="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-0.5 rounded-md bg-[#0d3a73] text-white shadow-md">
                   {s.category}
                 </span>
 
@@ -209,7 +210,7 @@ export default function SportsAdminPage() {
             <div className="p-4 pt-0 flex gap-2">
               <button
                 onClick={() => handleEdit(s)}
-                className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] transition-all flex items-center justify-center gap-1.5 shadow-sm"
               >
                 <Edit className="w-3 h-3" />
                 <span>Edit Details</span>
@@ -237,28 +238,15 @@ export default function SportsAdminPage() {
             </div>
 
             <form onSubmit={handleImageSubmit} className="space-y-4 text-xs">
-              <div className="h-44 rounded-lg overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card-subtle)] relative">
-                <img
-                  src={newImageUrl}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                  onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800"; }}
-                />
-              </div>
+              <ImageUploadWithCropper
+                label="Sport Banner Image"
+                value={newImageUrl}
+                onChange={setNewImageUrl}
+                aspectRatio="16:9"
+                helpText="Crop and position 16:9 widescreen sport banner"
+              />
 
-              {/* Upload Local Image File */}
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Upload Image File from Device</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileUpload(e, (dataUrl) => setNewImageUrl(dataUrl))}
-                  className="w-full text-xs text-[var(--text-secondary)] file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-500/10 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer"
-                />
-              </div>
-
-
-              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] disabled:opacity-50 flex items-center justify-center gap-2">
+              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 flex items-center justify-center gap-2">
                 {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving Image...</span></> : 'Save Image'}
               </button>
             </form>
@@ -303,27 +291,14 @@ export default function SportsAdminPage() {
                 </div>
               </div>
 
-              {/* Upload Image Section */}
-              <div className="space-y-2 border border-[var(--border-color)] p-3 rounded-lg bg-[var(--bg-card-subtle)]">
-                <label className="block text-[var(--text-secondary)] font-semibold">Sport Banner Image *</label>
-                
-                <div>
-                  <label className="block text-[11px] text-[var(--text-muted)] mb-1">Upload File from Device:</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileUpload(e, (dataUrl) => setFormData({ ...formData, image: dataUrl }))}
-                    className="w-full text-xs text-[var(--text-secondary)] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-500/10 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer"
-                  />
-                </div>
-
-
-                {formData.image && (
-                  <div className="h-28 rounded overflow-hidden border border-[var(--border-color)] mt-2">
-                    <img src={formData.image} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800"; }} />
-                  </div>
-                )}
-              </div>
+              {/* Upload Image Section with Instagram-style Cropper */}
+              <ImageUploadWithCropper
+                label="Sport Banner Image *"
+                value={formData.image}
+                onChange={(url) => setFormData(prev => ({ ...prev, image: url }))}
+                aspectRatio="16:9"
+                helpText="Crop and position 16:9 widescreen sport banner"
+              />
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -341,7 +316,7 @@ export default function SportsAdminPage() {
                 <textarea required rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className={inputClass} />
               </div>
 
-              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] disabled:opacity-50 flex items-center justify-center gap-2">
+              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 flex items-center justify-center gap-2">
                 {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Performing Action...</span></> : (editingSport ? 'Save Changes' : 'Create Sport Panel')}
               </button>
             </form>

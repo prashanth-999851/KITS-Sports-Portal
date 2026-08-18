@@ -279,7 +279,7 @@ export default function MembershipsPage() {
           {/* Add Membership Button */}
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-all shadow-sm cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-[#0d3a73] hover:bg-[#104a8e] text-white transition-all shadow-sm cursor-pointer whitespace-nowrap"
           >
             <UserPlus className="w-4 h-4" />
             <span>Add Membership</span>
@@ -733,7 +733,7 @@ export default function MembershipsPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-lg font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 rounded-lg font-bold bg-[#0d3a73] hover:bg-[#104a8e] text-white transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Registering...' : 'Register Student Membership'}
                 </button>
@@ -943,7 +943,7 @@ export default function MembershipsPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-lg font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-colors disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2 rounded-lg font-bold bg-[#0d3a73] hover:bg-[#104a8e] text-white transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
                 </button>

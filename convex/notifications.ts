@@ -14,19 +14,30 @@ export const list = query({
 export const broadcast = mutation({
   args: {
     sessionToken,
-    title: v.string(),
     message: v.string(),
-    type: v.string(),
+    title: v.optional(v.string()),
+    type: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.sessionToken);
     return await ctx.db.insert("notifications", {
-      title: args.title,
+      title: args.title || "Announcement",
       message: args.message,
-      type: args.type,
+      type: args.type || "Announcement",
       isActive: true,
       createdAt: new Date().toISOString(),
     });
+  },
+});
+
+export const remove = mutation({
+  args: {
+    sessionToken,
+    id: v.id("notifications"),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
+    await ctx.db.delete(args.id);
   },
 });
 

@@ -1,132 +1,162 @@
 import React from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
-import { Mail, Phone, Building } from 'lucide-react';
 
 function ExecutiveSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
-      {Array.from({ length: 6 }).map((_, idx) => (
-        <div key={idx} className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-6 space-y-4 animate-slideUp">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full skeleton-shimmer" />
-            <div className="space-y-2 flex-1">
-              <div className="h-4 w-3/4 skeleton-shimmer" />
-              <div className="h-3 w-1/2 skeleton-shimmer" />
-            </div>
-          </div>
-          <div className="h-10 w-full skeleton-shimmer" />
-          <div className="space-y-2">
-            <div className="h-3 w-full skeleton-shimmer" />
-            <div className="h-3 w-2/3 skeleton-shimmer" />
+    <div className="space-y-10">
+      {/* Tier 1 Skeleton (Top Head) */}
+      <div className="flex justify-center">
+        <div className="flex flex-col items-center text-center space-y-2.5 w-36 sm:w-48">
+          <div className="w-36 h-36 sm:w-44 sm:h-44 rounded-full skeleton-shimmer ring-4 ring-slate-100" />
+          <div className="space-y-1 w-full flex flex-col items-center">
+            <div className="h-3.5 w-3/4 skeleton-shimmer rounded" />
+            <div className="h-2.5 w-1/2 skeleton-shimmer rounded" />
           </div>
         </div>
-      ))}
+      </div>
+
+      {/* Tier 2 Skeleton (2 in a row on mobile) */}
+      <div className="flex justify-center gap-4 sm:gap-10 md:gap-16">
+        {Array.from({ length: 2 }).map((_, idx) => (
+          <div key={idx} className="flex flex-col items-center text-center space-y-2.5 w-36 sm:w-48">
+            <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full skeleton-shimmer ring-4 ring-slate-100" />
+            <div className="space-y-1 w-full flex flex-col items-center">
+              <div className="h-3.5 w-3/4 skeleton-shimmer rounded" />
+              <div className="h-2.5 w-1/2 skeleton-shimmer rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MemberCard({ member, isTopTier = false }) {
+  return (
+    <div className="group flex flex-col items-center text-center space-y-2.5 sm:space-y-3 w-36 sm:w-48 md:w-52 animate-slideUp cursor-default">
+      {/* Circular Portrait Frame */}
+      <div className="relative">
+        <div className={`rounded-full p-1 sm:p-1.5 bg-white border-2 border-slate-200 shadow-md group-hover:border-[#0b2e5b] group-hover:shadow-lg transition-all duration-300 ${
+          isTopTier 
+            ? 'w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48' 
+            : 'w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44'
+        }`}>
+          <div className="w-full h-full rounded-full overflow-hidden bg-slate-100">
+            <img
+              src={member.photo}
+              alt={member.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400";
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Name & Designation Only */}
+      <div className="space-y-0.5 sm:space-y-1 max-w-full px-1">
+        <h3 className={`font-bold text-[#0b2e5b] leading-snug group-hover:text-[#0d3a73] transition-colors ${
+          isTopTier ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-sm md:text-base'
+        }`}>
+          {member.name}
+        </h3>
+        <p className="text-[10.5px] sm:text-xs font-semibold text-slate-600 leading-tight">
+          {member.position}
+        </p>
+      </div>
     </div>
   );
 }
 
 export default function ExecutiveBody() {
-  const { executiveBody, isLoading } = useConvexState();
+  const { executiveBody = [], isLoading } = useConvexState();
+
+  // 1. Separate College Management / Heads and Student Leads
+  const managementMembers = executiveBody
+    .filter(m => !m.memberType || m.memberType === 'Executive Body' || m.memberType === 'College Head' || m.memberType === 'Management' || m.memberType === 'Faculty')
+    .sort((a, b) => (a.displayOrder || 1) - (b.displayOrder || 1));
+
+  const studentLeads = executiveBody
+    .filter(m => m.memberType === 'Student Officer' || m.memberType === 'Student Lead' || m.memberType === 'Student Leadership')
+    .sort((a, b) => (a.displayOrder || 1) - (b.displayOrder || 1));
+
+  // 2. Pyramid Tiers for Management Heads:
+  // - Tier 1: 1 Top Management Head (Chairman/Patron, Centered Single)
+  // - Tier 2: Next Management Members (2 in a row on mobile, Centered)
+  const tier1 = managementMembers.length > 0 ? [managementMembers[0]] : [];
+  const tier2 = managementMembers.length > 1 ? managementMembers.slice(1) : [];
 
   return (
-    <section id="executive" className="py-12 sm:py-16 bg-[var(--bg-card-subtle)] transition-colors">
+    <section id="executive" className="py-12 sm:py-16 bg-slate-50/70 transition-colors">
       <div className="section-divider" />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-10 sm:space-y-14">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--secondary)] dark:text-blue-400">
-            Student Leadership
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto space-y-2.5">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#0b2e5b]">
+            Institutional Leadership
           </p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] section-accent">
             Executive <span className="accent-text">Body</span>
           </h2>
-          <p className="text-[var(--text-secondary)] text-sm leading-relaxed pt-2">
-            Meet the student office bearers leading tournament organization, team logistics, player welfare, and institutional sports representation.
+          <p className="text-[var(--text-secondary)] text-xs sm:text-sm leading-relaxed max-w-xl mx-auto">
+            Meet the distinguished institutional leadership guiding the sports directorate and athletic development at KKR & KSR Institute of Technology and Sciences.
           </p>
         </div>
 
-        {/* Leadership Cards */}
         {isLoading ? (
           <ExecutiveSkeleton />
+        ) : managementMembers.length === 0 && studentLeads.length === 0 ? (
+          <div className="text-center py-12 text-slate-500 text-sm">
+            No executive members listed currently.
+          </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
-          {executiveBody.map((member, idx) => (
-            <div
-              key={idx}
-              className="group rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] overflow-hidden card-hover animate-slideUp"
-            >
-              {/* Accent Top Bar */}
-              <div className="h-1 bg-gradient-to-r from-[#1E3A8A] via-blue-500 to-amber-500" />
+          <div className="space-y-10 sm:space-y-12">
+            
+            {/* MANAGEMENT PYRAMID STRUCTURE */}
+            <div className="space-y-8 sm:space-y-10">
               
-              <div className="p-6 flex flex-col justify-between h-full">
-                <div className="space-y-4">
-                  {/* Photo & Name */}
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--border-color)] group-hover:border-[var(--secondary)] dark:group-hover:border-blue-400 transition-colors bg-[var(--bg-card-subtle)] shadow-sm">
-                      <img
-                        src={member.photo}
-                        alt={member.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300";
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-bold text-[var(--text-primary)] group-hover:text-[var(--secondary)] dark:group-hover:text-blue-400 transition-colors">
-                        {member.name}
-                      </h3>
-                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
-                        {member.position}
-                      </span>
-                    </div>
-                  </div>
+              {/* Tier 1: Top Management Head (Chairman, Centered Solo) */}
+              {tier1.length > 0 && (
+                <div className="flex justify-center items-center">
+                  {tier1.map((member) => (
+                    <MemberCard key={member.id} member={member} isTopTier={true} />
+                  ))}
+                </div>
+              )}
 
-                  {/* Department */}
-                  <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">
-                    <Building className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0" />
-                    <span>{member.department}</span>
-                  </div>
+              {/* Tier 2: Next Management Members (2 Members in a row on Mobile & Desktop) */}
+              {tier2.length > 0 && (
+                <div className="flex flex-wrap justify-center items-start gap-6 sm:gap-10 md:gap-16 lg:gap-20 max-w-sm sm:max-w-none mx-auto pt-2">
+                  {tier2.map((member) => (
+                    <MemberCard key={member.id} member={member} />
+                  ))}
+                </div>
+              )}
 
-                  {/* Contact */}
-                  {(member.email || member.phone) && (
-                    <div className="space-y-2 text-xs">
-                      {member.email && (
-                        <a
-                          href={`mailto:${member.email}`}
-                          className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--secondary)] dark:hover:text-blue-400 transition-colors group/link"
-                        >
-                          <div className="p-1.5 rounded-md bg-blue-50 dark:bg-blue-500/10">
-                            <Mail className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <span className="truncate group-hover/link:underline">{member.email}</span>
-                        </a>
-                      )}
-                      {member.phone && (
-                        <a
-                          href={`tel:${member.phone}`}
-                          className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--secondary)] dark:hover:text-blue-400 transition-colors group/link"
-                        >
-                          <div className="p-1.5 rounded-md bg-emerald-50 dark:bg-emerald-500/10">
-                            <Phone className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                          </div>
-                          <span className="group-hover/link:underline">{member.phone}</span>
-                        </a>
-                      )}
-                    </div>
-                  )}
+            </div>
+
+            {/* TIER 3: STUDENT LEADS (2 Members in a row on Mobile & Desktop) */}
+            {studentLeads.length > 0 && (
+              <div className="pt-10 border-t border-slate-200/80 space-y-6">
+                <div className="text-center">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-800">
+                    Student Leads
+                  </h3>
                 </div>
 
-                {/* Footer */}
-                <div className="mt-5 pt-4 border-t border-[var(--border-color)] text-[11px] text-[var(--text-muted)] font-medium">
-                  KKR & KSR Student Sports Council
+                {/* 2 Student Leads in a Row on Mobile */}
+                <div className="flex flex-wrap justify-center items-start gap-6 sm:gap-10 md:gap-16 lg:gap-20 max-w-sm sm:max-w-none mx-auto">
+                  {studentLeads.map((member) => (
+                    <MemberCard key={member.id} member={member} />
+                  ))}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+
+          </div>
         )}
 
       </div>

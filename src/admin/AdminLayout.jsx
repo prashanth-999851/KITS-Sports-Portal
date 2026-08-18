@@ -13,13 +13,11 @@ import {
   LogOut, 
   Menu, 
   X, 
-  Sun, 
-  Moon, 
   ExternalLink,
   ChevronRight
 } from 'lucide-react';
 
-export default function AdminLayout({ darkMode, setDarkMode }) {
+export default function AdminLayout() {
   const { currentUser, logout } = useConvexState();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -54,7 +52,7 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
 
       {/* Sidebar Navigation */}
       <aside className={`
-        fixed md:sticky top-0 z-50 h-screen w-64 bg-[#0F172A] text-white flex flex-col justify-between transition-transform duration-300
+        fixed md:sticky top-0 z-50 h-screen w-64 bg-[#0b2e5b] text-white flex flex-col justify-between transition-transform duration-300
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
       `}>
         <div className="p-4 space-y-6 overflow-y-auto">
@@ -106,7 +104,7 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
                   className={({ isActive }) => `
                     flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors
                     ${isActive 
-                      ? 'bg-[#1E3A8A] text-white shadow-sm font-semibold' 
+                      ? 'bg-[#0d3a73] text-white shadow-sm font-semibold' 
                       : 'text-slate-400 hover:text-white hover:bg-slate-800/80'}
                   `}
                 >
@@ -170,14 +168,6 @@ export default function AdminLayout({ darkMode, setDarkMode }) {
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--bg-card-subtle)] transition-colors"
-              title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-            </button>
-
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-xs text-[var(--text-secondary)]">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               <span>System Online</span>

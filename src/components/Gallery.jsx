@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
 import { Maximize2, X, Image as ImageIcon } from 'lucide-react';
 
@@ -18,6 +18,17 @@ export default function Gallery() {
   const { gallery, isLoading } = useConvexState();
   const [activeCategory, setActiveCategory] = useState("All");
   const [lightboxImage, setLightboxImage] = useState(null);
+
+  // Lock background body scroll when lightbox is open
+  useEffect(() => {
+    if (lightboxImage) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalStyle || 'unset';
+      };
+    }
+  }, [lightboxImage]);
 
   // Derive categories dynamically from gallery data
   const GALLERY_CATEGORIES = ["All", ...new Set(gallery.map(item => item.category).filter(Boolean))];
@@ -50,7 +61,7 @@ export default function Gallery() {
                 onClick={() => setActiveCategory(cat)}
                 className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 ${
                   activeCategory === cat
-                    ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20'
+                    ? 'bg-[#0d3a73] text-white shadow-md shadow-blue-900/20'
                     : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-color)] hover:border-[var(--border-hover)] hover:shadow-sm'
                 }`}
               >
@@ -86,7 +97,7 @@ export default function Gallery() {
                 </div>
 
                 <div className="absolute bottom-0 inset-x-0 p-3.5 sm:p-4 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-300 translate-y-0 sm:translate-y-1 sm:group-hover:translate-y-0 pointer-events-none">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#1E3A8A] text-white uppercase tracking-wider">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#0d3a73] text-white uppercase tracking-wider">
                     {item.category}
                   </span>
                   <h4 className="text-sm font-bold text-white mt-1.5 drop-shadow-sm">{item.title}</h4>

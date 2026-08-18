@@ -64,7 +64,7 @@ export default function DashboardPage() {
     count: sportsCountMap[sp]
   }));
 
-  const pieColors = ['#1E3A8A', '#2563EB', '#3B82F6', '#60A5FA', '#93C5FD', '#F59E0B', '#10B981', '#EC4899', '#8B5CF6'];
+  const pieColors = ['#0d3a73', '#2563EB', '#3B82F6', '#1a5cad', '#93C5FD', '#F59E0B', '#10B981', '#EC4899', '#8B5CF6'];
 
   const recentApplications = applications.slice(0, 5);
 
@@ -120,10 +120,10 @@ export default function DashboardPage() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={monthlyData}>
-                  <XAxis dataKey="month" stroke="#94A3B8" fontSize={11} />
-                  <YAxis stroke="#94A3B8" fontSize={11} />
+                  <XAxis dataKey="month" stroke="#7a99be" fontSize={11} />
+                  <YAxis stroke="#7a99be" fontSize={11} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="applications" stroke="#1E3A8A" fill="#1E3A8A" fillOpacity={0.2} name="Applications" />
+                  <Area type="monotone" dataKey="applications" stroke="#0d3a73" fill="#0d3a73" fillOpacity={0.2} name="Applications" />
                   <Area type="monotone" dataKey="approved" stroke="#10B981" fill="#10B981" fillOpacity={0.2} name="Approved" />
                 </AreaChart>
               </ResponsiveContainer>

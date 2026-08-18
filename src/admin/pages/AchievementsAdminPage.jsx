@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Award, Medal, Trophy, Plus, X, Trash2, Edit, Loader2 } from 'lucide-react';
+import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 
 export default function AchievementsAdminPage() {
   const { achievements, addAchievement, deleteAchievement, updateSettings, isLoading } = useConvexState();
@@ -119,7 +120,7 @@ export default function AchievementsAdminPage() {
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E3A8A] text-white hover:bg-[#1E40AF]"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#0d3a73] text-white hover:bg-[#104a8e]"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Wall of Fame Award</span>
@@ -232,7 +233,7 @@ export default function AchievementsAdminPage() {
                 <input type="number" min="0" required value={tallyData.bronze} onChange={(e) => setTallyData({ ...tallyData, bronze: Number(e.target.value) })} className={inputClass} />
               </div>
 
-              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] disabled:opacity-50 flex items-center justify-center gap-2">
+              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 flex items-center justify-center gap-2">
                 {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving Tallies...</span></> : 'Save Tally Counts'}
               </button>
             </form>
@@ -270,34 +271,21 @@ export default function AchievementsAdminPage() {
                 </select>
               </div>
 
-              {/* Upload Image Section */}
-              <div className="space-y-2 border border-[var(--border-color)] p-3 rounded-lg bg-[var(--bg-card-subtle)]">
-                <label className="block text-[var(--text-secondary)] font-semibold">Award Image / Photo</label>
-
-                <div>
-                  <label className="block text-[11px] text-[var(--text-muted)] mb-1">Upload File from Computer:</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="w-full text-xs text-[var(--text-secondary)] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-500/10 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer"
-                  />
-                </div>
-
-
-                {formData.image && (
-                  <div className="h-28 rounded overflow-hidden border border-[var(--border-color)] mt-2">
-                    <img src={formData.image} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600"; }} />
-                  </div>
-                )}
-              </div>
+              {/* Upload Award Image with Instagram-style Cropper */}
+              <ImageUploadWithCropper
+                label="Award Image / Medal Photo"
+                value={formData.image}
+                onChange={(url) => setFormData(prev => ({ ...prev, image: url }))}
+                aspectRatio="16:9"
+                helpText="Crop and position achievement trophy or medal photo"
+              />
 
               <div>
                 <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Achievement Narrative *</label>
                 <textarea required rows={3} value={formData.achievement} onChange={(e) => setFormData({ ...formData, achievement: e.target.value })} className={inputClass} />
               </div>
 
-              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] disabled:opacity-50 flex items-center justify-center gap-2">
+              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 flex items-center justify-center gap-2">
                 {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Publishing Honor...</span></> : 'Publish Honor to Wall of Fame'}
               </button>
             </form>

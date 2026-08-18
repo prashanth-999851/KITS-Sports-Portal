@@ -1,13 +1,8 @@
 import React from 'react';
-import { ArrowUp } from 'lucide-react';
 
 export default function Footer({ setActiveSection }) {
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   return (
-    <footer className="bg-[#0B1120] text-slate-400 text-xs py-14">
+    <footer className="bg-[#041428] text-slate-400 text-xs py-14">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -22,7 +17,7 @@ export default function Footer({ setActiveSection }) {
               />
               <div>
                 <h4 className="text-sm font-bold text-white tracking-wide">KKR & KSR Sports Club</h4>
-                <p className="text-[10px] text-slate-500">KITS • Official Sports Portal</p>
+                <p className="text-[10px] text-slate-500">Official Sports Portal</p>
               </div>
             </div>
             <p className="text-slate-500 text-[11px] leading-relaxed">
@@ -47,7 +42,7 @@ export default function Footer({ setActiveSection }) {
                     }}
                     className="hover:text-blue-400 capitalize transition-colors text-slate-500 hover:translate-x-0.5 inline-block"
                   >
-                    {sec}
+                    {sec === 'executive' ? 'Executive Body' : sec}
                   </button>
                 </li>
               ))}
@@ -59,11 +54,11 @@ export default function Footer({ setActiveSection }) {
             <h5 className="text-xs font-bold text-slate-300 uppercase tracking-[0.15em] mb-3">Resources</h5>
             <ul className="space-y-2">
               {[
-                { id: 'jntuk-stars', label: 'JNTUK Stars Roster', url: '/jntuk-stars' },
-                { id: 'membership', label: 'Membership Portal' },
+                { id: 'jntuk-players', label: 'JNTUK Players', url: '/jntuk-players' },
+                { id: 'membership', label: 'Membership & Registration', url: '/register' },
                 { id: 'gallery', label: 'Gallery' },
-                { id: 'rules', label: 'Constitution' },
-                { id: 'contact', label: 'Contact Us' }
+                { id: 'rules', label: 'Constitution', url: '/rules' },
+                { id: 'contact', label: 'Contact Us', url: '/contact' }
               ].map((item) => (
                 <li key={item.id}>
                   <button
@@ -89,12 +84,8 @@ export default function Footer({ setActiveSection }) {
             <h5 className="text-xs font-bold text-slate-300 uppercase tracking-[0.15em] mb-3">Institute</h5>
             <p className="text-slate-500 text-[11px] leading-relaxed">
               KKR & KSR Institute of Technology & Sciences<br />
-              Vinjanampadu, Guntur, AP - 522017<br />
-              sports@kkrksr.ac.in
+              Vinjanampadu, Guntur, AP - 522017
             </p>
-            <div className="p-2.5 rounded-lg bg-[#1E3A8A]/15 border border-[#1E3A8A]/30 text-[10px] text-blue-300 font-medium">
-              🏆 Affiliated to JNTU Kakinada Sports Board
-            </div>
           </div>
 
         </div>
@@ -102,13 +93,6 @@ export default function Footer({ setActiveSection }) {
         {/* Bottom */}
         <div className="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
           <p>© 2026 KKR & KSR Sports Club. All Rights Reserved.</p>
-          <button
-            onClick={scrollToTop}
-            className="p-2.5 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-white hover:bg-[#1E3A8A] transition-all duration-200 hover:shadow-md"
-            title="Back to top"
-          >
-            <ArrowUp className="w-4 h-4" />
-          </button>
         </div>
 
       </div>

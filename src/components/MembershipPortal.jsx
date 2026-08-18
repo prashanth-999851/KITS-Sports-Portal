@@ -141,7 +141,7 @@ export default function MembershipPortal({ applications, onAddApplication }) {
               onClick={() => setActiveTab("Apply")}
               className={`px-5 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 ${
                 activeTab === "Apply" 
-                  ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20' 
+                  ? 'bg-[#0d3a73] text-white shadow-md shadow-blue-900/20' 
                   : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-color)] hover:border-[var(--border-hover)] hover:shadow-sm'
               }`}
             >
@@ -151,7 +151,7 @@ export default function MembershipPortal({ applications, onAddApplication }) {
               onClick={() => setActiveTab("Track")}
               className={`px-5 py-2.5 rounded-lg font-semibold text-xs transition-all duration-200 ${
                 activeTab === "Track" 
-                  ? 'bg-[#1E3A8A] text-white shadow-md shadow-blue-900/20' 
+                  ? 'bg-[#0d3a73] text-white shadow-md shadow-blue-900/20' 
                   : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border border-[var(--border-color)] hover:border-[var(--border-hover)] hover:shadow-sm'
               }`}
             >
@@ -179,7 +179,7 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                 
                 <button
                   onClick={() => setSubmittedCode(null)}
-                  className="px-5 py-2 rounded-lg text-xs font-semibold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] transition-colors"
+                  className="px-5 py-2 rounded-lg text-xs font-semibold bg-[#0d3a73] text-white hover:bg-[#104a8e] transition-colors"
                 >
                   Submit Another Application
                 </button>
@@ -331,7 +331,7 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 rounded-lg text-sm font-semibold bg-[#1E3A8A] hover:bg-[#1E40AF] disabled:opacity-50 text-white transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-lg text-sm font-semibold bg-[#0d3a73] hover:bg-[#104a8e] disabled:opacity-50 text-white transition-colors flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <ButtonSpinner text="Submitting Application..." />
@@ -362,7 +362,7 @@ export default function MembershipPortal({ applications, onAddApplication }) {
               />
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-lg font-semibold text-xs bg-[#1E3A8A] text-white hover:bg-[#1E40AF] transition-colors"
+                className="px-5 py-2.5 rounded-lg font-semibold text-xs bg-[#0d3a73] text-white hover:bg-[#104a8e] transition-colors"
               >
                 Search
               </button>

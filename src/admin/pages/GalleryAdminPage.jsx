@@ -4,6 +4,7 @@ import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Image as ImageIcon, Plus, Pencil, Trash2, X, Link as LinkIcon, Loader2, Search, Filter } from 'lucide-react';
 import { compressImage } from '../../utils/imageCompressor';
+import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 
 export default function GalleryAdminPage() {
   const { gallery, addGalleryItem, updateGalleryItem, deleteGalleryItem, isLoading } = useConvexState();
@@ -112,7 +113,7 @@ export default function GalleryAdminPage() {
         </div>
         <button
           onClick={handleOpenAddModal}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] transition-colors shadow-sm"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#0d3a73] text-white hover:bg-[#104a8e] transition-colors shadow-sm"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Upload Media</span>
@@ -177,7 +178,7 @@ export default function GalleryAdminPage() {
                     }}
                   />
                   <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#1E3A8A] text-white shadow-sm">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#0d3a73] text-white shadow-sm">
                       {item.category}
                     </span>
                     {item.mediaType && item.mediaType !== 'Image' && (
@@ -227,7 +228,7 @@ export default function GalleryAdminPage() {
           <div className="relative w-full max-w-lg p-6 rounded-xl glass-modal space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-[#1E3A8A]/10 text-[#1E3A8A] dark:bg-blue-500/20 dark:text-blue-400">
+                <div className="p-1.5 rounded-lg bg-[#0d3a73]/10 text-[#0d3a73] dark:bg-blue-500/20 dark:text-blue-400">
                   {editingItem ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                 </div>
                 <h3 className="text-base font-bold text-[var(--text-primary)]">
@@ -282,51 +283,15 @@ export default function GalleryAdminPage() {
                 </div>
               </div>
 
-              {/* Upload or Image URL Section */}
-              <div className="space-y-2.5 border border-[var(--border-color)] p-3 rounded-lg bg-[var(--bg-card-subtle)]">
-                <label className="block text-[var(--text-secondary)] font-semibold">Media Image / Banner *</label>
-
-                <div>
-                  <label className="block text-[11px] text-[var(--text-muted)] mb-1">Option 1: Upload from Computer</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="w-full text-xs text-[var(--text-secondary)] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-500/10 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] text-[var(--text-muted)] mb-1">Option 2: Web Image URL</label>
-                  <div className="relative">
-                    <LinkIcon className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-                    <input
-                      type="url"
-                      placeholder="Enter image URL (https://...)"
-                      value={formData.image}
-                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                      className={`${inputClass} pl-8`}
-                    />
-                  </div>
-                </div>
-
-                {formData.image && (
-                  <div className="space-y-1 mt-2">
-                    <span className="text-[11px] text-[var(--text-muted)]">Image Preview:</span>
-                    <div className="h-32 rounded-lg overflow-hidden border border-[var(--border-color)] bg-black/10">
-                      <img
-                        src={formData.image}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800";
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Upload Media Image with Instagram-style Cropper */}
+              <ImageUploadWithCropper
+                label="Media Image / Event Photo *"
+                value={formData.image}
+                onChange={(croppedUrl) => setFormData(prev => ({ ...prev, image: croppedUrl }))}
+                aspectRatio="16:9"
+                circularPreview={false}
+                helpText="Crop and apply filters to gallery event photo (16:9, 4:3, or 1:1)"
+              />
 
               <div>
                 <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Caption / Description *</label>
@@ -351,7 +316,7 @@ export default function GalleryAdminPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-lg font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  className="px-5 py-2 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
                   {isSubmitting ? (
                     <>

@@ -20,26 +20,44 @@ export default function JntukStarsView({ onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans flex flex-col transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col transition-colors duration-300">
       
-      {/* Standalone Header Bar */}
-      <div className="bg-[#0F172A] text-white py-2.5 sm:py-3 px-3 sm:px-8 border-b border-slate-800 flex items-center justify-between gap-2 sticky top-0 z-50">
-        <button
-          onClick={handleBack}
-          aria-label="Back to Main Portal"
-          className="inline-flex items-center justify-center p-2 sm:px-3 sm:py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-[#1E3A8A] text-slate-300 hover:text-white border border-slate-700 transition-colors shrink-0 active:scale-95 cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Back to Main Portal</span>
-        </button>
+      {/* Top Header Bar */}
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
+          
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={handleBack}
+              aria-label="Back to Portal Home"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all shadow-sm shrink-0 active:scale-95 cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </button>
 
-        <div className="flex items-center gap-2 shrink min-w-0">
-          <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
-          <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-300 truncate">
-            JNTUK Athletes Roster
-          </span>
+            <div className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
+
+            <div className="flex items-center gap-2.5 min-w-0">
+              <img src="/logo.png" alt="KITS Logo" className="h-8 w-auto object-contain shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-xs sm:text-sm font-bold text-[#0b2e5b] leading-tight truncate">
+                  JNTUK Players Roster
+                </h1>
+                <p className="text-[10px] text-slate-500 truncate hidden sm:block">
+                  Inter-University Athletic Representation • KKR & KSR Institute
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium shrink-0">
+            <ShieldCheck className="w-4 h-4 text-[#0b2e5b] shrink-0" />
+            <span className="hidden md:inline">JNTUK Sports Board</span>
+          </div>
+
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
       <main className="flex-1">

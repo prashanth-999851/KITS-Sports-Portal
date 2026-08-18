@@ -8,6 +8,7 @@ import { ConvexStateProvider } from '../context/ConvexStateContext';
 import MainPortalView from '../views/MainPortalView';
 import AboutView from '../views/AboutView';
 import JntukStarsView from '../views/JntukStarsView';
+import RegistrationView from '../views/RegistrationView';
 import RulesRegulations from '../components/RulesRegulations';
 import ContactSection from '../components/ContactSection';
 
@@ -29,7 +30,7 @@ import UsersAdminPage from '../admin/pages/UsersAdminPage';
 import { ToastProvider } from '../context/ToastContext';
 import NotFoundPage from '../pages/NotFoundPage';
 
-export default function AppRouter({ darkMode, setDarkMode }) {
+export default function AppRouter() {
   return (
     <ConvexStateProvider>
       <ToastProvider>
@@ -37,10 +38,14 @@ export default function AppRouter({ darkMode, setDarkMode }) {
           <Routes>
             
             {/* Public Routes */}
-            <Route path="/" element={<MainPortalView darkMode={darkMode} setDarkMode={setDarkMode} />} />
+            <Route path="/" element={<MainPortalView />} />
+            <Route path="/register" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
+            <Route path="/membership" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
             <Route path="/about" element={<AboutView onBack={() => window.location.href = '/'} />} />
+            <Route path="/jntuk-players" element={<JntukStarsView onBack={() => window.location.href = '/'} />} />
             <Route path="/jntuk-stars" element={<JntukStarsView onBack={() => window.location.href = '/'} />} />
             <Route path="/rules" element={<RulesRegulations onBack={() => window.location.href = '/'} />} />
+            <Route path="/constitution" element={<RulesRegulations onBack={() => window.location.href = '/'} />} />
             <Route path="/contact" element={<ContactSection onBack={() => window.location.href = '/'} />} />
 
             {/* Admin Auth Routes */}
@@ -51,7 +56,7 @@ export default function AppRouter({ darkMode, setDarkMode }) {
               path="/admin"
               element={
                 <ProtectedRoute>
-                  <AdminLayout darkMode={darkMode} setDarkMode={setDarkMode} />
+                  <AdminLayout />
                 </ProtectedRoute>
               }
             >

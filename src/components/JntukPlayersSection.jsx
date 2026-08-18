@@ -40,7 +40,7 @@ export default function JntukPlayersSection() {
             <span>Inter-University Honors</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)]">
-            Represented <span className="accent-text">JNTUK Athletes</span>
+            Represented <span className="accent-text">JNTUK Players</span>
           </h2>
           <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
             Honoring student athletes who proudly represented KKR & KSR Institute at Jawaharlal Nehru Technological University Kakinada (JNTUK) Inter-University meets, South Zone, and All-India Championships.
@@ -54,7 +54,7 @@ export default function JntukPlayersSection() {
               onClick={() => setActiveYear('All')}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                 activeYear === 'All'
-                  ? 'bg-[#1E3A8A] text-white shadow-sm'
+                  ? 'bg-[#0d3a73] text-white shadow-sm'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)]'
               }`}
             >
@@ -68,7 +68,7 @@ export default function JntukPlayersSection() {
                   onClick={() => setActiveYear(year)}
                   className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     activeYear === year
-                      ? 'bg-[#1E3A8A] text-white shadow-sm'
+                      ? 'bg-[#0d3a73] text-white shadow-sm'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)]'
                   }`}
                 >
@@ -141,7 +141,7 @@ export default function JntukPlayersSection() {
                   
                   {/* Top Badge Header */}
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-[#1E3A8A] text-white tracking-wider">
+                    <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-[#0d3a73] text-white tracking-wider">
                       AY {player.academicYear}
                     </span>
                     <span className="text-xs font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">

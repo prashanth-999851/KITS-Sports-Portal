@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { compressImage } from '../../utils/imageCompressor';
+import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 import { 
   Users, Plus, Edit, Trash2, X, Mail, Phone, Building, UserCheck, Shield, Loader2
 } from 'lucide-react';
@@ -129,7 +130,7 @@ export default function ExecutiveAdminPage() {
 
         <button
           onClick={handleAddNew}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] shadow-sm transition-colors"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#0d3a73] text-white hover:bg-[#104a8e] shadow-sm transition-colors"
         >
           <Plus className="w-4 h-4" />
           <span>Add Officer / Member</span>
@@ -172,7 +173,7 @@ export default function ExecutiveAdminPage() {
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 text-xs font-bold transition-all border-b-2 ${
                 activeTab === tab
-                  ? 'border-[#1E3A8A] text-[#1E3A8A] dark:text-blue-400'
+                  ? 'border-[#0d3a73] text-[#0d3a73] dark:text-blue-400'
                   : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
@@ -310,8 +311,8 @@ export default function ExecutiveAdminPage() {
                     onChange={(e) => setFormData({ ...formData, memberType: e.target.value })} 
                     className={inputClass}
                   >
-                    <option value="Student Officer">Student Officer</option>
-                    <option value="Executive Body">Executive Body (Faculty/Patron)</option>
+                    <option value="Executive Body">Executive Body (Management / College Head)</option>
+                    <option value="Student Officer">Student Lead (Student Leadership)</option>
                   </select>
                 </div>
                 <div>
@@ -393,44 +394,20 @@ export default function ExecutiveAdminPage() {
                 </div>
               </div>
 
-              {/* Upload Member Photo Section */}
-              <div className="space-y-2 border border-[var(--border-color)] p-3 rounded-lg bg-[var(--bg-card-subtle)]">
-                <label className="block text-[var(--text-secondary)] font-semibold">Officer / Member Photo *</label>
-
-                <div>
-                  <label className="block text-[11px] text-[var(--text-muted)] mb-1">Upload File from Device:</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        try {
-                          const compressed = await compressImage(file);
-                          setFormData(prev => ({ ...prev, photo: compressed }));
-                        } catch (err) {
-                          alert("Failed to process image: " + err.message);
-                        }
-                      }
-                    }}
-                    className="w-full text-xs text-[var(--text-secondary)] file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-500/10 dark:file:text-blue-400 hover:file:bg-blue-100 cursor-pointer"
-                  />
-                </div>
-
-                {formData.photo && (
-                  <div className="flex items-center gap-3 pt-1">
-                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-[var(--border-color)] bg-[var(--bg-card)] shrink-0">
-                      <img src={formData.photo} alt="Preview" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300"; }} />
-                    </div>
-                    <span className="text-[11px] text-[var(--text-muted)] font-medium">Photo Selected & Ready</span>
-                  </div>
-                )}
-              </div>
+              {/* Upload Member Photo Section with Instagram-style Cropper */}
+              <ImageUploadWithCropper
+                label="Officer / Member Photo *"
+                value={formData.photo}
+                onChange={(croppedUrl) => setFormData(prev => ({ ...prev, photo: croppedUrl }))}
+                aspectRatio="1:1"
+                circularPreview={true}
+                helpText="Crop and position circular portrait avatar for executive leadership"
+              />
 
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="w-full py-2.5 rounded-lg text-xs font-bold bg-[#1E3A8A] text-white hover:bg-[#1E40AF] disabled:opacity-50 transition-colors mt-2 flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-lg text-xs font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 transition-colors mt-2 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
                   <>

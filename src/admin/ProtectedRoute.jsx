@@ -26,7 +26,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
             </p>
             <button
               onClick={() => window.history.back()}
-              className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#1E3A8A] text-white hover:bg-[#1E40AF]"
+              className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#0d3a73] text-white hover:bg-[#104a8e]"
             >
               Go Back
             </button>

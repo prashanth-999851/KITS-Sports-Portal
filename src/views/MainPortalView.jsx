@@ -5,22 +5,14 @@ import CoreValues from '../components/CoreValues';
 import SportsSection from '../components/SportsSection';
 import ExecutiveBody from '../components/ExecutiveBody';
 import Achievements from '../components/Achievements';
-import MembershipPortal from '../components/MembershipPortal';
 import Gallery from '../components/Gallery';
 import Footer from '../components/Footer';
-import RegistrationModal from '../components/RegistrationModal';
 import { useConvexState } from '../context/ConvexStateContext';
 import { useNavigate } from 'react-router-dom';
 
-export default function MainPortalView({ darkMode, setDarkMode }) {
+export default function MainPortalView() {
   const navigate = useNavigate();
-  const { 
-    applications, 
-    addStudentApplication 
-  } = useConvexState();
-
   const [activeSection, setActiveSection] = useState('home');
-  const [regModalData, setRegModalData] = useState({ isOpen: false, sportName: "", eventName: "" });
 
   const handleNavigate = (id) => {
     if (id === 'about') {
@@ -29,6 +21,10 @@ export default function MainPortalView({ darkMode, setDarkMode }) {
       navigate('/rules');
     } else if (id === 'contact') {
       navigate('/contact');
+    } else if (id === 'membership' || id === 'register') {
+      navigate('/register');
+    } else if (id === 'jntuk-players' || id === 'jntuk-stars') {
+      navigate('/jntuk-stars');
     } else if (id === 'admin') {
       navigate('/admin/dashboard');
     } else {
@@ -38,7 +34,7 @@ export default function MainPortalView({ darkMode, setDarkMode }) {
   };
 
   const openSportRegistration = (sportName) => {
-    setRegModalData({ isOpen: true, sportName, eventName: "" });
+    navigate(`/register?sport=${encodeURIComponent(sportName)}`);
   };
 
   return (
@@ -46,18 +42,15 @@ export default function MainPortalView({ darkMode, setDarkMode }) {
       
       {/* Top Navbar */}
       <Navbar
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
         activeSection={activeSection}
         setActiveSection={handleNavigate}
-        onOpenMembership={() => handleNavigate('membership')}
-        onOpenAdmin={() => navigate('/admin/login')}
+        onOpenMembership={() => navigate('/register')}
       />
 
       {/* Main Page Sections */}
       <main>
         <Hero
-          onJoinClick={() => handleNavigate('membership')}
+          onJoinClick={() => navigate('/register')}
           onExploreClick={() => handleNavigate('sports')}
         />
 
@@ -69,25 +62,11 @@ export default function MainPortalView({ darkMode, setDarkMode }) {
 
         <Achievements />
 
-        <MembershipPortal
-          applications={applications}
-          onAddApplication={addStudentApplication}
-        />
-
         <Gallery />
       </main>
 
       {/* Footer */}
       <Footer setActiveSection={handleNavigate} />
-
-      {/* Interactive Global Modals */}
-      <RegistrationModal
-        sportName={regModalData.sportName}
-        eventName={regModalData.eventName}
-        isOpen={regModalData.isOpen}
-        onClose={() => setRegModalData({ isOpen: false, sportName: "", eventName: "" })}
-        onAddApplication={addStudentApplication}
-      />
 
     </div>
   );

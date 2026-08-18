@@ -1,36 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Sun, Moon, Menu, X, ChevronDown, UserCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { useConvexState } from '../context/ConvexStateContext';
 
 export default function Navbar({
-  darkMode,
-  setDarkMode,
   activeSection,
   setActiveSection,
-  onOpenMembership,
-  onOpenAdmin
+  onOpenMembership
 }) {
   const { notifications = [] } = useConvexState();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeNotifIdx, setActiveNotifIdx] = useState(0);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 40);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  useEffect(() => {
-    if (notifications.length > 1) {
-      const interval = setInterval(() => {
-        setActiveNotifIdx(prev => (prev + 1) % notifications.length);
-      }, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [notifications.length]);
 
   const navLinks = [
     { id: 'home', label: 'Home' },
@@ -38,7 +16,7 @@ export default function Navbar({
     { id: 'sports', label: 'Sports' },
     { id: 'executive', label: 'Leadership' },
     { id: 'achievements', label: 'Achievements' },
-    { id: 'jntuk-players', label: 'JNTUK Stars' },
+    { id: 'jntuk-players', label: 'JNTUK Players' },
     { id: 'membership', label: 'Membership' },
     { id: 'gallery', label: 'Gallery' },
     { id: 'rules', label: 'Rules' },
@@ -53,7 +31,19 @@ export default function Navbar({
       return;
     }
     if (id === 'jntuk-players') {
-      window.location.href = '/jntuk-stars';
+      window.location.href = '/jntuk-players';
+      return;
+    }
+    if (id === 'membership' || id === 'register') {
+      window.location.href = '/register';
+      return;
+    }
+    if (id === 'rules') {
+      window.location.href = '/rules';
+      return;
+    }
+    if (id === 'contact') {
+      window.location.href = '/contact';
       return;
     }
     const element = document.getElementById(id);
@@ -62,52 +52,21 @@ export default function Navbar({
     }
   };
 
-  const currentNotification = notifications[activeNotifIdx] || notifications[0];
+  const hasNotifications = notifications && notifications.length > 0;
+
+  // Build a seamless looping list of items
+  const repeatedNotifications = notifications.length > 0 ? [
+    ...notifications,
+    ...notifications,
+    ...notifications,
+    ...notifications,
+  ] : [];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      scrolled 
-        ? 'bg-[#070D1B]/90 backdrop-blur-md shadow-lg border-b border-white/10' 
-        : 'bg-transparent'
-    }`}>
-      {/* Top Dynamic Notification Ticker Bar */}
-      <div className="bg-[#1E3A8A] text-white py-1.5 px-4 text-xs font-medium flex justify-between items-center overflow-hidden border-b border-white/10">
-        <div className="flex items-center gap-2 max-w-full overflow-hidden">
-          <span className="relative flex h-2 w-2 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-          </span>
-
-          {currentNotification ? (
-            <div className="flex items-center gap-2 truncate">
-              {currentNotification.type && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 uppercase ${
-                  currentNotification.type === 'Emergency' ? 'bg-red-600 text-white' :
-                  currentNotification.type === 'Match Update' ? 'bg-amber-600 text-white' :
-                  'bg-blue-600 text-white'
-                }`}>
-                  {currentNotification.type}
-                </span>
-              )}
-              <span className="truncate text-slate-200">
-                {currentNotification.message}
-              </span>
-            </div>
-          ) : (
-            <span className="text-slate-300 truncate">
-              Welcome to KKR & KSR Sports Club Portal • Official Sports Directorate
-            </span>
-          )}
-        </div>
-
-        <div className="hidden md:flex items-center gap-5 text-[11px] text-slate-300 shrink-0 ml-4">
-          <span>📍 KKR & KSR Institute of Technology and Sciences, Guntur</span>
-          <span>📞 +91 91827 55664</span>
-        </div>
-      </div>
-
-      {/* Main Navigation - 100% Transparent */}
-      <div className="bg-transparent">
+    <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 shadow-md">
+      
+      {/* 1. Main Navigation Bar (Clean White Background with Text-Underline Hover Lines) */}
+      <div className="bg-white border-b border-slate-200 shadow-sm transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             
@@ -121,43 +80,59 @@ export default function Navbar({
                 alt="KKR & KSR Sports Club" 
                 className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />
-              <div>
-                <h1 className="text-sm font-bold text-white leading-tight drop-shadow-sm tracking-wide">
-                  KKR & KSR Sports Club
-                </h1>
-                <p className="text-[10px] text-slate-400 font-medium">
-                  KITS • Official Sports Portal
-                </p>
-              </div>
+              <h1 className="text-base font-bold text-[#0b2e5b] leading-tight tracking-wide group-hover:text-[#0d3a73] transition-colors">
+                KKR & KSR Sports Club
+              </h1>
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {navLinks.slice(0, 7).map((link) => (
-                <button
-                  key={link.id}
-                  onClick={() => handleNavClick(link.id)}
-                  className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 ${
-                    activeSection === link.id
-                      ? 'text-white bg-[#1E3A8A] shadow-sm'
-                      : 'text-slate-200 hover:text-white hover:bg-white/15'
-                  }`}
-                >
-                  {link.label}
-                </button>
-              ))}
+            {/* Desktop Navigation with Tight Underlines Right Below Text */}
+            <nav className="hidden lg:flex items-center gap-1.5 h-16">
+              {navLinks.slice(0, 7).map((link) => {
+                const isActive = activeSection === link.id;
+                return (
+                  <button
+                    key={link.id}
+                    onClick={() => handleNavClick(link.id)}
+                    className={`relative px-3 py-2 text-xs font-bold transition-colors flex items-center group cursor-pointer ${
+                      isActive
+                        ? 'text-[#0b2e5b]'
+                        : 'text-slate-700 hover:text-[#0b2e5b]'
+                    }`}
+                  >
+                    <span className="relative">
+                      {link.label}
+                      
+                      {/* Underline right below the text on hover & active */}
+                      <span 
+                        className={`absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#0b2e5b] transition-all duration-200 origin-center ${
+                          isActive
+                            ? 'opacity-100 scale-x-100'
+                            : 'opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100'
+                        }`}
+                      />
+                    </span>
+                  </button>
+                );
+              })}
 
-              {/* More Dropdown */}
-              <div className="relative group">
-                <button className="px-3 py-2 rounded-lg text-xs font-semibold text-slate-200 hover:text-white hover:bg-white/15 flex items-center gap-1 transition-colors">
-                  More <ChevronDown className="w-3 h-3" />
+              {/* More Dropdown with Text Underline */}
+              <div className="relative group flex items-center">
+                <button className="relative px-3 py-2 text-xs font-bold text-slate-700 hover:text-[#0b2e5b] flex items-center gap-1 transition-colors cursor-pointer group">
+                  <span className="relative flex items-center gap-1">
+                    <span>More</span>
+                    <ChevronDown className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" />
+                    
+                    {/* Underline right below More */}
+                    <span className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#0b2e5b] opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100 transition-all duration-200 origin-center" />
+                  </span>
                 </button>
-                <div className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-[#070D1B]/95 backdrop-blur-xl border border-white/15 shadow-2xl p-1.5 hidden group-hover:block animate-fadeIn">
+
+                <div className="absolute right-0 top-full mt-1 w-48 rounded-xl bg-white border border-slate-200 shadow-2xl p-1.5 hidden group-hover:block animate-fadeIn z-50">
                   {navLinks.slice(7).map((link) => (
                     <button
                       key={link.id}
                       onClick={() => handleNavClick(link.id)}
-                      className="w-full text-left px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-white/15 transition-colors"
+                      className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:text-[#0b2e5b] hover:bg-slate-50 transition-colors"
                     >
                       {link.label}
                     </button>
@@ -167,30 +142,20 @@ export default function Navbar({
             </nav>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-3">
 
-              {/* Theme Toggle */}
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/15 transition-colors"
-                title={darkMode ? "Light Mode" : "Dark Mode"}
-              >
-                {darkMode ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
-              </button>
-
-              {/* Register CTA */}
+              {/* Register CTA - Solid Theme Blue Button */}
               <button
                 onClick={onOpenMembership}
-                className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white transition-all shadow-md shadow-blue-900/40"
+                className="hidden sm:inline-flex items-center justify-center px-5 py-2 rounded-lg text-xs font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
               >
-                <UserCheck className="w-3.5 h-3.5" />
                 Register
               </button>
 
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/15"
+                className="lg:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -200,34 +165,82 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* 2. Announcement Header - Clean Black Bar, White Text, Smooth Realistic Ticker (No Icons) */}
+      {hasNotifications && (
+        <div className="bg-black text-white py-1.5 px-3 sm:px-4 text-xs font-medium flex items-center overflow-hidden border-t border-white/10 shadow-inner select-none">
+          
+          {/* Left Title Label (No Icons) */}
+          <div className="shrink-0 bg-black pr-3.5 z-10 border-r border-white/20">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-400">
+              Announcements
+            </span>
+          </div>
+
+          {/* Realistic Continuous Scrolling Ticker */}
+          <div className="flex-1 overflow-hidden relative pl-4">
+            <div className="animate-ticker whitespace-nowrap flex items-center gap-10 text-white">
+              
+              {/* Primary Looping Track */}
+              <div className="flex items-center gap-10 shrink-0">
+                {repeatedNotifications.map((notif, idx) => (
+                  <span key={idx} className="flex items-center gap-10">
+                    <span className="text-white/95 font-medium tracking-wide">
+                      {notif.message}
+                    </span>
+                    <span className="text-white/30">•</span>
+                  </span>
+                ))}
+              </div>
+
+              {/* Duplicate Track for Smooth Infinite Loop */}
+              <div className="flex items-center gap-10 shrink-0">
+                {repeatedNotifications.map((notif, idx) => (
+                  <span key={`dup-${idx}`} className="flex items-center gap-10">
+                    <span className="text-white/95 font-medium tracking-wide">
+                      {notif.message}
+                    </span>
+                    <span className="text-white/30">•</span>
+                  </span>
+                ))}
+              </div>
+
+            </div>
+          </div>
+
+          {/* Right Institutional Label (No Icons) */}
+          <div className="hidden lg:flex items-center gap-4 text-[11px] text-white/80 shrink-0 ml-4 pl-3.5 bg-black z-10 border-l border-white/20 font-medium">
+            <span>KKR and KSR Institute of Technology and Sciences</span>
+            <span>+91 91827 55664</span>
+          </div>
+
+        </div>
+      )}
+
+      {/* Mobile Drawer with Left-Line Indicators */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#070D1B]/95 backdrop-blur-2xl border-b border-white/15 px-4 pt-2 pb-5 space-y-1 animate-fadeIn shadow-2xl">
-          {navLinks.map((link) => (
-            <button
-              key={link.id}
-              onClick={() => handleNavClick(link.id)}
-              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                activeSection === link.id
-                  ? 'text-white bg-[#1E3A8A]'
-                  : 'text-slate-300 hover:bg-white/15 hover:text-white'
-              }`}
-            >
-              {link.label}
-            </button>
-          ))}
-          <div className="pt-3 flex flex-col gap-2">
+        <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-5 space-y-1 animate-fadeIn shadow-xl">
+          {navLinks.map((link) => {
+            const isActive = activeSection === link.id;
+            return (
+              <button
+                key={link.id}
+                onClick={() => handleNavClick(link.id)}
+                className={`w-full text-left px-3 py-2.5 text-sm font-semibold transition-all border-l-2 ${
+                  isActive
+                    ? 'border-[#0b2e5b] text-[#0b2e5b] bg-slate-50 pl-4'
+                    : 'border-transparent text-slate-700 hover:text-[#0b2e5b] hover:border-slate-300 pl-3'
+                }`}
+              >
+                {link.label}
+              </button>
+            );
+          })}
+          <div className="pt-3 flex flex-col gap-2 border-t border-slate-200">
             <button
               onClick={() => { setMobileMenuOpen(false); onOpenMembership(); }}
-              className="w-full py-2.5 rounded-lg text-sm font-bold bg-[#1E3A8A] text-white text-center shadow-md"
+              className="w-full py-2.5 rounded-lg text-sm font-bold bg-[#0b2e5b] text-white text-center transition-colors shadow-sm cursor-pointer"
             >
               Register for Membership
-            </button>
-            <button
-              onClick={() => { setMobileMenuOpen(false); onOpenAdmin(); }}
-              className="w-full py-2 rounded-lg text-xs font-semibold bg-white/10 text-slate-300 text-center border border-white/15"
-            >
-              Admin Dashboard
             </button>
           </div>
         </div>

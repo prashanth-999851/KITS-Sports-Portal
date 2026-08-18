@@ -6,7 +6,7 @@ export default function NotFoundPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-white flex items-center justify-center p-6 text-center">
+    <div className="min-h-screen bg-[#0b2e5b] text-white flex items-center justify-center p-6 text-center">
       <div className="max-w-md space-y-6">
         <div className="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center mx-auto text-blue-400">
           <ShieldAlert className="w-10 h-10 animate-bounce" />
@@ -31,7 +31,7 @@ export default function NotFoundPage() {
           
           <button
             onClick={() => navigate('/')}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-xs font-bold bg-[#1E3A8A] hover:bg-[#1E40AF] text-white flex items-center justify-center gap-2 transition-colors"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-lg text-xs font-bold bg-[#0d3a73] hover:bg-[#104a8e] text-white flex items-center justify-center gap-2 transition-colors"
           >
             <Home className="w-4 h-4" />
             <span>Return to Public Homepage</span>

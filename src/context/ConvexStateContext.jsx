@@ -185,7 +185,7 @@ export function ConvexStateProvider({ children }) {
   const settings = {
     instituteName: rawSettings.instituteName || 'KKR & KSR Institute of Technology & Sciences',
     campusAddress: rawSettings.campusAddress || 'Vinjanampadu, Vaddeswaram Post, Guntur - 522017, AP',
-    contactEmail: rawSettings.contactEmail || 'sports@kkrksr.ac.in',
+    contactEmail: rawSettings.contactEmail || '',
     contactPhone: rawSettings.contactPhone || '+91 91827 55664',
     enableNotifications: rawSettings.enableNotifications !== 'false',
     darkThemeDefault: rawSettings.darkThemeDefault === 'true',
@@ -251,6 +251,7 @@ export function ConvexStateProvider({ children }) {
   const createAchievement = useMutation(api.achievements.create);
   const removeAchievementMut = useMutation(api.achievements.remove);
   const broadcastNotif = useMutation(api.notifications.broadcast);
+  const removeNotificationMut = useMutation(api.notifications.remove);
   const clearNotifAll = useMutation(api.notifications.clearAll);
   const createGalleryItem = useMutation(api.gallery.create);
   const updateGalleryItemMut = useMutation(api.gallery.update);
@@ -487,15 +488,21 @@ export function ConvexStateProvider({ children }) {
   // Notifications
   const broadcastNotification = async (text, type = 'Announcement') => {
     await broadcastNotif(withSession({
-      title: type,
       message: text,
+      title: type,
       type,
     }));
-    await logAction('BROADCAST_NOTIFICATION', `Broadcast alert: ${text}`);
+    await logAction('BROADCAST_NOTIFICATION', `Broadcast announcement: ${text}`);
+  };
+
+  const deleteNotification = async (id) => {
+    await removeNotificationMut(withSession({ id }));
+    await logAction('DELETE_NOTIFICATION', `Deleted announcement ID: ${id}`);
   };
 
   const clearNotifications = async () => {
     await clearNotifAll(withSession({}));
+    await logAction('CLEAR_NOTIFICATIONS', 'Cleared all announcements');
   };
 
   // Gallery
@@ -657,6 +664,7 @@ export function ConvexStateProvider({ children }) {
       addAchievement,
       deleteAchievement,
       broadcastNotification,
+      deleteNotification,
       clearNotifications,
       addGalleryItem,
       updateGalleryItem,
