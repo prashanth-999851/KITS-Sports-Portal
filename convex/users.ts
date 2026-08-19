@@ -21,6 +21,44 @@ export const list = query({
   },
 });
 
+export const seedInitialAdmin = mutation({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    password: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const normalizedEmail = args.email.toLowerCase().trim();
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", normalizedEmail))
+      .first();
+
+    const passwordHash = await hashPassword(args.password);
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        name: args.name,
+        passwordHash,
+        role: "Super Admin",
+        isActive: true,
+      });
+      return { success: true, message: `Super Admin ${normalizedEmail} updated successfully.` };
+    }
+
+    const userId = await ctx.db.insert("users", {
+      name: args.name,
+      email: normalizedEmail,
+      passwordHash,
+      role: "Super Admin",
+      isActive: true,
+      createdAt: new Date().toISOString().split("T")[0],
+    });
+
+    return { success: true, message: `Super Admin ${normalizedEmail} created successfully.`, userId };
+  },
+});
+
 export const login = mutation({
   args: {
     email: v.string(),
