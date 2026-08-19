@@ -12,8 +12,12 @@ import {
 export const list = query({
   args: { sessionToken },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.sessionToken, ["Super Admin"]);
-    return await ctx.db.query("users").collect();
+    try {
+      await requireAdmin(ctx, args.sessionToken, ["Super Admin"]);
+      return await ctx.db.query("users").collect();
+    } catch {
+      return [];
+    }
   },
 });
 

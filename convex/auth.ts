@@ -30,7 +30,7 @@ export async function requireAdmin(ctx: any, token: string, allowedRoles?: strin
     .first();
 
   if (!session || session.expiresAt <= Date.now()) {
-    if (session) {
+    if (session && typeof ctx.db.delete === "function") {
       await ctx.db.delete(session._id);
     }
     throw new Error("Admin session expired. Please sign in again.");

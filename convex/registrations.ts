@@ -5,8 +5,12 @@ import { requireAdmin, sessionToken } from "./auth";
 export const list = query({
   args: { sessionToken },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.sessionToken);
-    return await ctx.db.query("registrations").collect();
+    try {
+      await requireAdmin(ctx, args.sessionToken);
+      return await ctx.db.query("registrations").collect();
+    } catch {
+      return [];
+    }
   },
 });
 

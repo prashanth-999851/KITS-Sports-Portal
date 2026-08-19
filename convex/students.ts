@@ -5,19 +5,27 @@ import { requireAdmin, sessionToken } from "./auth";
 export const list = query({
   args: { sessionToken },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.sessionToken);
-    return await ctx.db.query("students").collect();
+    try {
+      await requireAdmin(ctx, args.sessionToken);
+      return await ctx.db.query("students").collect();
+    } catch {
+      return [];
+    }
   },
 });
 
 export const getByRollNumber = query({
   args: { sessionToken, rollNumber: v.string() },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.sessionToken);
-    return await ctx.db
-      .query("students")
-      .withIndex("by_rollNumber", (q) => q.eq("rollNumber", args.rollNumber))
-      .first();
+    try {
+      await requireAdmin(ctx, args.sessionToken);
+      return await ctx.db
+        .query("students")
+        .withIndex("by_rollNumber", (q) => q.eq("rollNumber", args.rollNumber))
+        .first();
+    } catch {
+      return null;
+    }
   },
 });
 

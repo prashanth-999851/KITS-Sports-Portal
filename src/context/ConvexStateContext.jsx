@@ -230,7 +230,7 @@ export function ConvexStateProvider({ children }) {
     academicYear: p.academicYear,
     tournamentName: p.tournamentName,
     venueHost: p.venueHost || '',
-    photoUrl: p.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600",
+    photoUrl: p.photoUrl || '',
     achievementDetails: p.achievementDetails || '',
     createdAt: p.createdAt,
   }));

@@ -3,9 +3,12 @@ import { useConvexState } from '../../context/ConvexStateContext';
 import { useToast } from '../../context/ToastContext';
 import { CardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
-import { compressImage } from '../../utils/imageCompressor';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
-import { Award, Plus, Edit, Trash2, X, Search, Calendar, MapPin, Trophy, ShieldCheck, Loader2, FileSpreadsheet, RotateCcw } from 'lucide-react';
+import JntukPlayerCrestCard from '../../components/JntukPlayerCrestCard';
+import { 
+  Award, Plus, Edit, Trash2, X, Search, Calendar, MapPin, 
+  Trophy, ShieldCheck, Loader2, FileSpreadsheet, RotateCcw, Eye
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const OFFICIAL_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];
@@ -36,9 +39,9 @@ export default function JntukPlayersAdminPage() {
     rollNumber: '',
     department: 'CSE',
     sport: 'Cricket',
-    academicYear: '2025-2026',
+    academicYear: '2024-2025',
     tournamentName: 'South Zone Inter-University Championship',
-    venueHost: 'SRM University, Chennai',
+    venueHost: '',
     photo: '',
     achievementDetails: 'Represented JNTUK University Team',
   });
@@ -57,8 +60,8 @@ export default function JntukPlayersAdminPage() {
       rollNumber: player.rollNumber || '',
       department: player.department || 'CSE',
       sport: player.sport || 'Cricket',
-      academicYear: player.academicYear || '2025-2026',
-      tournamentName: player.tournamentName || 'South Zone Inter-University Championship',
+      academicYear: player.academicYear || '2024-2025',
+      tournamentName: player.tournamentName || '',
       venueHost: player.venueHost || '',
       photo: player.photoUrl || '',
       achievementDetails: player.achievementDetails || '',
@@ -73,9 +76,9 @@ export default function JntukPlayersAdminPage() {
       rollNumber: '',
       department: 'CSE',
       sport: 'Cricket',
-      academicYear: '2025-2026',
+      academicYear: '2024-2025',
       tournamentName: 'South Zone Inter-University Championship',
-      venueHost: 'SRM University, Chennai',
+      venueHost: '',
       photo: '',
       achievementDetails: 'Represented JNTUK University Team',
     });
@@ -84,7 +87,7 @@ export default function JntukPlayersAdminPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.studentName || !formData.rollNumber || !formData.academicYear) {
+    if (!formData.studentName.trim() || !formData.rollNumber.trim() || !formData.academicYear.trim()) {
       showToast('Please fill out student name, roll number, and academic year.', 'warning');
       return;
     }
@@ -92,10 +95,16 @@ export default function JntukPlayersAdminPage() {
     setIsSubmitting(true);
     try {
       if (editingPlayer) {
-        await updateJntukPlayer(editingPlayer.id, formData);
+        await updateJntukPlayer(editingPlayer.id, {
+          ...formData,
+          photoUrl: formData.photo,
+        });
         showToast(`Updated record for ${formData.studentName}`, 'success');
       } else {
-        await addJntukPlayer(formData);
+        await addJntukPlayer({
+          ...formData,
+          photoUrl: formData.photo,
+        });
         showToast(`Added ${formData.studentName} to JNTUK Roster`, 'success');
       }
       setShowModal(false);
@@ -119,9 +128,9 @@ export default function JntukPlayersAdminPage() {
     }
   };
 
-  // Unique Academic Years & Sports
-  const availableYears = Array.from(new Set(['2025-2026', '2024-2025', '2023-2024', '2022-2023', ...jntukPlayers.map(p => p.academicYear)]));
-  const availableSports = Array.from(new Set(['Cricket', 'Volleyball', 'Basketball', 'Football', 'Athletics', 'Kabaddi', 'Chess', 'Ball Badminton', 'Badminton', ...jntukPlayers.map(p => p.sport)]));
+  // Unique Academic Years & Sports dynamically derived from database
+  const availableYears = Array.from(new Set(['2025-2026', '2024-2025', '2023-2024', '2022-2023', ...jntukPlayers.map(p => p.academicYear).filter(Boolean)]));
+  const availableSports = Array.from(new Set(['Cricket', 'Volleyball', 'Basketball', 'Football', 'Athletics', 'Kabaddi', 'Chess', 'Badminton', ...jntukPlayers.map(p => p.sport).filter(Boolean)]));
 
   const filteredPlayers = jntukPlayers.filter(player => {
     const term = searchTerm.toLowerCase().trim();
@@ -145,7 +154,7 @@ export default function JntukPlayersAdminPage() {
                             (selectedSport !== 'All' ? 1 : 0) + 
                             (searchTerm ? 1 : 0);
 
-  // Enterprise Export to Excel
+  // Export to Excel
   const handleExportToExcel = () => {
     if (filteredPlayers.length === 0) {
       showToast("No athlete records match the current filter criteria to export.", "warning");
@@ -194,7 +203,7 @@ export default function JntukPlayersAdminPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[var(--border-color)] pb-4">
         <div>
           <h2 className="text-xl font-bold text-[var(--text-primary)]">JNTUK Represented Players Roster</h2>
-          <p className="text-xs text-[var(--text-muted)]">Enterprise portal to add, review, filter, edit, delete, and export student athletes representing KKR & KSR at JNTUK Inter-University tournaments.</p>
+          <p className="text-xs text-[var(--text-muted)]">Enterprise management to add, edit, remove, and export official JNTUK Varsity athletes.</p>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
@@ -231,7 +240,7 @@ export default function JntukPlayersAdminPage() {
 
         <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
           <div className="flex items-center justify-between text-[var(--text-muted)]">
-            <span className="text-xs font-semibold">Academic Years Tracked</span>
+            <span className="text-xs font-semibold">Academic Years</span>
             <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           </div>
           <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{availableYears.length}</p>
@@ -239,14 +248,14 @@ export default function JntukPlayersAdminPage() {
 
         <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
           <div className="flex items-center justify-between text-[var(--text-muted)]">
-            <span className="text-xs font-semibold">Filtered Output</span>
+            <span className="text-xs font-semibold">Active Filtered</span>
             <Trophy className="w-4 h-4 text-purple-600 dark:text-purple-400" />
           </div>
           <p className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">{filteredPlayers.length} <span className="text-xs text-[var(--text-muted)] font-normal">/ {jntukPlayers.length}</span></p>
         </div>
       </div>
 
-      {/* Enterprise Multi-Filter Toolbar */}
+      {/* Multi-Filter Toolbar */}
       <div className="bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] space-y-3">
         
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
@@ -333,7 +342,7 @@ export default function JntukPlayersAdminPage() {
 
       </div>
 
-      {/* Players Cards Grid */}
+      {/* Dynamic Athlete Grid with Crest Card Representation */}
       {isLoading ? (
         <CardSkeleton count={6} />
       ) : filteredPlayers.length === 0 ? (
@@ -343,231 +352,239 @@ export default function JntukPlayersAdminPage() {
           icon={Award}
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPlayers.map((player) => (
-            <div key={player.id} className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-5 space-y-4 card-hover flex flex-col justify-between">
-              <div className="space-y-3">
-                
-                {/* Year & Actions Bar */}
-                <div className="flex items-center justify-between">
-                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-[#0d3a73] text-white">
-                    {player.academicYear}
-                  </span>
+            <div key={player.id} className="relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 flex flex-col justify-between shadow-sm card-hover">
+              
+              {/* Card Action Header */}
+              <div className="flex items-center justify-between pb-2 border-b border-[var(--border-color)] mb-2">
+                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-[#0b2e5b] text-white">
+                  AY {player.academicYear}
+                </span>
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleEdit(player)}
-                      className="p-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
-                      title="Edit Athlete Record"
-                    >
-                      <Edit className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(player.id, player.studentName)}
-                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
-                      title="Delete Athlete Record"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleEdit(player)}
+                    className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                    title="Edit Athlete Record"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(player.id, player.studentName)}
+                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                    title="Delete Athlete Record"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-
-                {/* Athlete Info Header */}
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden bg-[var(--bg-card-subtle)] border border-[var(--border-color)] shrink-0">
-                    <img 
-                      src={player.photoUrl || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600"} 
-                      alt={player.studentName}
-                      className="w-full h-full object-cover"
-                      onError={(e) => { e.target.onerror = null; e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600"; }}
-                    />
-                  </div>
-
-                  <div>
-                    <h3 className="text-base font-bold text-[var(--text-primary)]">{player.studentName}</h3>
-                    <span className="text-xs text-[var(--text-muted)] font-mono">{player.rollNumber}</span>
-                  </div>
-                </div>
-
-                {/* Event & Sport Badges */}
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">{player.sport} • {player.department}</span>
-                  </div>
-                  
-                  <div className="p-3 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] space-y-1.5">
-                    <h4 className="font-bold text-[var(--text-primary)] line-clamp-1">{player.tournamentName}</h4>
-                    {player.venueHost && (
-                      <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-red-500 shrink-0" />
-                        <span className="truncate">{player.venueHost}</span>
-                      </p>
-                    )}
-                    <p className="text-[11px] text-[var(--text-secondary)] pt-1 border-t border-[var(--border-color)] italic line-clamp-2">
-                      "{player.achievementDetails}"
-                    </p>
-                  </div>
-                </div>
-
               </div>
+
+              {/* Exact Crest Card Component Render */}
+              <JntukPlayerCrestCard 
+                player={player}
+                showBadge={false}
+              />
+
             </div>
           ))}
         </div>
       )}
 
-      {/* Add / Edit Athlete Modal */}
+      {/* Add / Edit Athlete Modal with Live Crest Preview */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-lg p-6 rounded-xl glass-modal space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
-              <h3 className="text-base font-bold text-[var(--text-primary)]">
-                {editingPlayer ? 'Edit JNTUK Athlete Representation' : 'Add JNTUK Athlete Representation'}
-              </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-4xl bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+            
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="text-lg font-bold text-[#0b2e5b]">
+                  {editingPlayer ? 'Edit JNTUK Athlete Representation' : 'Add JNTUK Athlete Representation'}
+                </h3>
+                <p className="text-xs text-slate-500">Live preview updates instantly as you input details and upload photo.</p>
+              </div>
               <button 
                 onClick={() => setShowModal(false)}
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                className="p-1.5 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Student Athlete Full Name *</label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="Enter athlete full name" 
-                  value={formData.studentName} 
-                  onChange={(e) => setFormData({ ...formData, studentName: e.target.value })} 
-                  className={inputClass} 
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
+            {/* Split Form & Live Preview Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* Left: Input Form (7 cols) */}
+              <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-4 text-xs">
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Roll Number *</label>
+                  <label className="block text-slate-700 mb-1 font-bold">Student Athlete Full Name *</label>
                   <input 
                     type="text" 
                     required 
-                    placeholder="Enter roll number" 
-                    value={formData.rollNumber} 
-                    onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })} 
-                    className={inputClass} 
+                    placeholder="e.g. M. BHARATH KUMAR" 
+                    value={formData.studentName} 
+                    onChange={(e) => setFormData({ ...formData, studentName: e.target.value })} 
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-semibold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none" 
                   />
                 </div>
-                <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Department *</label>
-                  <select 
-                    value={formData.department} 
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })} 
-                    className={inputClass}
-                  >
-                    {OFFICIAL_DEPARTMENTS.map(d => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-700 mb-1 font-bold">Registration / Roll No *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="e.g. 23JR1A12A8" 
+                      value={formData.rollNumber} 
+                      onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })} 
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-mono font-bold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none" 
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 mb-1 font-bold">Department *</label>
+                    <select 
+                      value={formData.department} 
+                      onChange={(e) => setFormData({ ...formData, department: e.target.value })} 
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none"
+                    >
+                      {OFFICIAL_DEPARTMENTS.map(d => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Sport Discipline *</label>
-                  <select 
-                    value={formData.sport} 
-                    onChange={(e) => setFormData({ ...formData, sport: e.target.value })} 
-                    className={inputClass}
-                  >
-                    {availableSports.map(sp => (
-                      <option key={sp} value={sp}>{sp}</option>
-                    ))}
-                  </select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-slate-700 mb-1 font-bold">Sport Discipline (Event) *</label>
+                    <input 
+                      type="text"
+                      required
+                      placeholder="e.g. CRICKET, VOLLEYBALL"
+                      value={formData.sport} 
+                      onChange={(e) => setFormData({ ...formData, sport: e.target.value })} 
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold uppercase focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-700 mb-1 font-bold">Academic Year *</label>
+                    <select 
+                      value={formData.academicYear} 
+                      onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })} 
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none"
+                    >
+                      <option value="2025-2026">2025-2026</option>
+                      <option value="2024-2025">2024-2025</option>
+                      <option value="2023-2024">2023-2024</option>
+                      <option value="2022-2023">2022-2023</option>
+                    </select>
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Academic Year *</label>
-                  <select 
-                    value={formData.academicYear} 
-                    onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })} 
-                    className={inputClass}
-                  >
-                    <option value="2025-2026">2025-2026</option>
-                    <option value="2024-2025">2024-2025</option>
-                    <option value="2023-2024">2023-2024</option>
-                    <option value="2022-2023">2022-2023</option>
-                  </select>
+                  <label className="block text-slate-700 mb-1 font-bold">Tournament / Championship Name *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    placeholder="e.g. South Zone Inter-University Championship" 
+                    value={formData.tournamentName} 
+                    onChange={(e) => setFormData({ ...formData, tournamentName: e.target.value })} 
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none" 
+                  />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Tournament / Championship Name *</label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="Enter tournament name" 
-                  value={formData.tournamentName} 
-                  onChange={(e) => setFormData({ ...formData, tournamentName: e.target.value })} 
-                  className={inputClass} 
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Venue / Host University</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. SRM University, Chennai" 
+                    value={formData.venueHost} 
+                    onChange={(e) => setFormData({ ...formData, venueHost: e.target.value })} 
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none" 
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 mb-1 font-bold">Achievement & Selection Laurels</label>
+                  <textarea 
+                    rows={2}
+                    placeholder="e.g. Selected for JNTUK University Varsity Squad • Gold Medalist" 
+                    value={formData.achievementDetails} 
+                    onChange={(e) => setFormData({ ...formData, achievementDetails: e.target.value })} 
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none" 
+                  />
+                </div>
+
+                {/* Upload Athlete Photo with Cropper */}
+                <ImageUploadWithCropper
+                  label="Athlete Portrait Photo"
+                  value={formData.photo}
+                  onChange={(croppedUrl) => setFormData(prev => ({ ...prev, photo: croppedUrl }))}
+                  aspectRatio="1:1"
+                  circularPreview={true}
+                  helpText="Crop portrait photo to fit the circular athletic badge"
                 />
+
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2.5 rounded-xl font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="px-6 py-2.5 rounded-xl font-bold bg-[#0b2e5b] text-white hover:bg-[#0d3a73] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <span>{editingPlayer ? 'Save Changes' : 'Add to JNTUK Roster'}</span>
+                    )}
+                  </button>
+                </div>
+
+              </form>
+
+              {/* Right: Live Crest Badge Preview (5 cols) */}
+              <div className="lg:col-span-5 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200 flex flex-col items-center justify-center space-y-3">
+                <div className="w-full flex items-center justify-between pb-2 border-b border-slate-200 text-[11px] font-bold text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <Eye className="w-3.5 h-3.5 text-[#0b2e5b]" />
+                    Live Card Preview
+                  </span>
+                  <span className="text-[10px] text-emerald-600">Dynamic</span>
+                </div>
+
+                <div className="w-full max-w-[260px]">
+                  <JntukPlayerCrestCard 
+                    player={{
+                      studentName: formData.studentName || 'M. BHARATH KUMAR',
+                      rollNumber: formData.rollNumber || '23JR1A12A8',
+                      sport: formData.sport || 'CRICKET',
+                      department: formData.department || 'CSE',
+                      academicYear: formData.academicYear || '2024-2025',
+                      tournamentName: formData.tournamentName || 'South Zone Inter-University Championship',
+                      venueHost: formData.venueHost || 'SRM University, Chennai',
+                      photoUrl: formData.photo || '',
+                      achievementDetails: formData.achievementDetails,
+                    }}
+                    showBadge={true}
+                  />
+                </div>
+                
+                <p className="text-[10px] text-slate-400 text-center font-medium">
+                  This card badge will be displayed dynamically on the public site once saved.
+                </p>
               </div>
 
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Venue / Host University *</label>
-                <input 
-                  type="text" 
-                  required 
-                  placeholder="Enter host university / venue" 
-                  value={formData.venueHost} 
-                  onChange={(e) => setFormData({ ...formData, venueHost: e.target.value })} 
-                  className={inputClass} 
-                />
-              </div>
+            </div>
 
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Achievement & Selection Details</label>
-                <textarea 
-                  rows={2}
-                  placeholder="Enter achievement / representation details" 
-                  value={formData.achievementDetails} 
-                  onChange={(e) => setFormData({ ...formData, achievementDetails: e.target.value })} 
-                  className={inputClass} 
-                />
-              </div>
-
-              {/* Upload Athlete Photo with Instagram-style Cropper */}
-              <ImageUploadWithCropper
-                label="Athlete Photo"
-                value={formData.photo}
-                onChange={(croppedUrl) => setFormData(prev => ({ ...prev, photo: croppedUrl }))}
-                aspectRatio="1:1"
-                circularPreview={false}
-                helpText="Crop and adjust player portrait or action photo"
-              />
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--border-color)]">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-lg font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <span>{editingPlayer ? 'Save Changes' : 'Add Athlete'}</span>
-                  )}
-                </button>
-              </div>
-
-            </form>
           </div>
         </div>
       )}

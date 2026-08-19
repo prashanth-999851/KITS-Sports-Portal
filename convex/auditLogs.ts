@@ -5,10 +5,14 @@ import { requireAdmin, sessionToken } from "./auth";
 export const list = query({
   args: { sessionToken },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.sessionToken);
-    // Return most recent first, limit to 200
-    const logs = await ctx.db.query("auditLogs").order("desc").take(200);
-    return logs;
+    try {
+      await requireAdmin(ctx, args.sessionToken);
+      // Return most recent first, limit to 200
+      const logs = await ctx.db.query("auditLogs").order("desc").take(200);
+      return logs;
+    } catch {
+      return [];
+    }
   },
 });
 

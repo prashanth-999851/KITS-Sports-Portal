@@ -96,6 +96,13 @@
   }
 }
 
+/* Responsive Typography Scaling */
+@media (max-width: 767px) {
+  html {
+    font-size: 17.5px; /* Slightly increase all text sizes across all pages on mobile */
+  }
+}
+
 body {
   background-color: var(--bg-main);
   color: var(--text-primary);
