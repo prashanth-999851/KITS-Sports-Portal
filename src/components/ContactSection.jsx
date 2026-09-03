@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import Navbar from './Navbar';
+import Footer from './Footer';
 import { 
   ArrowLeft, 
   Send, 
@@ -206,40 +208,14 @@ export default function ContactSection({ onBack }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300">
 
-      {/* Header & Navigation */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={handleBack}
-              aria-label="Back to Portal Home"
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all shadow-sm shrink-0 active:scale-95 cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Back to Home</span>
-            </button>
-
-            <div className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
-
-            <div className="flex items-center gap-2.5 min-w-0">
-              <img src="/logo.png" alt="KITS Logo" className="h-8 w-auto object-contain shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-xs sm:text-sm font-bold text-[#0b2e5b] leading-tight truncate">
-                  Contact & Helpdesk
-                </h1>
-                <p className="text-[10px] text-slate-500 truncate hidden sm:block">
-                  Physical Education Directorate • KKR & KSR Institute
-                </p>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </header>
+      {/* Unified Top Navbar */}
+      <Navbar
+        activeSection="contact"
+        onOpenMembership={() => navigate('/register')}
+      />
 
       {/* Main Page Body */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
 
         {/* Banner */}
         <div className="p-5 sm:p-6 rounded-2xl bg-[#0b2e5b] text-white shadow-md space-y-2.5">
@@ -487,18 +463,8 @@ export default function ContactSection({ onBack }) {
 
       </main>
 
-      {/* Footer Back Link */}
-      <footer className="mt-16 bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 KKR & KSR Institute of Technology & Sciences — Sports Directorate</p>
-          <button
-            onClick={handleBack}
-            className="text-[#0b2e5b] hover:underline font-bold cursor-pointer"
-          >
-            ← Return to Main Portal Homepage
-          </button>
-        </div>
-      </footer>
+      {/* Unified Footer */}
+      <Footer setActiveSection={() => handleBack()} />
 
     </div>
   );

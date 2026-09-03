@@ -1,6 +1,6 @@
 /**
  * Global Typography & Font Constants
- * Official font family used across the KKR & KSR Sports Club Portal.
+ * Official font family used across the KiTS Sports Club Portal.
  * Uses League Spartan from src/fonts/League_Spartan with system fallbacks.
  */
 

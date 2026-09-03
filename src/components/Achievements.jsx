@@ -115,6 +115,10 @@ export default function Achievements() {
                       src={award.image}
                       alt={award.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600";
+                      }}
                     />
                   </div>
                   <div className="p-5 space-y-2 flex-1">

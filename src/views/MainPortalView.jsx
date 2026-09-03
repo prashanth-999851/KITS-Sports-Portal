@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import CoreValues from '../components/CoreValues';
@@ -7,11 +7,28 @@ import ExecutiveBody from '../components/ExecutiveBody';
 import Achievements from '../components/Achievements';
 import Gallery from '../components/Gallery';
 import Footer from '../components/Footer';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function MainPortalView() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeSection, setActiveSection] = useState('home');
+
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash) {
+      setActiveSection(hash);
+      const timer = setTimeout(() => {
+        const elem = document.getElementById(hash);
+        if (elem) {
+          elem.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    } else if (location.pathname === '/' && !location.hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [location.hash, location.pathname]);
 
   const handleNavigate = (id) => {
     if (id === 'about') {
@@ -28,7 +45,12 @@ export default function MainPortalView() {
       navigate('/admin/dashboard');
     } else {
       setActiveSection(id);
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+      const elem = document.getElementById(id);
+      if (elem) {
+        elem.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        navigate(`/#${id}`);
+      }
     }
   };
 

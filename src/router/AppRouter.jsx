@@ -1,10 +1,22 @@
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Context
 import { ConvexStateProvider } from '../context/ConvexStateContext';
 import { ToastProvider } from '../context/ToastContext';
 import { LoadingSpinner } from '../components/LoadingSkeleton';
+
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, hash]);
+
+  return null;
+}
 
 // Main Landing Page (Eagerly Loaded for Immediate First Paint)
 import MainPortalView from '../views/MainPortalView';
@@ -46,13 +58,16 @@ export default function AppRouter() {
     <ConvexStateProvider>
       <ToastProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               
               {/* Public Routes */}
               <Route path="/" element={<MainPortalView />} />
               <Route path="/register" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
+              <Route path="/registration" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
               <Route path="/membership" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
+              <Route path="/memberships" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
               <Route path="/about" element={<AboutView onBack={() => window.location.href = '/'} />} />
               <Route path="/jntuk-players" element={<JntukStarsView onBack={() => window.location.href = '/'} />} />
               <Route path="/jntuk-stars" element={<JntukStarsView onBack={() => window.location.href = '/'} />} />

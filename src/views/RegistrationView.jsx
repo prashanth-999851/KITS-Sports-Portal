@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { useConvexState } from '../context/ConvexStateContext';
 import { useToast } from '../context/ToastContext';
 import { ButtonSpinner } from '../components/LoadingSkeleton';
@@ -66,6 +68,10 @@ export default function RegistrationView({ onBack }) {
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   useEffect(() => {
     if (preselectedSport) {
@@ -288,7 +294,7 @@ export default function RegistrationView({ onBack }) {
 
   const getInputClass = (fieldName) => {
     const hasError = touched[fieldName] && errors[fieldName];
-    return `w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border text-slate-800 text-xs focus:bg-white focus:outline-none transition-colors ${
+    return `w-full px-3.5 py-2.5 rounded-lg bg-slate-50 border text-slate-800 text-sm font-medium focus:bg-white focus:outline-none transition-colors ${
       hasError 
         ? 'border-red-400 focus:border-red-500 bg-red-50/30' 
         : 'border-slate-200 focus:border-[#0b2e5b]'
@@ -296,56 +302,26 @@ export default function RegistrationView({ onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans transition-colors duration-300">
       
-      {/* Top Header Bar */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-          
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={handleBack}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Back to Home</span>
-            </button>
-
-            <div className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
-
-            <div className="flex items-center gap-2.5 min-w-0">
-              <img src="/logo.png" alt="KITS Logo" className="h-8 w-auto object-contain shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-sm sm:text-base font-bold text-[#0b2e5b] leading-tight truncate">
-                  Student Sports Registration Portal
-                </h1>
-                <p className="text-[10px] text-slate-500 truncate hidden sm:block">
-                  Official Athletic Directorate • KKR & KSR Institute of Technology and Sciences
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium shrink-0">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span className="hidden md:inline">Official 2026 Sports Enrollment</span>
-          </div>
-
-        </div>
-      </header>
+      {/* Unified Top Navbar */}
+      <Navbar
+        activeSection="membership"
+        onOpenMembership={() => setActiveTab("Apply")}
+      />
 
       {/* Main Registration Body */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-8 sm:pb-12 space-y-8">
         
         {/* Title Header */}
-        <div className="text-center space-y-2">
-          <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#0b2e5b]/10 text-[#0b2e5b] tracking-wider uppercase">
-            Official Enrollment
+        <div className="text-center space-y-2.5">
+          <span className="inline-block px-3 py-1 rounded-full text-xs font-extrabold bg-[#0b2e5b]/10 text-[#0b2e5b] tracking-wider uppercase">
+            Official Student Enrollment
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0b2e5b] tracking-tight">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0b2e5b] tracking-tight">
             Sports Registration & Status Tracker
           </h2>
-          <p className="text-slate-600 text-xs sm:text-sm max-w-xl mx-auto">
+          <p className="text-slate-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
             Submit your official player application for inter-collegiate tournaments, university selections, and team practice trials.
           </p>
         </div>
@@ -355,25 +331,25 @@ export default function RegistrationView({ onBack }) {
           <div className="p-1 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center gap-1 max-w-md w-full">
             <button
               onClick={() => setActiveTab("Apply")}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "Apply"
                   ? 'bg-[#0b2e5b] text-white shadow-sm'
                   : 'text-slate-600 hover:text-[#0b2e5b] hover:bg-slate-50'
               }`}
             >
-              <FileText className="w-3.5 h-3.5" />
+              <FileText className="w-4 h-4" />
               <span>Apply for Membership</span>
             </button>
 
             <button
               onClick={() => setActiveTab("Track")}
-              className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`flex-1 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "Track"
                   ? 'bg-[#0b2e5b] text-white shadow-sm'
                   : 'text-slate-600 hover:text-[#0b2e5b] hover:bg-slate-50'
               }`}
             >
-              <Search className="w-3.5 h-3.5" />
+              <Search className="w-4 h-4" />
               <span>Track Application</span>
             </button>
           </div>
@@ -691,6 +667,9 @@ export default function RegistrationView({ onBack }) {
         )}
 
       </main>
+
+      {/* Unified Footer */}
+      <Footer setActiveSection={(id) => handleBack()} />
 
     </div>
   );

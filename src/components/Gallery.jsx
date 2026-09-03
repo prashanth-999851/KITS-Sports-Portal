@@ -87,6 +87,10 @@ export default function Gallery() {
                     src={item.image}
                     alt={item.title}
                     className="w-full h-auto object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800";
+                    }}
                   />
                 </div>
                 

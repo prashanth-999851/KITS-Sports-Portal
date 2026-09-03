@@ -136,17 +136,17 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b2e5b] text-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#061a36] text-white font-admin admin-scope flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         
         {/* Logo Banner */}
         <div className="text-center space-y-2">
           <img 
             src="/logo.png" 
-            alt="KKR & KSR Logo" 
+            alt="KiTS Logo" 
             className="h-16 w-auto object-contain mx-auto" 
           />
-          <h1 className="text-xl font-extrabold tracking-tight">KKR & KSR Sports Directorate</h1>
+          <h1 className="text-xl font-extrabold tracking-tight">KiTS Sports Directorate</h1>
           <p className="text-xs text-amber-400 font-semibold">Admin & Sports Officers Console</p>
         </div>
 

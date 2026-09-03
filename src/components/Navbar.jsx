@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Menu, X, ChevronDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useConvexState } from '../context/ConvexStateContext';
+import { tw } from '@/constants';
 
 export default function Navbar({
   activeSection,
   setActiveSection,
   onOpenMembership
 }) {
+  const navigate = useNavigate();
   const { notifications = [] } = useConvexState();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -24,24 +27,52 @@ export default function Navbar({
   ];
 
   const handleNavClick = (id) => {
-    setActiveSection?.(id);
     setMobileMenuOpen(false);
+
+    if (setActiveSection) {
+      setActiveSection(id);
+      return;
+    }
+
+    const routeMap = {
+      home: '/',
+      about: '/about',
+      sports: '/#sports',
+      executive: '/#executive',
+      achievements: '/#achievements',
+      'jntuk-players': '/jntuk-players',
+      membership: '/register',
+      gallery: '/#gallery',
+      rules: '/rules',
+      contact: '/contact',
+    };
+
+    const targetRoute = routeMap[id] || '/';
+    if (targetRoute.startsWith('/#')) {
+      if (window.location.pathname !== '/') {
+        navigate(targetRoute);
+      } else {
+        const sectionId = targetRoute.replace('/#', '');
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate(targetRoute);
+    }
   };
 
   const hasNotifications = notifications && notifications.length > 0;
 
-  // Build a seamless looping list of items
-  const repeatedNotifications = notifications.length > 0 ? [
-    ...notifications,
-    ...notifications,
-    ...notifications,
-    ...notifications,
-  ] : [];
+  // Build repeated list to ensure smooth infinite marquee scroll even with 1 notification
+  const tickerItems = notifications.length > 0 ? (
+    notifications.length < 4
+      ? [...notifications, ...notifications, ...notifications, ...notifications]
+      : notifications
+  ) : [];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300 shadow-md">
       
-      {/* 1. Main Navigation Bar (Clean White Background with Text-Underline Hover Lines) */}
+      {/* 1. Main Navigation Bar */}
       <div className="bg-white border-b border-slate-200 shadow-sm transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -53,15 +84,15 @@ export default function Navbar({
             >
               <img 
                 src="/logo.png" 
-                alt="KKR & KSR Sports Club" 
+                alt="KiTS Sports Club" 
                 className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />
-              <h1 className="text-base font-bold text-[#0b2e5b] leading-tight tracking-wide group-hover:text-[#0d3a73] transition-colors">
-                KKR & KSR Sports Club
+              <h1 className={`${tw`text-body`} font-bold text-[#0b2e5b] leading-tight tracking-wide group-hover:text-[#0d3a73] transition-colors`}>
+                KiTS Sports Club
               </h1>
             </div>
 
-            {/* Desktop Navigation with Tight Underlines Right Below Text */}
+            {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-2 h-16">
               {navLinks.slice(0, 7).map((link) => {
                 const isActive = activeSection === link.id;
@@ -69,7 +100,7 @@ export default function Navbar({
                   <button
                     key={link.id}
                     onClick={() => handleNavClick(link.id)}
-                    className={`relative px-3 py-2 text-sm font-bold transition-colors flex items-center group cursor-pointer ${
+                    className={`relative px-3 py-2 ${tw`text-body`} font-bold transition-colors flex items-center group cursor-pointer ${
                       isActive
                         ? 'text-[#0b2e5b]'
                         : 'text-slate-700 hover:text-[#0b2e5b]'
@@ -77,8 +108,6 @@ export default function Navbar({
                   >
                     <span className="relative">
                       {link.label}
-                      
-                      {/* Underline right below the text on hover & active */}
                       <span 
                         className={`absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#0b2e5b] transition-all duration-200 origin-center ${
                           isActive
@@ -91,14 +120,12 @@ export default function Navbar({
                 );
               })}
 
-              {/* More Dropdown with Text Underline */}
+              {/* More Dropdown */}
               <div className="relative group flex items-center">
-                <button className="relative px-3 py-2 text-sm font-bold text-slate-700 hover:text-[#0b2e5b] flex items-center gap-1 transition-colors cursor-pointer group">
+                <button className={`relative px-3 py-2 ${tw`text-body`} font-bold text-slate-700 hover:text-[#0b2e5b] flex items-center gap-1 transition-colors cursor-pointer group`}>
                   <span className="relative flex items-center gap-1">
                     <span>More</span>
                     <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180" />
-                    
-                    {/* Underline right below More */}
                     <span className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#0b2e5b] opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100 transition-all duration-200 origin-center" />
                   </span>
                 </button>
@@ -108,7 +135,7 @@ export default function Navbar({
                     <button
                       key={link.id}
                       onClick={() => handleNavClick(link.id)}
-                      className="w-full text-left px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:text-[#0b2e5b] hover:bg-slate-50 transition-colors"
+                      className={`w-full text-left px-3 py-2 rounded-lg ${tw`text-body`} font-semibold text-slate-700 hover:text-[#0b2e5b] hover:bg-slate-50 transition-colors`}
                     >
                       {link.label}
                     </button>
@@ -122,8 +149,8 @@ export default function Navbar({
 
               {/* Register CTA - Solid Theme Blue Button */}
               <button
-                onClick={onOpenMembership}
-                className="hidden sm:inline-flex items-center justify-center px-5 py-2 rounded-lg text-sm font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all duration-200 active:scale-95 shadow-sm cursor-pointer"
+                onClick={() => onOpenMembership ? onOpenMembership() : handleNavClick('membership')}
+                className={`hidden sm:inline-flex items-center justify-center px-5 py-2 rounded-lg ${tw`text-body`} font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all duration-200 active:scale-95 shadow-sm cursor-pointer`}
               >
                 Register
               </button>
@@ -141,13 +168,12 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* 2. Announcement Header - Clean Black Bar, White Text, Smooth Realistic Ticker (No Icons) */}
+      {/* 2. Announcement Header */}
       {hasNotifications && (
-        <div className="bg-black text-white py-1.5 px-3 sm:px-4 text-xs font-medium flex items-center overflow-hidden border-t border-white/10 shadow-inner select-none">
+        <div className={`bg-black text-white py-1.5 px-3 sm:px-4 ${tw`text-helper`} flex items-center overflow-hidden border-t border-white/10 shadow-inner select-none`}>
           
-          {/* Left Title Label (No Icons) */}
           <div className="shrink-0 bg-black pr-3.5 z-10 border-r border-white/20">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-400">
+            <span className={`${tw`text-caption`} font-extrabold uppercase tracking-wider text-amber-400`}>
               Announcements
             </span>
           </div>
@@ -156,55 +182,64 @@ export default function Navbar({
           <div className="flex-1 overflow-hidden relative pl-4">
             <div className="animate-ticker whitespace-nowrap flex items-center gap-10 text-white">
               
-              {/* Primary Looping Track */}
+              {/* Track 1 */}
               <div className="flex items-center gap-10 shrink-0">
-                {repeatedNotifications.map((notif, idx) => (
-                  <span key={idx} className="flex items-center gap-10">
-                    <span className="text-white/95 font-medium tracking-wide">
-                      {notif.message}
+                {tickerItems.map((notif, idx) => (
+                  <div key={`t1-${idx}`} className="inline-flex items-center gap-2.5">
+                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
+                      {notif.category || 'NOTICE'}
                     </span>
-                    <span className="text-white/30">•</span>
-                  </span>
+                    <span className="font-semibold text-[#f8fafc] text-xs">
+                      {notif.title}
+                    </span>
+                    {notif.message && (
+                      <span className="text-slate-400 text-xs">
+                        — {notif.message}
+                      </span>
+                    )}
+                    <span className="text-amber-400/80 font-bold ml-4">•</span>
+                  </div>
                 ))}
               </div>
 
-              {/* Duplicate Track for Smooth Infinite Loop */}
+              {/* Track 2 (Duplicate for Seamless Infinite Marquee Loop) */}
               <div className="flex items-center gap-10 shrink-0">
-                {repeatedNotifications.map((notif, idx) => (
-                  <span key={`dup-${idx}`} className="flex items-center gap-10">
-                    <span className="text-white/95 font-medium tracking-wide">
-                      {notif.message}
+                {tickerItems.map((notif, idx) => (
+                  <div key={`t2-${idx}`} className="inline-flex items-center gap-2.5">
+                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
+                      {notif.category || 'NOTICE'}
                     </span>
-                    <span className="text-white/30">•</span>
-                  </span>
+                    <span className="font-semibold text-[#f8fafc] text-xs">
+                      {notif.title}
+                    </span>
+                    {notif.message && (
+                      <span className="text-slate-400 text-xs">
+                        — {notif.message}
+                      </span>
+                    )}
+                    <span className="text-amber-400/80 font-bold ml-4">•</span>
+                  </div>
                 ))}
               </div>
 
             </div>
           </div>
-
-          {/* Right Institutional Label (No Icons) */}
-          <div className="hidden lg:flex items-center gap-4 text-[11px] text-white/80 shrink-0 ml-4 pl-3.5 bg-black z-10 border-l border-white/20 font-medium">
-            <span>KKR and KSR Institute of Technology and Sciences</span>
-            <span>+91 91827 55664</span>
-          </div>
-
         </div>
       )}
 
-      {/* Mobile Drawer with Left-Line Indicators */}
+      {/* 3. Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-5 space-y-1 animate-fadeIn shadow-xl">
+        <div className="lg:hidden bg-white border-b border-slate-200 shadow-xl px-4 pt-3 pb-6 space-y-3 animate-fadeIn">
           {navLinks.map((link) => {
             const isActive = activeSection === link.id;
             return (
               <button
                 key={link.id}
                 onClick={() => handleNavClick(link.id)}
-                className={`w-full text-left px-3 py-2.5 text-sm font-semibold transition-all border-l-2 ${
+                className={`w-full text-left px-3 py-2.5 ${tw`text-body`} font-semibold transition-all border-l-2 ${
                   isActive
                     ? 'border-[#0b2e5b] text-[#0b2e5b] bg-slate-50 pl-4'
-                    : 'border-transparent text-slate-700 hover:text-[#0b2e5b] hover:border-slate-300 pl-3'
+                    : 'border-transparent text-[#0b2e5b] hover:text-[#0b2e5b] hover:border-slate-300 pl-3'
                 }`}
               >
                 {link.label}
@@ -213,8 +248,8 @@ export default function Navbar({
           })}
           <div className="pt-3 flex flex-col gap-2 border-t border-slate-200">
             <button
-              onClick={() => { setMobileMenuOpen(false); onOpenMembership(); }}
-              className="w-full py-2.5 rounded-lg text-sm font-bold bg-[#0b2e5b] text-white text-center transition-colors shadow-sm cursor-pointer"
+              onClick={() => { setMobileMenuOpen(false); onOpenMembership ? onOpenMembership() : handleNavClick('membership'); }}
+              className={`w-full py-2.5 rounded-lg ${tw`text-body`} font-bold bg-[#0b2e5b] text-white text-center transition-colors shadow-sm cursor-pointer`}
             >
               Register for Membership
             </button>

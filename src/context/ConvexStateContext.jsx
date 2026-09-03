@@ -164,8 +164,8 @@ export function ConvexStateProvider({ children }) {
   // Notifications: components expect { id, title, message, type, time, isActive }
   const notifications = rawNotifications.map(n => ({
     id: n._id,
-    title: n.title,
-    message: n.message,
+    title: (n.title || '').replace(/KKR\s*(?:&|and)\s*KSR\s*(?:Sports\s*Club)?/gi, 'KiTS Sports Club'),
+    message: (n.message || '').replace(/KKR\s*(?:&|and)\s*KSR\s*(?:Sports\s*Club)?/gi, 'KiTS Sports Club'),
     type: n.type,
     time: getRelativeTime(n.createdAt),
     isActive: n.isActive,
