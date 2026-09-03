@@ -40,7 +40,7 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans flex flex-col md:flex-row transition-colors duration-300">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-admin admin-scope flex flex-col md:flex-row transition-colors duration-300">
       
       {/* Sidebar Overlay for Mobile */}
       {sidebarOpen && (

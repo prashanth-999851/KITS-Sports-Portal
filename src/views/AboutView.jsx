@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { Eye, Target, CheckCircle2, Sparkles, ArrowLeft, Award } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 export default function AboutView({ onBack }) {
   const navigate = useNavigate();
@@ -30,45 +32,14 @@ export default function AboutView({ onBack }) {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300">
       
-      {/* Top Header Bar */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-          
-          <div className="flex items-center gap-3 min-w-0">
-            <button
-              onClick={handleBack}
-              aria-label="Back to Portal Home"
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all shadow-sm shrink-0 active:scale-95 cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Back to Home</span>
-            </button>
-
-            <div className="hidden sm:block h-6 w-px bg-slate-200 shrink-0" />
-
-            <div className="flex items-center gap-2.5 min-w-0">
-              <img src="/logo.png" alt="KITS Logo" className="h-8 w-auto object-contain shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-xs sm:text-sm font-bold text-[#0b2e5b] leading-tight truncate">
-                  About Sports Directorate
-                </h1>
-                <p className="text-[10px] text-slate-500 truncate hidden sm:block">
-                  Governance & Infrastructure Overview • KKR & KSR Institute
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium shrink-0">
-            <Award className="w-4 h-4 text-amber-500 shrink-0" />
-            <span className="hidden md:inline">Accredited by JNTUK & State Sports Council</span>
-          </div>
-
-        </div>
-      </header>
+      {/* Unified Top Navbar */}
+      <Navbar
+        activeSection="about"
+        onOpenMembership={() => navigate('/register')}
+      />
 
       {/* Main Page Layout */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
         
         {/* Banner Section */}
         <div className="relative rounded-2xl overflow-hidden bg-[#0b2e5b] text-white p-6 sm:p-10 shadow-md">
@@ -80,7 +51,7 @@ export default function AboutView({ onBack }) {
               Empowering Athletic Excellence & Student Leadership
             </h2>
             <p className="text-xs sm:text-sm text-slate-200 leading-relaxed max-w-2xl">
-              Established with a mandate to ignite athletic spirit, KKR & KSR Sports Club serves as the premier governing body for all sports, fitness, and intra/inter-collegiate athletic activities at the Institute.
+              Established with a mandate to ignite athletic spirit, KiTS Sports Club serves as the premier governing body for all sports, fitness, and intra/inter-collegiate athletic activities at the Institute.
             </p>
           </div>
         </div>
@@ -136,18 +107,8 @@ export default function AboutView({ onBack }) {
 
       </main>
 
-      {/* Footer Back Bar */}
-      <footer className="mt-16 bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 KKR & KSR Institute of Technology & Sciences — Sports Directorate</p>
-          <button
-            onClick={handleBack}
-            className="text-[#0b2e5b] hover:underline font-bold cursor-pointer"
-          >
-            ← Return to Main Portal Homepage
-          </button>
-        </div>
-      </footer>
+      {/* Unified Footer */}
+      <Footer setActiveSection={(id) => handleBack()} />
 
     </div>
   );

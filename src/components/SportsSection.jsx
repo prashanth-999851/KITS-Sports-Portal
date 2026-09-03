@@ -52,13 +52,13 @@ export default function SportsSection({ onRegisterSport }) {
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-2.5">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#0b2e5b]">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0b2e5b]">
             9+ Sports Disciplines
           </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] section-accent">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0b2e5b] tracking-tight section-accent">
             Sports <span className="accent-text">Disciplines</span>
           </h2>
-          <p className="text-[var(--text-secondary)] text-xs sm:text-sm leading-relaxed pt-1 max-w-2xl mx-auto">
+          <p className="text-slate-600 text-xs sm:text-sm font-medium leading-relaxed max-w-2xl mx-auto">
             From turf cricket grounds to indoor BWF wooden courts, discover our active sports disciplines, professional coaches, and captains.
           </p>
 
@@ -68,7 +68,7 @@ export default function SportsSection({ onRegisterSport }) {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
                   selectedCategory === cat
                     ? 'bg-[#0b2e5b] text-white shadow-sm'
                     : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:text-[#0b2e5b] hover:shadow-sm'
@@ -96,7 +96,7 @@ export default function SportsSection({ onRegisterSport }) {
                 key={sport.id}
                 className="group rounded-xl bg-white border border-slate-200 overflow-hidden flex flex-col justify-between card-hover shadow-sm animate-slideUp transition-all duration-200 hover:shadow-md hover:border-slate-300 h-full"
               >
-                {/* 1st Half: Sports Image Banner (Taller on Mobile) */}
+                {/* 1st Half: Sports Image Banner */}
                 <div className="relative h-56 sm:h-52 md:h-48 lg:h-44 overflow-hidden bg-slate-100 img-zoom shrink-0">
                   <img
                     src={sport.image}
@@ -110,7 +110,7 @@ export default function SportsSection({ onRegisterSport }) {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
                   
                   {/* Category Badge */}
-                  <span className="absolute top-2.5 left-2.5 text-[9px] font-bold px-2.5 py-0.5 rounded-full bg-[#0b2e5b]/90 backdrop-blur-sm text-white shadow-sm tracking-wide uppercase">
+                  <span className="absolute top-2.5 left-2.5 text-[9.5px] font-bold px-2.5 py-0.5 rounded-full bg-[#0b2e5b]/90 backdrop-blur-sm text-white shadow-sm tracking-wide uppercase">
                     {sport.category}
                   </span>
 
@@ -122,11 +122,11 @@ export default function SportsSection({ onRegisterSport }) {
                   </div>
                 </div>
 
-                {/* 2nd Half: Compact, Clean White Content Area (Flex-1 & Pinned Bottom) */}
-                <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between gap-3">
+                {/* 2nd Half: Content Area */}
+                <div className="p-3.5 flex flex-col flex-1 justify-between gap-3">
                   
-                  {/* Details Area with consistent fixed baseline height for 3 or 4 fields */}
-                  <div className="space-y-1.5 text-[11px] min-h-[82px] flex flex-col justify-center">
+                  {/* Details Area */}
+                  <div className="space-y-1.5 text-[11.5px] sm:text-xs min-h-[84px] flex flex-col justify-center">
                     <div className="flex items-center justify-between text-slate-700 gap-1">
                       <span className="text-slate-400 font-medium">Coordinator:</span>
                       <span className="font-bold text-[#0b2e5b] truncate text-right">{sport.coordinator}</span>
@@ -158,9 +158,9 @@ export default function SportsSection({ onRegisterSport }) {
                     )}
                   </div>
 
-                  {/* Venue & Register Action Row (Aligned horizontally across all cards) */}
+                  {/* Venue & Register Action Row */}
                   <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 gap-2 mt-auto">
-                    <div className="flex items-center gap-1 text-[10.5px] text-slate-500 min-w-0">
+                    <div className="flex items-center gap-1 text-[11px] font-medium text-slate-500 min-w-0">
                       <MapPin className="w-3 h-3 text-amber-500 shrink-0" />
                       <span className="truncate">{sport.teamDetails?.venue || 'Campus Sports Ground'}</span>
                     </div>

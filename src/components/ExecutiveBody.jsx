@@ -39,7 +39,7 @@ function MemberCard({ member, isTopTier = false }) {
         <div className={`rounded-full p-1 sm:p-1.5 bg-white border-2 border-slate-200 shadow-md group-hover:border-[#0b2e5b] group-hover:shadow-lg transition-all duration-300 ${
           isTopTier 
             ? 'w-36 h-36 sm:w-44 sm:h-44 md:w-48 md:h-48' 
-            : 'w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44'
+            : 'w-28 h-28 sm:w-36 sm:h-36 md:w-40 md:h-40'
         }`}>
           <div className="w-full h-full rounded-full overflow-hidden bg-slate-100">
             <img
@@ -55,14 +55,14 @@ function MemberCard({ member, isTopTier = false }) {
         </div>
       </div>
 
-      {/* Name & Designation Only */}
+      {/* Name & Designation */}
       <div className="space-y-0.5 sm:space-y-1 max-w-full px-1">
         <h3 className={`font-bold text-[#0b2e5b] leading-snug group-hover:text-[#0d3a73] transition-colors ${
           isTopTier ? 'text-sm sm:text-base md:text-lg' : 'text-xs sm:text-sm md:text-base'
         }`}>
           {member.name}
         </h3>
-        <p className="text-[10.5px] sm:text-xs font-semibold text-slate-600 leading-tight">
+        <p className="text-[11px] sm:text-xs font-semibold text-slate-600 leading-tight">
           {member.position}
         </p>
       </div>
@@ -83,8 +83,6 @@ export default function ExecutiveBody() {
     .sort((a, b) => (a.displayOrder || 1) - (b.displayOrder || 1));
 
   // 2. Pyramid Tiers for Management Heads:
-  // - Tier 1: 1 Top Management Head (Chairman/Patron, Centered Single)
-  // - Tier 2: Next Management Members (2 in a row on mobile, Centered)
   const tier1 = managementMembers.length > 0 ? [managementMembers[0]] : [];
   const tier2 = managementMembers.length > 1 ? managementMembers.slice(1) : [];
 
@@ -95,21 +93,21 @@ export default function ExecutiveBody() {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-2.5">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#0b2e5b]">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0b2e5b]">
             Institutional Leadership
           </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--text-primary)] section-accent">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0b2e5b] tracking-tight section-accent">
             Executive <span className="accent-text">Body</span>
           </h2>
-          <p className="text-[var(--text-secondary)] text-xs sm:text-sm leading-relaxed max-w-xl mx-auto">
-            Meet the distinguished institutional leadership guiding the sports directorate and athletic development at KKR & KSR Institute of Technology and Sciences.
+          <p className="text-slate-600 text-xs sm:text-sm font-medium leading-relaxed max-w-xl mx-auto">
+            Meet the distinguished institutional leadership guiding the sports directorate and athletic development at KiTS Sports Club.
           </p>
         </div>
 
         {isLoading ? (
           <ExecutiveSkeleton />
         ) : managementMembers.length === 0 && studentLeads.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 text-sm">
+          <div className="text-center py-12 text-slate-500 text-sm font-medium">
             No executive members listed currently.
           </div>
         ) : (
@@ -127,7 +125,7 @@ export default function ExecutiveBody() {
                 </div>
               )}
 
-              {/* Tier 2: Next Management Members (2 Members in a row on Mobile & Desktop) */}
+              {/* Tier 2: Next Management Members */}
               {tier2.length > 0 && (
                 <div className="flex flex-wrap justify-center items-start gap-6 sm:gap-10 md:gap-16 lg:gap-20 max-w-sm sm:max-w-none mx-auto pt-2">
                   {tier2.map((member) => (
@@ -138,16 +136,15 @@ export default function ExecutiveBody() {
 
             </div>
 
-            {/* TIER 3: STUDENT LEADS (2 Members in a row on Mobile & Desktop) */}
+            {/* TIER 3: STUDENT LEADS */}
             {studentLeads.length > 0 && (
               <div className="pt-10 border-t border-slate-200/80 space-y-6">
                 <div className="text-center">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-800">
+                  <h3 className="text-base sm:text-lg font-bold text-[#0b2e5b] tracking-tight">
                     Student Leads
                   </h3>
                 </div>
 
-                {/* 2 Student Leads in a Row on Mobile */}
                 <div className="flex flex-wrap justify-center items-start gap-6 sm:gap-10 md:gap-16 lg:gap-20 max-w-sm sm:max-w-none mx-auto">
                   {studentLeads.map((member) => (
                     <MemberCard key={member.id} member={member} />

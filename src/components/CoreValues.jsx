@@ -67,15 +67,15 @@ export default function CoreValues() {
   }, [activeSlides.length]);
 
   return (
-    <section id="values" className="py-8 sm:py-12 bg-[var(--bg-main)] transition-colors">
+    <section id="values" className="py-10 sm:py-14 bg-[var(--bg-main)] transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* 2-Column Compact Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* Slideshow (Left on desktop, below text on mobile) */}
           <div className="order-2 lg:order-1 lg:col-span-6 xl:col-span-6">
-            <div className="relative rounded-none overflow-hidden shadow-lg border border-[var(--border-color)] group w-full aspect-[16/9] bg-slate-900 select-none">
+            <div className="relative rounded-xl overflow-hidden shadow-md border border-slate-200 group w-full aspect-[16/9] bg-slate-900 select-none">
               {activeSlides.map((slide, index) => {
                 const isActive = index === currentSlideIndex;
                 return (
@@ -87,7 +87,7 @@ export default function CoreValues() {
                   >
                     <img
                       src={slide.src}
-                      alt={slide.title || 'KKR & KSR Athletics'}
+                      alt={slide.title || 'KiTS Athletics'}
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                     />
                   </div>
@@ -97,37 +97,37 @@ export default function CoreValues() {
           </div>
 
           {/* Core Values Text & Points (Right on desktop, above slideshow on mobile) */}
-          <div className="order-1 lg:order-2 lg:col-span-6 xl:col-span-6 lg:pl-4 xl:pl-8 space-y-4">
+          <div className="order-1 lg:order-2 lg:col-span-6 xl:col-span-6 lg:pl-4 xl:pl-6 space-y-4">
             
             {/* Header Right */}
-            <div className="space-y-1">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--secondary)] dark:text-blue-400">
+            <div className="space-y-1.5">
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0b2e5b]">
                 Guiding Principles
               </p>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0b2e5b] tracking-tight">
                 Our Core <span className="accent-text">Values</span>
               </h2>
-              <p className="text-[var(--text-secondary)] text-xs sm:text-sm max-w-lg leading-relaxed">
-                The fundamental principles that define our athletic character and team spirit.
+              <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-lg">
+                The fundamental principles that define our athletic character, sportsmanship, and team spirit.
               </p>
             </div>
 
-            {/* 6 Minimal One-Line Bullet Points */}
+            {/* 6 Minimal Bullet Points */}
             <ul className="space-y-2.5 pt-0.5">
               {displayValues.slice(0, 6).map((val, idx) => (
                 <li
                   key={idx}
-                  className="group flex items-center gap-2.5 text-xs sm:text-sm text-[var(--text-secondary)] transition-all duration-200 hover:translate-x-1.5 cursor-default"
+                  className="group flex items-start sm:items-center gap-2.5 text-xs sm:text-sm text-slate-700 transition-all duration-200 hover:translate-x-1 cursor-default"
                 >
-                  {/* Clean Bullet Dot */}
-                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--secondary)] dark:bg-blue-400 shrink-0 group-hover:scale-125 transition-transform duration-200" />
+                  {/* Bullet Dot */}
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0b2e5b] shrink-0 mt-1.5 sm:mt-0 group-hover:scale-125 transition-transform duration-200" />
 
-                  {/* Minimal One-Line Text */}
+                  {/* Text */}
                   <p className="leading-tight">
-                    <strong className="font-bold text-[var(--text-primary)] group-hover:text-[var(--secondary)] dark:group-hover:text-blue-400 transition-colors mr-1.5">
+                    <strong className="font-bold text-[#0b2e5b] group-hover:text-[#0d3a73] transition-colors mr-1.5 text-xs sm:text-sm">
                       {val.title}:
                     </strong>
-                    <span>{val.description}</span>
+                    <span className="text-slate-600 text-xs sm:text-sm">{val.description}</span>
                   </p>
                 </li>
               ))}

@@ -1,8 +1,9 @@
 import React from 'react';
+import { tw } from '@/constants';
 
 export default function Footer({ setActiveSection }) {
   return (
-    <footer className="bg-[#041428] text-slate-400 text-xs py-14">
+    <footer className={`bg-[#041428] text-slate-400 ${tw`text-caption`} py-14`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -16,7 +17,7 @@ export default function Footer({ setActiveSection }) {
                 className="h-10 w-auto object-contain" 
               />
               <div>
-                <h4 className="text-sm font-bold text-white tracking-wide">KKR & KSR Sports Club</h4>
+                <h4 className="text-sm font-bold text-white tracking-wide">KiTS Sports Club</h4>
                 <p className="text-[10px] text-slate-500">Official Sports Portal</p>
               </div>
             </div>
@@ -92,7 +93,7 @@ export default function Footer({ setActiveSection }) {
 
         {/* Bottom */}
         <div className="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
-          <p>© 2026 KKR & KSR Sports Club. All Rights Reserved.</p>
+          <p>© 2026 KiTS Sports Club. All Rights Reserved.</p>
         </div>
 
       </div>

@@ -1,6 +1,6 @@
 /**
  * ============================================================================
- * THEME CONFIGURATION — KKR & KSR Sports Club Portal
+ * THEME CONFIGURATION — KiTS Sports Club Portal
  * ============================================================================
  *
  * Single source of truth for all brand colors, semantic tokens, and

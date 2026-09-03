@@ -52,7 +52,9 @@ export default function AppRouter() {
               {/* Public Routes */}
               <Route path="/" element={<MainPortalView />} />
               <Route path="/register" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
+              <Route path="/registration" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
               <Route path="/membership" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
+              <Route path="/memberships" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
               <Route path="/about" element={<AboutView onBack={() => window.location.href = '/'} />} />
               <Route path="/jntuk-players" element={<JntukStarsView onBack={() => window.location.href = '/'} />} />
               <Route path="/jntuk-stars" element={<JntukStarsView onBack={() => window.location.href = '/'} />} />
