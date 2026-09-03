@@ -70,6 +70,10 @@ export default function RegistrationView({ onBack }) {
   const [touched, setTouched] = useState({});
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
     if (preselectedSport) {
       setFormData(prev => ({ ...prev, selectedSport: preselectedSport }));
     }

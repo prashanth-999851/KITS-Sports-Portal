@@ -1,10 +1,22 @@
-import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Context
 import { ConvexStateProvider } from '../context/ConvexStateContext';
 import { ToastProvider } from '../context/ToastContext';
 import { LoadingSpinner } from '../components/LoadingSkeleton';
+
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) {
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, hash]);
+
+  return null;
+}
 
 // Main Landing Page (Eagerly Loaded for Immediate First Paint)
 import MainPortalView from '../views/MainPortalView';
@@ -46,6 +58,7 @@ export default function AppRouter() {
     <ConvexStateProvider>
       <ToastProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               

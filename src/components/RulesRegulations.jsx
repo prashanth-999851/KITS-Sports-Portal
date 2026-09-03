@@ -82,6 +82,10 @@ export default function RulesRegulations({ onBack }) {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   const chapters = DEFAULT_CONSTITUTION;
   const selectedChapter = chapters[selectedChapterIndex] || chapters[0];
 
