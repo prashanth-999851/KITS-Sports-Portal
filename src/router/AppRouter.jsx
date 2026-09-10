@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 // Context
 import { ConvexStateProvider } from '../context/ConvexStateContext';
@@ -45,6 +45,32 @@ const NotificationsAdminPage = lazy(() => import('../admin/pages/NotificationsAd
 const UsersAdminPage = lazy(() => import('../admin/pages/UsersAdminPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
+// Wrapper components for views that need onBack — avoids window.location.href full reload
+function AboutViewWrapper() {
+  const navigate = useNavigate();
+  return <AboutView onBack={() => navigate('/')} />;
+}
+
+function JntukStarsViewWrapper() {
+  const navigate = useNavigate();
+  return <JntukStarsView onBack={() => navigate('/')} />;
+}
+
+function RegistrationViewWrapper() {
+  const navigate = useNavigate();
+  return <RegistrationView onBack={() => navigate('/')} />;
+}
+
+function RulesRegulationsWrapper() {
+  const navigate = useNavigate();
+  return <RulesRegulations onBack={() => navigate('/')} />;
+}
+
+function ContactSectionWrapper() {
+  const navigate = useNavigate();
+  return <ContactSection onBack={() => navigate('/')} />;
+}
+
 function PageLoader() {
   return (
     <div className="min-h-screen bg-[#0b1e38] text-white flex flex-col items-center justify-center space-y-4 animate-fadeIn">
@@ -71,16 +97,16 @@ export default function AppRouter() {
               
               {/* Public Routes */}
               <Route path="/" element={<MainPortalView />} />
-              <Route path="/register" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
-              <Route path="/registration" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
-              <Route path="/membership" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
-              <Route path="/memberships" element={<RegistrationView onBack={() => window.location.href = '/'} />} />
-              <Route path="/about" element={<AboutView onBack={() => window.location.href = '/'} />} />
-              <Route path="/jntuk-players" element={<JntukStarsView onBack={() => window.location.href = '/'} />} />
-              <Route path="/jntuk-stars" element={<JntukStarsView onBack={() => window.location.href = '/'} />} />
-              <Route path="/rules" element={<RulesRegulations onBack={() => window.location.href = '/'} />} />
-              <Route path="/constitution" element={<RulesRegulations onBack={() => window.location.href = '/'} />} />
-              <Route path="/contact" element={<ContactSection onBack={() => window.location.href = '/'} />} />
+              <Route path="/register" element={<RegistrationViewWrapper />} />
+              <Route path="/registration" element={<RegistrationViewWrapper />} />
+              <Route path="/membership" element={<RegistrationViewWrapper />} />
+              <Route path="/memberships" element={<RegistrationViewWrapper />} />
+              <Route path="/about" element={<AboutViewWrapper />} />
+              <Route path="/jntuk-players" element={<JntukStarsViewWrapper />} />
+              <Route path="/jntuk-stars" element={<JntukStarsViewWrapper />} />
+              <Route path="/rules" element={<RulesRegulationsWrapper />} />
+              <Route path="/constitution" element={<RulesRegulationsWrapper />} />
+              <Route path="/contact" element={<ContactSectionWrapper />} />
 
               {/* Admin Auth Routes */}
               <Route path="/admin/login" element={<AdminLoginPage />} />
