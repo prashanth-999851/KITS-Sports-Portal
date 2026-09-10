@@ -559,34 +559,40 @@ export default function RegistrationView({ onBack }) {
               <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 
                 {/* 1. Sport Selection */}
-                <div className="space-y-2.5">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    <label htmlFor="selectedSport" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       1. Select Sport Discipline <span className="text-red-500">*</span>
                     </label>
                     {touched.selectedSport && errors.selectedSport && (
                       <span className="text-[11px] text-red-500 font-semibold">{errors.selectedSport}</span>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {availableSports.map((sport) => {
-                      const isSelected = formData.selectedSport === sport;
-                      return (
-                        <button
-                          key={sport}
-                          type="button"
-                          onClick={() => handleSportSelect(sport)}
-                          className={`p-2.5 rounded-lg text-xs font-semibold text-center transition-all duration-200 border cursor-pointer ${
-                            isSelected
-                              ? 'bg-[#0b2e5b] text-white border-[#0b2e5b] shadow-sm scale-102'
-                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-100'
-                          }`}
-                        >
-                          {sport}
-                        </button>
-                      );
-                    })}
-                  </div>
+                  <select
+                    id="selectedSport"
+                    name="selectedSport"
+                    value={formData.selectedSport}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleChange("selectedSport", val);
+                      if (errors.selectedSport) {
+                        const err = validateField("selectedSport", val);
+                        setErrors(prev => ({ ...prev, selectedSport: err }));
+                      }
+                    }}
+                    onBlur={() => handleBlur("selectedSport")}
+                    className={`${getInputClass("selectedSport")} cursor-pointer`}
+                  >
+                    <option value="">-- Select Preferred Sport Discipline --</option>
+                    {availableSports.map((sport) => (
+                      <option key={sport} value={sport}>
+                        {sport}
+                      </option>
+                    ))}
+                  </select>
+                  {touched.selectedSport && errors.selectedSport && (
+                    <p className="mt-1 text-[11px] text-red-500 font-medium">{errors.selectedSport}</p>
+                  )}
                 </div>
 
                 {/* 2. Personal & Academic Info */}

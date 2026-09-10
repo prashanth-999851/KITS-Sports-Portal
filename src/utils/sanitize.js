@@ -29,7 +29,7 @@ export function validatePhone(phone) {
 export function validateRollNumber(roll) {
   if (!roll || typeof roll !== 'string') return false;
   const cleaned = roll.trim();
-  const rollRegex = /^(24|25|26)JR[15]A(02|04|05|12|42|43)((0[1-9]|[1-9][0-9])|[A-Z][0-9]|[A-Z]{2})$/i;
+  const rollRegex = /^(2[1-7])JR[15]A(02|04|05|12|42|43|54)((0[1-9]|[1-9][0-9])|[A-Z][0-9]|[A-Z]{2})$/i;
   return rollRegex.test(cleaned);
 }
 
