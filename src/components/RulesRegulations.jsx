@@ -11,12 +11,9 @@ import {
   Copy, 
   Check, 
   ExternalLink,
-  BookOpen,
   Scale,
   ArrowRight,
-  ArrowLeft,
-  Filter,
-  Eye
+  ArrowLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SPORTS_CONSTITUTION, SPORTS_CATEGORIES } from '../constants/sportsConstitution';
@@ -33,7 +30,7 @@ function ChapterBodyRenderer({ content }) {
       const line = lines[i];
       const trimmed = line.trim();
 
-      const isLawHeader = /^LAW\s+[\d\.]+/i.test(trimmed);
+      const isLawHeader = /^LAW\s+[\d.]+/i.test(trimmed);
       const isMajorHeader = /^(Vision|Mission|Core Values):-/i.test(trimmed);
 
       if (isLawHeader || isMajorHeader) {
@@ -113,7 +110,7 @@ function ChapterBodyRenderer({ content }) {
             return (
               <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 pl-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-2" />
-                <span className="leading-relaxed">{trimmed.replace(/^[•\-]\s*/, '')}</span>
+                <span className="leading-relaxed">{trimmed.replace(/^[•-]\s*/, '')}</span>
               </div>
             );
           }
