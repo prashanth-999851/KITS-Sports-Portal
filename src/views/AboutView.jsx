@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Eye, Target, CheckCircle2, Sparkles, ArrowLeft, Award } from 'lucide-react';
+import { Eye, Target, CheckCircle2, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -108,7 +108,7 @@ export default function AboutView({ onBack }) {
       </main>
 
       {/* Unified Footer */}
-      <Footer setActiveSection={(id) => handleBack()} />
+      <Footer setActiveSection={() => handleBack()} />
 
     </div>
   );

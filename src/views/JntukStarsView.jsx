@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 
-export default function JntukStarsView({ onBack }) {
+export default function JntukStarsView() {
   const navigate = useNavigate();
 
   useEffect(() => {

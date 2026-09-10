@@ -5,8 +5,13 @@ import EmptyState from './EmptyState';
 import JntukPlayerCrestCard from './JntukPlayerCrestCard';
 import { 
   Award, Trophy, Calendar, Search, MapPin, ShieldCheck, 
-  X, Filter, Sparkles, Building2, UserCheck
+  X, Sparkles
 } from 'lucide-react';
+import { 
+  consolidateJntukPlayers, 
+  filterConsolidatedAthletes, 
+  computeJntukPlayerCounts 
+} from '../utils/jntukPlayerUtils';
 
 export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = null }) {
   const { jntukPlayers = [], isLoading } = useConvexState();
@@ -16,6 +21,11 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
   const [selectedDept, setSelectedDept] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlayerModal, setSelectedPlayerModal] = useState(null);
+
+  // Compute unique athlete counts (both overall unique and per-year unique)
+  const counts = useMemo(() => {
+    return computeJntukPlayerCounts(jntukPlayers);
+  }, [jntukPlayers]);
 
   // Extract unique academic years dynamically from database records
   const availableYears = useMemo(() => {
@@ -38,27 +48,21 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
     return ['All', ...depts];
   }, [jntukPlayers]);
 
-  // Filter players dynamically
-  const filteredPlayers = useMemo(() => {
-    return jntukPlayers.filter(player => {
-      const query = searchQuery.toLowerCase().trim();
-      const matchesSearch = !query || 
-        (player.studentName && player.studentName.toLowerCase().includes(query)) ||
-        (player.rollNumber && player.rollNumber.toLowerCase().includes(query)) ||
-        (player.department && player.department.toLowerCase().includes(query)) ||
-        (player.sport && player.sport.toLowerCase().includes(query)) ||
-        (player.tournamentName && player.tournamentName.toLowerCase().includes(query)) ||
-        (player.venueHost && player.venueHost.toLowerCase().includes(query));
+  // Consolidate multi-year player representations into unified athlete profiles
+  const consolidatedAthletes = useMemo(() => {
+    return consolidateJntukPlayers(jntukPlayers, activeYear);
+  }, [jntukPlayers, activeYear]);
 
-      const matchesYear = activeYear === 'All' || player.academicYear === activeYear;
-      const matchesSport = selectedSport === 'All' || (player.sport && player.sport.toLowerCase() === selectedSport.toLowerCase());
-      const matchesDept = selectedDept === 'All' || player.department === selectedDept;
-
-      return matchesSearch && matchesYear && matchesSport && matchesDept;
+  // Filter consolidated athletes dynamically by search query, sport, and department
+  const filteredAthletes = useMemo(() => {
+    return filterConsolidatedAthletes(consolidatedAthletes, {
+      searchQuery,
+      selectedSport,
+      selectedDept,
     });
-  }, [jntukPlayers, searchQuery, activeYear, selectedSport, selectedDept]);
+  }, [consolidatedAthletes, searchQuery, selectedSport, selectedDept]);
 
-  const displayList = maxDisplay ? filteredPlayers.slice(0, maxDisplay) : filteredPlayers;
+  const displayList = maxDisplay ? filteredAthletes.slice(0, maxDisplay) : filteredAthletes;
 
   return (
     <section id="jntuk-players" className={`${isEmbedded ? 'py-6' : 'py-12 sm:py-16'} bg-slate-50 transition-colors`}>
@@ -90,9 +94,10 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
             {availableYears.length > 1 && (
               <div className="flex flex-wrap justify-center gap-2 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
                 {availableYears.map((year) => {
+                  // Show unique athlete count for "All" and for specific years
                   const count = year === 'All' 
-                    ? jntukPlayers.length 
-                    : jntukPlayers.filter(p => p.academicYear === year).length;
+                    ? counts.uniqueAthletesCount 
+                    : (counts.yearUniqueCounts[year] || 0);
                   
                   const isSelected = activeYear === year;
 
@@ -199,7 +204,7 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
           <div className="flex flex-wrap justify-center items-start gap-8 sm:gap-10 md:gap-12 lg:gap-16 max-w-6xl mx-auto pt-2 stagger-children">
             {displayList.map((player) => (
               <JntukPlayerCrestCard
-                key={player.id || player._id || player.rollNumber}
+                key={player.athleteKey || player.id || player._id || player.rollNumber}
                 player={player}
                 onClick={(p) => setSelectedPlayerModal(p)}
               />
@@ -207,70 +212,132 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
           </div>
         )}
 
-        {/* Clean Plain Modal for Athlete Information */}
+        {/* Enterprise Modal for Athlete Information & Representation Timeline */}
         {selectedPlayerModal && (
           <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
             onClick={() => setSelectedPlayerModal(null)}
           >
             <div 
-              className="relative w-full max-w-lg bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-2xl bg-white rounded-3xl border border-gray-200 shadow-2xl overflow-hidden p-6 sm:p-7 space-y-5 max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close Button */}
               <button 
                 onClick={() => setSelectedPlayerModal(null)}
-                className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                className="absolute top-4 right-4 p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                 title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Modal Content */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
+              {/* Modal Header Profile */}
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 border-b border-slate-100 pb-5">
                 
                 {/* Left: Diamond Avatar */}
                 <div className="shrink-0">
                   <JntukPlayerCrestCard 
                     player={selectedPlayerModal} 
+                    showBadge={false}
                   />
                 </div>
 
-                {/* Right: Plain Text Information */}
-                <div className="flex-1 space-y-2 text-left text-xs sm:text-sm text-gray-700 pt-1 w-full">
+                {/* Right: Athlete Core Information */}
+                <div className="flex-1 space-y-3 text-center sm:text-left pt-1 w-full">
                   <div>
-                    <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-tight">
-                      {selectedPlayerModal.studentName}
-                    </h3>
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
+                      <h3 className="text-lg sm:text-xl font-extrabold text-[#0b2e5b]">
+                        {selectedPlayerModal.studentName}
+                      </h3>
+                      {selectedPlayerModal.isMultiYear && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                          <Trophy className="w-3 h-3 text-amber-600" />
+                          {selectedPlayerModal.representationCount}x Varsity Athlete
+                        </span>
+                      )}
+                    </div>
                     {selectedPlayerModal.rollNumber && (
-                      <p className="text-xs text-gray-500 font-mono">
-                        Roll No: {selectedPlayerModal.rollNumber}
+                      <p className="text-xs text-slate-500 font-mono font-medium">
+                        Registration No: <span className="text-slate-800 font-bold">{selectedPlayerModal.rollNumber}</span>
                       </p>
                     )}
                   </div>
 
-                  <div className="space-y-1.5 text-xs sm:text-sm text-gray-700 pt-2 border-t border-gray-100">
-                    {selectedPlayerModal.sport && (
-                      <p><span className="font-semibold text-gray-900">Sport:</span> {selectedPlayerModal.sport}</p>
-                    )}
-                    {selectedPlayerModal.department && (
-                      <p><span className="font-semibold text-gray-900">Department:</span> {selectedPlayerModal.department}</p>
-                    )}
-                    {selectedPlayerModal.academicYear && (
-                      <p><span className="font-semibold text-gray-900">Academic Year:</span> AY {selectedPlayerModal.academicYear}</p>
-                    )}
-                    {selectedPlayerModal.tournamentName && (
-                      <p><span className="font-semibold text-gray-900">Tournament:</span> {selectedPlayerModal.tournamentName}</p>
-                    )}
-                    {selectedPlayerModal.venueHost && (
-                      <p><span className="font-semibold text-gray-900">Venue:</span> {selectedPlayerModal.venueHost}</p>
-                    )}
-                    {selectedPlayerModal.achievementDetails && (
-                      <p className="pt-1"><span className="font-semibold text-gray-900">Achievement:</span> {selectedPlayerModal.achievementDetails}</p>
-                    )}
+                  <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div>
+                      <span className="text-slate-400 text-[10px] font-bold uppercase block">Discipline</span>
+                      <span className="font-bold text-slate-800">{selectedPlayerModal.sport || 'Sports'}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 text-[10px] font-bold uppercase block">Department</span>
+                      <span className="font-bold text-slate-800">{selectedPlayerModal.department || 'N/A'}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-slate-400 text-[10px] font-bold uppercase block">Academic Years Active</span>
+                      <span className="font-bold text-[#0b2e5b]">{selectedPlayerModal.yearsLabel || `AY ${selectedPlayerModal.academicYear}`}</span>
+                    </div>
                   </div>
                 </div>
 
+              </div>
+
+              {/* Varsity Representation History Timeline */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Award className="w-4 h-4 text-amber-500" />
+                  <h4 className="text-xs font-extrabold text-[#0b2e5b] uppercase tracking-wider">
+                    {selectedPlayerModal.allRepresentations?.length > 1 
+                      ? `University Representation History (${selectedPlayerModal.allRepresentations.length} Championships)` 
+                      : 'University Championship Representation'}
+                  </h4>
+                </div>
+
+                <div className="space-y-2.5">
+                  {(selectedPlayerModal.allRepresentations || [selectedPlayerModal]).map((rep, idx) => (
+                    <div 
+                      key={rep.id || rep._id || idx}
+                      className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-blue-300 transition-colors space-y-1.5"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-bold bg-[#0b2e5b] text-white">
+                          <Calendar className="w-3 h-3 text-amber-400" />
+                          AY {rep.academicYear}
+                        </span>
+                        {idx === 0 && selectedPlayerModal.allRepresentations?.length > 1 && (
+                          <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
+                            <Sparkles className="w-2.5 h-2.5 text-emerald-600" />
+                            Most Recent
+                          </span>
+                        )}
+                        {rep.sport && rep.sport !== selectedPlayerModal.sport && (
+                          <span className="text-xs font-bold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200">
+                            Sport: {rep.sport}
+                          </span>
+                        )}
+                      </div>
+
+                      {rep.tournamentName && (
+                        <div className="text-xs font-bold text-slate-900 pt-0.5">
+                          {rep.tournamentName}
+                        </div>
+                      )}
+
+                      {rep.venueHost && (
+                        <div className="flex items-center gap-1 text-[11px] text-slate-600">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>Venue: {rep.venueHost}</span>
+                        </div>
+                      )}
+
+                      {rep.achievementDetails && (
+                        <div className="text-[11px] text-slate-600 bg-white p-2 rounded-lg border border-slate-100">
+                          <span className="font-semibold text-slate-700">Achievement: </span>
+                          {rep.achievementDetails}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
 
             </div>

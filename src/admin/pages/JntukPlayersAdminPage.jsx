@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
 import { useToast } from '../../context/ToastContext';
 import { CardSkeleton, MetricCardSkeleton, AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
@@ -6,10 +6,12 @@ import EmptyState from '../../components/EmptyState';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 import JntukPlayerCrestCard from '../../components/JntukPlayerCrestCard';
 import { 
-  Award, Plus, Edit, Trash2, X, Search, Calendar, MapPin, 
-  Trophy, ShieldCheck, Loader2, FileSpreadsheet, RotateCcw, Eye
+  Award, Plus, Edit, Trash2, X, Search, Calendar, 
+  Trophy, Loader2, FileSpreadsheet, RotateCcw,
+  Users, Eye
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { computeJntukPlayerCounts, getPlayerKey } from '../../utils/jntukPlayerUtils';
 
 const OFFICIAL_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];
 
@@ -133,6 +135,24 @@ export default function JntukPlayersAdminPage() {
   const availableYears = Array.from(new Set(['2025-2026', '2024-2025', '2023-2024', '2022-2023', ...jntukPlayers.map(p => p.academicYear).filter(Boolean)]));
   const availableSports = Array.from(new Set(['Cricket', 'Volleyball', 'Basketball', 'Football', 'Athletics', 'Kabaddi', 'Chess', 'Badminton', ...jntukPlayers.map(p => p.sport).filter(Boolean)]));
 
+  // Compute unique athlete counts and identify athletes with multi-year representation
+  const athleteCounts = useMemo(() => {
+    return computeJntukPlayerCounts(jntukPlayers);
+  }, [jntukPlayers]);
+
+  const multiYearPlayerKeys = useMemo(() => {
+    const keyMap = new Map();
+    for (const p of jntukPlayers) {
+      const key = getPlayerKey(p);
+      keyMap.set(key, (keyMap.get(key) || 0) + 1);
+    }
+    const multiKeys = new Set();
+    for (const [key, cnt] of keyMap.entries()) {
+      if (cnt > 1) multiKeys.add(key);
+    }
+    return multiKeys;
+  }, [jntukPlayers]);
+
   const filteredPlayers = jntukPlayers.filter(player => {
     const term = searchTerm.toLowerCase().trim();
     const matchesSearch = !term || 
@@ -195,8 +215,6 @@ export default function JntukPlayersAdminPage() {
     showToast(`Exported ${filteredPlayers.length} athlete records to Excel!`, 'success');
   };
 
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs focus:border-blue-500 focus:outline-none";
-
   if (isLoading || isLoadingJntukPlayers) {
     return (
       <AdminGridPageSkeleton 
@@ -242,13 +260,21 @@ export default function JntukPlayersAdminPage() {
       {isLoading ? (
         <MetricCardSkeleton count={3} />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
             <div className="flex items-center justify-between text-[var(--text-muted)]">
-              <span className="text-xs font-semibold">Total JNTUK Athletes</span>
+              <span className="text-xs font-semibold">Total Entries</span>
               <Award className="w-4 h-4 text-amber-500" />
             </div>
             <p className="text-2xl font-extrabold text-[var(--text-primary)]">{jntukPlayers.length}</p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <div className="flex items-center justify-between text-[var(--text-muted)]">
+              <span className="text-xs font-semibold">Unique Athletes</span>
+              <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{athleteCounts.uniqueAthletesCount}</p>
           </div>
 
           <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
@@ -372,9 +398,16 @@ export default function JntukPlayersAdminPage() {
               
               {/* Card Action Header */}
               <div className="flex items-center justify-between pb-2 border-b border-[var(--border-color)] mb-2">
-                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-[#0b2e5b] text-white">
-                  AY {player.academicYear}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-[#0b2e5b] text-white">
+                    AY {player.academicYear}
+                  </span>
+                  {multiYearPlayerKeys.has(getPlayerKey(player)) && (
+                    <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                      Multi-Year
+                    </span>
+                  )}
+                </div>
 
                 <div className="flex items-center gap-1">
                   <button

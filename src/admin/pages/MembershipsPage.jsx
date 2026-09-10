@@ -8,17 +8,12 @@ import {
   Edit, 
   Trash2, 
   Search, 
-  Filter, 
   X, 
-  Download, 
   RotateCcw, 
   FileSpreadsheet, 
   AlertTriangle, 
-  ShieldCheck, 
-  Plus, 
   UserPlus, 
   FileText,
-  Menu,
   MoreVertical,
   PauseCircle,
   PlayCircle,
@@ -28,9 +23,7 @@ import {
 import * as XLSX from 'xlsx';
 
 import { 
-  ADMIN_ACADEMIC_YEARS, 
-  getAvailableDepartments, 
-  getAvailableSections 
+  ADMIN_ACADEMIC_YEARS 
 } from '../../constants/academicRules';
 
 const ALL_FILTER_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];

@@ -4,6 +4,7 @@ import { AdminDashboardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Users, UserCheck, Clock, XCircle, Trophy, Calendar, Activity, Award, BarChart2, PieChart as PieIcon, FileText } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
+import { computeJntukPlayerCounts } from '../../utils/jntukPlayerUtils';
 
 export default function DashboardPage() {
   const { 
@@ -45,7 +46,7 @@ export default function DashboardPage() {
     { label: 'Pending Applications', value: pendingApps, icon: Clock, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-500/10' },
     { label: 'Rejected Applications', value: rejectedApps, icon: XCircle, color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-500/10' },
     { label: 'Active Sports Panels', value: sports.length, icon: Trophy, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-500/10' },
-    { label: 'JNTUK Athletes', value: jntukPlayers.length, icon: Calendar, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+    { label: 'JNTUK Athletes', value: computeJntukPlayerCounts(jntukPlayers).uniqueAthletesCount, icon: Calendar, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
     { label: 'Leadership Roster', value: executiveBody.length, icon: Activity, color: 'text-rose-600 dark:text-rose-400', bg: 'bg-rose-50 dark:bg-rose-500/10' },
     { label: 'Championship Trophies', value: achievements.tallies.trophies, icon: Award, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-500/10' }
   ];

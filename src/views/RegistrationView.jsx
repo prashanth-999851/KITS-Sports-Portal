@@ -10,7 +10,6 @@ import {
   FileText, 
   Send, 
   Search, 
-  ShieldCheck, 
   Clock,
   Upload,
   Trash2,
@@ -82,7 +81,7 @@ export default function RegistrationView({ onBack }) {
     experienceCertificateFileId: ""
   });
 
-  const [certificateFile, setCertificateFile] = useState(null);
+  const [_certificateFile, setCertificateFile] = useState(null);
   const [certificateFileName, setCertificateFileName] = useState("");
   const [certificateFileSize, setCertificateFileSize] = useState("");
   const [certificatePreviewUrl, setCertificatePreviewUrl] = useState(null);
@@ -208,13 +207,6 @@ export default function RegistrationView({ onBack }) {
     setTouched(prev => ({ ...prev, [field]: true }));
     const err = validateField(field, formData[field]);
     setErrors(prev => ({ ...prev, [field]: err }));
-  };
-
-  const handleSportSelect = (sportName) => {
-    setFormData(prev => ({ ...prev, selectedSport: sportName }));
-    if (errors.selectedSport) {
-      setErrors(prev => ({ ...prev, selectedSport: "" }));
-    }
   };
 
   const handleExperienceSelect = (opt) => {
@@ -964,7 +956,7 @@ export default function RegistrationView({ onBack }) {
       </main>
 
       {/* Unified Footer */}
-      <Footer setActiveSection={(id) => handleBack()} />
+      <Footer setActiveSection={() => handleBack()} />
 
     </div>
   );

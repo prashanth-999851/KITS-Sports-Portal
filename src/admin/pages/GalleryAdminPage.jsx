@@ -3,8 +3,7 @@ import { useConvexState } from '../../context/ConvexStateContext';
 import { useToast } from '../../context/ToastContext';
 import { CardSkeleton, AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
-import { Image as ImageIcon, Plus, Pencil, Trash2, X, Link as LinkIcon, Loader2, Search, Filter } from 'lucide-react';
-import { compressImage } from '../../utils/imageCompressor';
+import { Image as ImageIcon, Plus, Pencil, Trash2, X, Loader2, Search, Filter } from 'lucide-react';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 
 export default function GalleryAdminPage() {
@@ -13,7 +12,6 @@ export default function GalleryAdminPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCompressing, setIsCompressing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -52,22 +50,6 @@ export default function GalleryAdminPage() {
       caption: item.caption || ''
     });
     setShowModal(true);
-  };
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIsCompressing(true);
-      try {
-        const compressed = await compressImage(file);
-        setFormData(prev => ({ ...prev, image: compressed }));
-        showToast("Image processed and ready.", "info");
-      } catch (err) {
-        showToast("Failed to process image: " + err.message, "error");
-      } finally {
-        setIsCompressing(false);
-      }
-    }
   };
 
   const handleSubmit = async (e) => {

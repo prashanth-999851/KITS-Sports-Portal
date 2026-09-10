@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Activity, ChevronRight } from 'lucide-react';
-import { tw, FLUID_TYPOGRAPHY } from '@/constants';
+import { tw } from '@/constants';
 
 // Dynamically import all images from the Slideshow folder
 const slideshowModules = import.meta.glob(

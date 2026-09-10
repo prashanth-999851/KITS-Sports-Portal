@@ -3,7 +3,6 @@ import { useConvexState } from '../../context/ConvexStateContext';
 import { useToast } from '../../context/ToastContext';
 import { CardSkeleton, MetricCardSkeleton, AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
-import { compressImage } from '../../utils/imageCompressor';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 import { 
   Users, Plus, Edit, Trash2, X, Mail, Phone, Building, UserCheck, Shield, Loader2

@@ -4,7 +4,6 @@ import { useToast } from '../../context/ToastContext';
 import { CardSkeleton, AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Trophy, Plus, Edit, Trash2, MapPin, X, Upload, Loader2 } from 'lucide-react';
-import { compressImage } from '../../utils/imageCompressor';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 
 export default function SportsAdminPage() {
@@ -29,18 +28,6 @@ export default function SportsAdminPage() {
     schedule: 'Mon - Fri (04:30 PM - 06:30 PM)',
     image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=800'
   });
-
-  const handleFileUpload = async (e, callback) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const compressed = await compressImage(file);
-        callback(compressed);
-      } catch (err) {
-        showToast("Failed to process image: " + err.message, "error");
-      }
-    }
-  };
 
   const handleEdit = (sport) => {
     setEditingSport(sport);

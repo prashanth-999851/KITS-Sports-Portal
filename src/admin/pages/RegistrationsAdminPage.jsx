@@ -8,7 +8,6 @@ import {
   Check, 
   X, 
   Search, 
-  Filter, 
   RotateCcw, 
   FileSpreadsheet, 
   FileText, 
@@ -19,17 +18,13 @@ import {
   CheckCircle2, 
   XCircle, 
   ExternalLink,
-  MessageSquare,
-  Menu,
   MoreVertical,
   ChevronDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 import { 
-  ADMIN_ACADEMIC_YEARS, 
-  getAvailableDepartments, 
-  getAvailableSections 
+  ADMIN_ACADEMIC_YEARS
 } from '../../constants/academicRules';
 
 const ALL_FILTER_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
 
 function ExecutiveSkeleton() {

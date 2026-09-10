@@ -42,19 +42,6 @@ export default function AchievementsAdminPage() {
     image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600'
   });
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        const compressed = await compressImage(file);
-        setFormData(prev => ({ ...prev, image: compressed }));
-      } catch (err) {
-        console.error("Failed to process image:", err);
-        showToast("Failed to process image.", "error");
-      }
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);

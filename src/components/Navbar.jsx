@@ -253,7 +253,14 @@ export default function Navbar({
           })}
           <div className="pt-3 flex flex-col gap-2 border-t border-slate-200">
             <button
-              onClick={() => { setMobileMenuOpen(false); onOpenMembership ? onOpenMembership() : handleNavClick('membership'); }}
+              onClick={() => { 
+                setMobileMenuOpen(false); 
+                if (onOpenMembership) {
+                  onOpenMembership();
+                } else {
+                  handleNavClick('membership');
+                }
+              }}
               className={`w-full py-2.5 rounded-lg ${tw`text-body`} font-bold bg-[#0b2e5b] text-white text-center transition-colors shadow-sm cursor-pointer`}
             >
               Register for Sports

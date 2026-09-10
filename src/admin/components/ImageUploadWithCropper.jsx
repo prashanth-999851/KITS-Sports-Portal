@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Crop as CropIcon, Image as ImageIcon, Trash2, CheckCircle2 } from 'lucide-react';
+import { Upload, Crop as CropIcon, Trash2, CheckCircle2 } from 'lucide-react';
 import ImageCropperModal from './ImageCropperModal';
 
 export default function ImageUploadWithCropper({

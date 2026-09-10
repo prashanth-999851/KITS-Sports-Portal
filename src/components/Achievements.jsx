@@ -1,4 +1,3 @@
-import React from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
 import { Trophy, Medal, Award, Crown } from 'lucide-react';
 

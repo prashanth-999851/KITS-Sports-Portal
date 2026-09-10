@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 // Context
 import { ConvexStateProvider } from '../context/ConvexStateContext';
 import { ToastProvider } from '../context/ToastContext';
-import { LoadingSpinner } from '../components/LoadingSkeleton';
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();

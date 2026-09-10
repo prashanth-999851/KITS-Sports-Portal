@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { X, Check, ZoomIn, ZoomOut, RotateCw, RefreshCw, Crop as CropIcon } from 'lucide-react';
 
 export default function ImageCropperModal({ 

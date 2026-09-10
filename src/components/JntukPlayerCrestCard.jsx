@@ -13,7 +13,8 @@ import { User } from 'lucide-react';
  */
 export default function JntukPlayerCrestCard({ 
   player, 
-  onClick 
+  onClick,
+  showBadge = true 
 }) {
   const [imgError, setImgError] = useState(false);
 
@@ -24,12 +25,16 @@ export default function JntukPlayerCrestCard({
     department = '',
     academicYear = '',
     photoUrl = '',
+    isMultiYear = false,
+    representationCount = 1,
+    yearsLabel = '',
   } = player || {};
 
   const eventName = sport ? sport.toUpperCase() : 'SPORTS';
   const rollNoDisplay = rollNumber ? rollNumber.toUpperCase() : '';
   const nameDisplay = studentName ? studentName.toUpperCase() : 'ATHLETE NAME';
   const hasPhoto = Boolean(photoUrl) && !imgError;
+  const displayYear = yearsLabel || (academicYear ? `AY ${academicYear}` : '');
 
   return (
     <div 
@@ -59,6 +64,15 @@ export default function JntukPlayerCrestCard({
       {/* Athlete Information Directly Below */}
       <div className="space-y-0.5 sm:space-y-1 max-w-full px-1">
         
+        {/* Multi-Year Varsity Honor Badge */}
+        {isMultiYear && showBadge && (
+          <div className="pb-0.5">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-900 border border-amber-300/80 shadow-2xs">
+              <span className="text-amber-600">★</span> {representationCount}x Varsity Athlete
+            </span>
+          </div>
+        )}
+
         {/* Athlete Name */}
         <h3 className="font-bold text-[#0b2e5b] leading-snug group-hover:text-[#0d3a73] transition-colors text-xs sm:text-sm md:text-base uppercase line-clamp-1">
           {nameDisplay}
@@ -77,9 +91,9 @@ export default function JntukPlayerCrestCard({
         </p>
 
         {/* Academic Year & Department */}
-        {(academicYear || department) && (
+        {(displayYear || department) && (
           <p className="text-[10px] font-semibold text-slate-500 leading-tight pt-0.5">
-            {academicYear ? `AY ${academicYear}` : ''}{academicYear && department ? ' • ' : ''}{department ? `Dept: ${department}` : ''}
+            {displayYear}{displayYear && department ? ' • ' : ''}{department ? `Dept: ${department}` : ''}
           </p>
         )}
 
