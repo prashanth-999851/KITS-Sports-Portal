@@ -1,72 +1,175 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import { Download, FileText, ChevronRight, CheckCircle, Search, Printer, ShieldCheck, Copy, Check } from 'lucide-react';
+import { 
+  Download, 
+  FileText, 
+  ChevronRight, 
+  CheckCircle, 
+  Search, 
+  ShieldCheck, 
+  Copy, 
+  Check, 
+  ExternalLink,
+  BookOpen,
+  Scale,
+  ArrowRight,
+  ArrowLeft,
+  Filter,
+  Eye
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { SPORTS_CONSTITUTION, SPORTS_CATEGORIES } from '../constants/sportsConstitution';
 
-const DEFAULT_CONSTITUTION = [
-  {
-    chapter: "Chapter I",
-    title: "Preamble & Institutional Governance",
-    content: `1.1 Title and Authority: This charter constitutes the official Athletic Governance Code of KKR & KSR Institute of Technology & Sciences (Autonomous), established under the Directorate of Physical Education.
-1.2 Scope: Applicable to all registered undergraduate (B.Tech) and postgraduate (M.Tech, MBA) students participating in intra-mural, inter-departmental, inter-collegiate, and university-level athletic competitions.
-1.3 Primary Objective: To foster disciplined athletic excellence, ethical sportsmanship, physical resilience, and leadership while maintaining high academic standards.`
-  },
-  {
-    chapter: "Chapter II",
-    title: "Student Athlete Eligibility & Academic Norms",
-    content: `2.1 Active Enrollment: Only bonafide, currently enrolled regular students with valid college ID cards are eligible to represent college teams in official tournaments.
-2.2 Academic Minimums: Student athletes must maintain a minimum of 75% overall academic attendance (including approved sports on-duty hours).
-2.3 Disciplinary Clearance: Any student undergoing disciplinary probation or with pending behavioral inquiries is temporarily suspended from representing the institution until cleared by the Sports Advisory Board.`
-  },
-  {
-    chapter: "Chapter III",
-    title: "Team Selection Trials & Merit Procedure",
-    content: `3.1 Open Selection Trials: Formal open trials will be conducted at the start of each academic semester for all 11 sports disciplines. Notifications will be published on the Sports Portal 7 days in advance.
-3.2 Selection Panel: All selections are judged by the Head Physical Director, designated Faculty Coordinators, and accredited external sports selectors.
-3.3 Merit Criteria: Selections are based purely on physical fitness testing, tactical acumen, skill evaluation, and competitive performance during trials.`
-  },
-  {
-    chapter: "Chapter IV",
-    title: "Code of Conduct & Anti-Ragging Policy",
-    content: `4.1 Sportsmanship & Fair Play: Athletes must uphold utmost respect towards game officials, opponents, coaches, and spectators. Dissent, foul language, and unsporting aggression will result in immediate disqualification.
-4.2 Anti-Ragging Mandate: Strict zero-tolerance compliance with UGC and State Anti-Ragging Regulations. Any hazing or harassment within sports teams will lead to instant expulsion and legal filing.
-4.3 Substance Prohibition: Strict prohibition of alcohol, tobacco, narcotics, and performance-enhancing substances across campus sports zones and during travel.`
-  },
-  {
-    chapter: "Chapter V",
-    title: "Academic On-Duty (OD) & Attendance Relief",
-    content: `5.1 Sanction of OD: Student athletes officially representing the college in authorized tournaments are eligible for academic Attendance On-Duty (OD) sanction.
-5.2 Prior Approval: All OD requests must be endorsed by the Physical Director and submitted to the respective Head of Department (HOD) at least 48 hours prior to tournament departure.
-5.3 Internal Exam Accommodations: If an official tournament conflicts with mid-term examinations, re-tests or alternate evaluation will be scheduled per institutional exam cell guidelines.`
-  },
-  {
-    chapter: "Chapter VI",
-    title: "Facilities, Turf Grounds & Arena Regulations",
-    content: `6.1 Operating Hours: College sports grounds and gymnasium operate from 06:00 AM - 08:30 AM (Morning Session) and 03:45 PM - 07:00 PM (Evening Session).
-6.2 Footwear & Kit Protocol: Appropriate non-marking shoes for indoor wooden courts, spiked shoes on turf tracks, and proper departmental sports uniforms are mandatory.
-6.3 Equipment Responsibility: All sports gear issued from the directorate store must be returned in good condition. Negligent damage or loss is subject to replacement liability.`
-  },
-  {
-    chapter: "Chapter VII",
-    title: "Annual Sports Awards & Financial Incentives",
-    content: `7.1 Inter-University Medallists: Students winning medals at JNTUK Inter-University or South Zone tournaments are awarded cash rewards, institutional trophies, and semester fee concessions.
-7.2 Annual Sports Felicitation: Exemplary performers and championship winning teams are honored during the Annual Sports Day Gala.
-7.3 Best Athlete Accolades: 'Male Athlete of the Year' and 'Female Athlete of the Year' trophies are awarded annually based on cumulative performance points.`
-  },
-  {
-    chapter: "Chapter VIII",
-    title: "Medical Fitness, Safety & Emergency Protocol",
-    content: `8.1 Health Clearance: Athletes must submit an annual physical fitness declaration prior to joining high-intensity competitive sports.
-8.2 First Aid & Emergency Desk: A certified sports paramedic and emergency first-aid kit is stationed at all official trials, practice matches, and host tournaments.
-8.3 Ambulance & Hospital Tie-up: In the event of severe on-field injury, immediate ambulance transit and specialized care at our affiliated network hospital will be initiated immediately.`
-  }
-];
+// Rich formatter for chapter text blocks
+function ChapterBodyRenderer({ content }) {
+  // Parse content into law blocks or major sections
+  const sections = useMemo(() => {
+    const lines = content.split('\n');
+    const parsed = [];
+    let current = { header: null, lines: [] };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const trimmed = line.trim();
+
+      const isLawHeader = /^LAW\s+[\d\.]+/i.test(trimmed);
+      const isMajorHeader = /^(Vision|Mission|Core Values):-/i.test(trimmed);
+
+      if (isLawHeader || isMajorHeader) {
+        if (current.header !== null || current.lines.length > 0) {
+          parsed.push(current);
+        }
+        current = { header: trimmed, lines: [] };
+      } else {
+        current.lines.push(line);
+      }
+    }
+
+    if (current.header !== null || current.lines.length > 0) {
+      parsed.push(current);
+    }
+
+    return parsed;
+  }, [content]);
+
+  // Helper to render individual lines within a law
+  const renderLines = (lines) => {
+    // Check if lines form an organizational hierarchy (contains '↓')
+    const hasArrows = lines.some(l => l.trim() === '↓');
+    if (hasArrows) {
+      const flowItems = lines
+        .map(l => l.trim())
+        .filter(l => l.length > 0 && l !== '↓');
+
+      return (
+        <div className="py-2 space-y-2">
+          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            Governance & Reporting Flow:
+          </div>
+          <div className="flex flex-col items-center sm:items-start space-y-1.5 pl-1 sm:pl-3">
+            {flowItems.map((item, idx) => (
+              <React.Fragment key={idx}>
+                <div className="px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-[#0b2e5b] font-semibold text-xs shadow-xs text-center sm:text-left">
+                  {item}
+                </div>
+                {idx < flowItems.length - 1 && (
+                  <div className="text-blue-400 font-bold text-xs pl-4">↓</div>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-1.5">
+        {lines.map((l, idx) => {
+          const trimmed = l.trim();
+          if (!trimmed) return null;
+
+          // Legal basis or important alerts
+          if (trimmed.startsWith('Legal Basis:') || trimmed.startsWith('Hierarchy Order:') || trimmed.includes('< Institute Rules <')) {
+            return (
+              <div key={idx} className="my-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-start gap-2">
+                <Scale className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{trimmed}</span>
+              </div>
+            );
+          }
+
+          // Authorized responses or procedure headings
+          if (trimmed.startsWith('Authorized Response') || trimmed.startsWith('Response:')) {
+            return (
+              <div key={idx} className="mt-3 pt-2 border-t border-slate-200 text-xs font-bold text-[#0b2e5b] uppercase tracking-wide">
+                {trimmed}
+              </div>
+            );
+          }
+
+          // Bullet points
+          if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+            return (
+              <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 pl-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-2" />
+                <span className="leading-relaxed">{trimmed.replace(/^[•\-]\s*/, '')}</span>
+              </div>
+            );
+          }
+
+          // Numbered or lettered lists (e.g. "1. ", "a. ")
+          const listMatch = trimmed.match(/^([0-9]+|[a-z])\.\s+(.*)$/i);
+          if (listMatch) {
+            return (
+              <div key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 pl-2">
+                <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[10px] font-bold shrink-0 mt-0.5">
+                  {listMatch[1]}
+                </span>
+                <span className="leading-relaxed">{listMatch[2]}</span>
+              </div>
+            );
+          }
+
+          // Regular paragraph text
+          return (
+            <p key={idx} className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              {trimmed}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {sections.map((sec, secIdx) => (
+        <div 
+          key={secIdx}
+          className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-2 hover:border-slate-300 transition-colors"
+        >
+          {sec.header && (
+            <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+              <span className="w-2 h-2 rounded-full bg-[#0b2e5b]" />
+              <h4 className="text-xs sm:text-sm font-bold text-[#0b2e5b] tracking-wide">
+                {sec.header}
+              </h4>
+            </div>
+          )}
+          {renderLines(sec.lines)}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function RulesRegulations({ onBack }) {
   const navigate = useNavigate();
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [showPdfModal, setShowPdfModal] = useState(false);
+  const [pdfViewMode, setPdfViewMode] = useState("pdf"); // 'pdf' or 'text'
   const [searchQuery, setSearchQuery] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -82,24 +185,34 @@ export default function RulesRegulations({ onBack }) {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const chapters = SPORTS_CONSTITUTION;
 
-  const chapters = DEFAULT_CONSTITUTION;
-  const selectedChapter = chapters[selectedChapterIndex] || chapters[0];
+  // Filter chapters by category and search term
+  const filteredChapters = useMemo(() => {
+    return chapters
+      .map((ch, originalIdx) => ({ ...ch, originalIdx }))
+      .filter(ch => {
+        const matchesCategory = selectedCategory === "All" || ch.category === selectedCategory;
+        if (!matchesCategory) return false;
 
-  // Filter chapters by search
-  const filteredChapters = chapters
-    .map((ch, originalIdx) => ({ ...ch, originalIdx }))
-    .filter(ch => 
-      ch.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      ch.chapter.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ch.content.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+        if (!searchQuery.trim()) return true;
+
+        const q = searchQuery.toLowerCase();
+        return (
+          ch.title.toLowerCase().includes(q) || 
+          ch.chapter.toLowerCase().includes(q) ||
+          (ch.laws && ch.laws.toLowerCase().includes(q)) ||
+          ch.content.toLowerCase().includes(q)
+        );
+      });
+  }, [chapters, selectedCategory, searchQuery]);
+
+  // Ensure current selection is valid
+  const currentSelectedChapter = chapters[selectedChapterIndex] || chapters[0];
 
   const handleCopyText = () => {
-    navigator.clipboard.writeText(`${selectedChapter.chapter}: ${selectedChapter.title}\n\n${selectedChapter.content}`);
+    const textToCopy = `${currentSelectedChapter.chapter} — ${currentSelectedChapter.title}\nLaws: ${currentSelectedChapter.laws || ''}\n\n${currentSelectedChapter.content}`;
+    navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -114,170 +227,267 @@ export default function RulesRegulations({ onBack }) {
       />
 
       {/* Main Page Layout */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-36 lg:pt-40 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-36 lg:pt-40 pb-8 sm:pb-12 space-y-6 sm:space-y-8">
         
         {/* Banner */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#0b2e5b] text-white shadow-md space-y-3">
+        <div className="p-5 sm:p-7 rounded-2xl bg-[#0b2e5b] text-white shadow-lg space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-white/10 backdrop-blur-sm text-amber-300 text-[10px] font-bold uppercase tracking-wider w-fit">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Official Institutional Charter</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/10 backdrop-blur-sm text-amber-300 text-xs font-bold uppercase tracking-wider w-fit">
+              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <span>Official Institutional Charter • 24 Chapters</span>
             </div>
             
-            {/* Print & PDF Action Buttons */}
+            {/* PDF Action Button */}
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={handlePrint}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors cursor-pointer"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Print</span>
-              </button>
-
-              <button
                 onClick={() => setShowPdfModal(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-colors shadow-sm cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition-all shadow-md cursor-pointer hover:shadow-lg"
               >
-                <FileText className="w-3.5 h-3.5" />
-                <span>PDF Viewer</span>
+                <FileText className="w-4 h-4" />
+                <span>Official PDF Viewer</span>
               </button>
             </div>
           </div>
 
-          <div className="space-y-1">
-            <h2 className="text-xl sm:text-2xl font-bold">Sports Directorate Constitution & Rulebook</h2>
-            <p className="text-xs text-slate-200 leading-relaxed max-w-3xl">
-              This charter governs student athlete eligibility, code of conduct, selection procedures, safety mandates, and anti-ragging compliance across all athletic disciplines at KKR & KSR Institute of Technology and Sciences.
+          <div className="space-y-1.5">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              Sports Club Rules, Regulations & Code of Governance
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed max-w-4xl">
+              Comprehensive governance constitution of the KKR & KSR Institute of Technology & Sciences (Autonomous) Sports Directorate. Encompassing 24 comprehensive chapters, 100+ binding laws, anti-ragging safeguards, player selection frameworks, facility protocols, and 13 sports-specific rulebooks.
             </p>
+          </div>
+
+          {/* Quick Stats Badges */}
+          <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-white/15 text-[11px] text-slate-300">
+            <span className="inline-flex items-center gap-1">
+              <CheckCircle className="w-3 h-3 text-emerald-400" />
+              24 Governing Chapters + Preamble
+            </span>
+            <span className="text-white/30">•</span>
+            <span className="inline-flex items-center gap-1">
+              <Scale className="w-3 h-3 text-amber-400" />
+              UGC & AP Prohibition of Ragging Act Compliant
+            </span>
+            <span className="text-white/30">•</span>
+            <span>13 Official Sports Federations Covered</span>
           </div>
         </div>
 
         {/* Mobile Dropdown Chapter Selector */}
         <div className="lg:hidden space-y-2">
-          <label className="block text-xs font-semibold text-slate-600">Select Constitution Chapter:</label>
+          <label className="block text-xs font-bold text-slate-700">
+            Jump to Chapter ({chapters.length} available):
+          </label>
           <select
             value={selectedChapterIndex}
             onChange={(e) => setSelectedChapterIndex(Number(e.target.value))}
-            className="w-full p-2.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none shadow-sm"
+            className="w-full p-3 rounded-xl bg-white border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] shadow-sm cursor-pointer"
           >
             {chapters.map((ch, idx) => (
               <option key={idx} value={idx}>
-                {ch.chapter}: {ch.title}
+                {ch.chapter}: {ch.title} ({ch.laws})
               </option>
             ))}
           </select>
         </div>
 
         {/* 2-Column Documentation Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* Left Column: Chapters Navigation & Search (Desktop) */}
-          <div className="hidden lg:block lg:col-span-4 space-y-3">
+          {/* Left Column: Chapters Navigation & Category Filters (Desktop) */}
+          <div className="hidden lg:block lg:col-span-4 space-y-3 sticky top-36">
             
             {/* Search Input */}
             <div className="relative">
               <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search constitution clauses..."
+                placeholder="Search chapters, laws, or sports (e.g. Cricket, Ragging)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 focus:border-[#0b2e5b] focus:outline-none shadow-sm"
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none shadow-sm transition-all"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-2 text-[10px] text-slate-400 hover:text-slate-600 px-1.5 py-0.5 rounded bg-slate-100 cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
-              Chapters ({filteredChapters.length} of {chapters.length})
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap gap-1">
+              {SPORTS_CATEGORIES.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-semibold transition-colors cursor-pointer ${
+                    selectedCategory === cat
+                      ? 'bg-[#0b2e5b] text-white'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider px-1">
+              <span>Chapters ({filteredChapters.length})</span>
+              {selectedCategory !== "All" && <span>{selectedCategory}</span>}
             </div>
 
             {/* Chapters List */}
-            <div className="space-y-1.5 max-h-[600px] overflow-y-auto pr-1">
-              {filteredChapters.map((ch) => {
-                const isSelected = selectedChapterIndex === ch.originalIdx;
-                return (
-                  <button
-                    key={ch.originalIdx}
-                    onClick={() => setSelectedChapterIndex(ch.originalIdx)}
-                    className={`w-full text-left p-3 rounded-xl text-xs font-medium transition-all duration-150 flex items-center justify-between border cursor-pointer ${
-                      isSelected
-                        ? 'bg-[#0b2e5b] text-white border-[#0b2e5b] shadow-sm'
-                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <div>
-                      <span className={`text-[10px] uppercase font-semibold block ${isSelected ? 'text-amber-300' : 'text-slate-400'}`}>
-                        {ch.chapter}
-                      </span>
-                      <span className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-slate-800'}`}>
-                        {ch.title}
-                      </span>
-                    </div>
-                    <ChevronRight className={`w-4 h-4 transition-transform ${isSelected ? 'rotate-90 text-white' : 'text-slate-400'}`} />
-                  </button>
-                );
-              })}
+            <div className="space-y-1.5 max-h-[580px] overflow-y-auto pr-1">
+              {filteredChapters.length === 0 ? (
+                <div className="p-6 text-center text-xs text-slate-500 bg-white rounded-xl border border-slate-200">
+                  No chapters match your search query.
+                </div>
+              ) : (
+                filteredChapters.map((ch) => {
+                  const isSelected = selectedChapterIndex === ch.originalIdx;
+                  return (
+                    <button
+                      key={ch.originalIdx}
+                      onClick={() => setSelectedChapterIndex(ch.originalIdx)}
+                      className={`w-full text-left p-3 rounded-xl text-xs transition-all duration-150 flex items-center justify-between border cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#0b2e5b] text-white border-[#0b2e5b] shadow-md ring-2 ring-blue-400/20'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-xs'
+                      }`}
+                    >
+                      <div className="min-w-0 pr-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[10px] uppercase font-bold ${isSelected ? 'text-amber-300' : 'text-slate-400'}`}>
+                            {ch.chapter}
+                          </span>
+                          {ch.laws && (
+                            <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono ${
+                              isSelected ? 'bg-white/15 text-slate-200' : 'bg-slate-100 text-slate-500'
+                            }`}>
+                              {ch.laws}
+                            </span>
+                          )}
+                        </div>
+                        <span className={`text-xs font-bold block truncate mt-0.5 ${isSelected ? 'text-white' : 'text-slate-800'}`}>
+                          {ch.title}
+                        </span>
+                      </div>
+                      <ChevronRight className={`w-4 h-4 shrink-0 transition-transform ${isSelected ? 'rotate-90 text-white' : 'text-slate-400'}`} />
+                    </button>
+                  );
+                })
+              )}
             </div>
           </div>
 
           {/* Right Column: Chapter Reader Panel */}
-          <div className="lg:col-span-8 p-5 sm:p-7 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-5 flex flex-col justify-between">
-            <div className="space-y-4">
+          <div className="lg:col-span-8 p-5 sm:p-7 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-6 flex flex-col justify-between">
+            <div className="space-y-5">
               
               {/* Reader Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="px-2.5 py-1 rounded-md bg-[#0b2e5b] text-white text-xs font-bold shrink-0">
-                    {selectedChapter.chapter}
-                  </span>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-800 truncate">{selectedChapter.title}</h3>
+              <div className="border-b border-slate-100 pb-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-3 py-1 rounded-md bg-[#0b2e5b] text-white text-xs font-bold shrink-0 shadow-xs">
+                      {currentSelectedChapter.chapter}
+                    </span>
+                    {currentSelectedChapter.laws && (
+                      <span className="px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-[#0b2e5b] text-xs font-mono font-semibold">
+                        {currentSelectedChapter.laws}
+                      </span>
+                    )}
+                    {currentSelectedChapter.pageRange && (
+                      <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-medium">
+                        Page {currentSelectedChapter.pageRange}
+                      </span>
+                    )}
+                    <span className="px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[10px] font-bold uppercase tracking-wider">
+                      {currentSelectedChapter.category}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleCopyText}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer shadow-xs"
+                      title="Copy full chapter clauses"
+                    >
+                      {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                      <span>{copied ? 'Copied!' : 'Copy Clauses'}</span>
+                    </button>
+                  </div>
                 </div>
 
-                <button
-                  onClick={handleCopyText}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors self-start sm:self-auto cursor-pointer"
-                  title="Copy Chapter text"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'Copied!' : 'Copy Clause'}</span>
-                </button>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  {currentSelectedChapter.title}
+                </h2>
               </div>
 
-              {/* Reader Body */}
-              <div className="p-4 sm:p-6 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-line font-normal space-y-3 max-h-[550px] overflow-y-auto">
-                {selectedChapter.content}
+              {/* Reader Body: Rich formatted laws and clauses */}
+              <div className="p-4 sm:p-6 rounded-2xl bg-slate-50 border border-slate-200/80 max-h-[620px] overflow-y-auto space-y-4">
+                <ChapterBodyRenderer content={currentSelectedChapter.content} />
               </div>
 
             </div>
 
-            {/* Pagination Controls */}
-            <div className="pt-3 border-t border-slate-100 space-y-3">
-              <div className="flex items-center justify-between gap-2">
+            {/* Pagination & Next/Prev Controls */}
+            <div className="pt-4 border-t border-slate-100 space-y-4">
+              <div className="flex items-center justify-between gap-3">
                 <button
                   disabled={selectedChapterIndex === 0}
-                  onClick={() => setSelectedChapterIndex(prev => Math.max(0, prev - 1))}
-                  className="px-3 sm:px-4 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-200 disabled:opacity-40 hover:enabled:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedChapterIndex(prev => Math.max(0, prev - 1));
+                    window.scrollTo({ top: 200, behavior: 'smooth' });
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:bg-slate-50 hover:enabled:border-slate-300 transition-all cursor-pointer shadow-xs"
                 >
-                  <span className="hidden sm:inline">← Previous Chapter</span>
-                  <span className="sm:hidden">← Prev</span>
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">
+                    {selectedChapterIndex > 0 ? chapters[selectedChapterIndex - 1].chapter : 'Start'}
+                  </span>
+                  <span className="sm:hidden">Prev</span>
                 </button>
 
-                <span className="text-xs text-slate-400 font-medium">
-                  {selectedChapterIndex + 1} / {chapters.length}
-                </span>
+                <div className="text-center">
+                  <span className="text-xs font-bold text-slate-700">
+                    Chapter {selectedChapterIndex + 1} of {chapters.length}
+                  </span>
+                  <span className="hidden sm:block text-[10px] text-slate-400">
+                    {currentSelectedChapter.title}
+                  </span>
+                </div>
 
                 <button
                   disabled={selectedChapterIndex === chapters.length - 1}
-                  onClick={() => setSelectedChapterIndex(prev => Math.min(chapters.length - 1, prev + 1))}
-                  className="px-3 sm:px-4 py-2 rounded-lg text-xs font-bold bg-white text-slate-700 border border-slate-200 disabled:opacity-40 hover:enabled:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedChapterIndex(prev => Math.min(chapters.length - 1, prev + 1));
+                    window.scrollTo({ top: 200, behavior: 'smooth' });
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-200 disabled:opacity-30 disabled:cursor-not-allowed hover:enabled:bg-slate-50 hover:enabled:border-slate-300 transition-all cursor-pointer shadow-xs"
                 >
-                  <span className="hidden sm:inline">Next Chapter →</span>
-                  <span className="sm:hidden">Next →</span>
+                  <span className="hidden sm:inline">
+                    {selectedChapterIndex < chapters.length - 1 ? chapters[selectedChapterIndex + 1].chapter : 'End'}
+                  </span>
+                  <span className="sm:hidden">Next</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              <div className="p-2.5 sm:p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 shrink-0 text-amber-600" />
-                <span>Strict compliance is required by all students, team captains, and physical directors.</span>
+              <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                  <span>Strict compliance is binding on all students, coaches, selectors, and sports coordinators.</span>
+                </div>
+                <button
+                  onClick={() => setShowPdfModal(true)}
+                  className="text-amber-800 hover:text-amber-950 font-bold text-xs underline cursor-pointer shrink-0"
+                >
+                  Open PDF
+                </button>
               </div>
             </div>
 
@@ -287,53 +497,141 @@ export default function RulesRegulations({ onBack }) {
 
       </main>
 
-      {/* PDF Viewer Modal */}
+      {/* Official PDF Viewer Modal */}
       {showPdfModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-3xl p-6 sm:p-7 rounded-2xl bg-white shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-              <div className="flex items-center gap-2.5">
-                <FileText className="w-5 h-5 text-[#0b2e5b]" />
-                <div>
-                  <h3 className="text-base font-bold text-slate-800">KiTS Sports Rulebook 2026.pdf</h3>
-                  <span className="text-xs text-slate-400 font-mono">Official Document • 3.4 MB</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="relative w-full max-w-5xl h-[90vh] p-4 sm:p-6 rounded-2xl bg-white shadow-2xl flex flex-col justify-between space-y-4">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="p-2 rounded-lg bg-blue-50 text-[#0b2e5b]">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-base font-bold text-slate-900 truncate">
+                    KiTS Sports Rulebook 2026 (Official Document)
+                  </h3>
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <span>29 Pages</span>
+                    <span>•</span>
+                    <span>24 Chapters + Preamble</span>
+                    <span>•</span>
+                    <span className="text-emerald-600 font-semibold">Directorate Certified</span>
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => setShowPdfModal(false)}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 cursor-pointer"
-              >
-                Close Viewer
-              </button>
-            </div>
 
-            <div className="h-96 rounded-xl bg-slate-50 border border-slate-200 p-5 overflow-y-auto text-xs text-slate-600 space-y-4">
-              <div className="text-center pb-4 border-b border-slate-200 space-y-1">
-                <h4 className="text-base font-bold text-[#0b2e5b]">KKR & KSR INSTITUTE OF TECHNOLOGY & SCIENCES</h4>
-                <p className="font-semibold text-slate-800">DEPARTMENT OF PHYSICAL EDUCATION & SPORTS</p>
-                <p className="text-slate-400">CONSTITUTION & REGULATION MANUAL 2026</p>
-              </div>
-
-              {chapters.map((ch, i) => (
-                <div key={i} className="space-y-1">
-                  <h5 className="font-bold text-slate-800 text-sm">{ch.chapter}: {ch.title}</h5>
-                  <p className="text-slate-600 leading-relaxed pl-4 whitespace-pre-line">{ch.content}</p>
+              <div className="flex items-center gap-2">
+                {/* View Switcher: PDF vs Text */}
+                <div className="hidden sm:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs">
+                  <button
+                    onClick={() => setPdfViewMode("pdf")}
+                    className={`px-3 py-1 rounded-md font-semibold transition-all cursor-pointer ${
+                      pdfViewMode === "pdf" ? "bg-white text-[#0b2e5b] shadow-xs" : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    PDF Document
+                  </button>
+                  <button
+                    onClick={() => setPdfViewMode("text")}
+                    className={`px-3 py-1 rounded-md font-semibold transition-all cursor-pointer ${
+                      pdfViewMode === "text" ? "bg-white text-[#0b2e5b] shadow-xs" : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Compiled Text
+                  </button>
                 </div>
-              ))}
+
+                <button
+                  onClick={() => setShowPdfModal(false)}
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-wrap justify-between items-center gap-3">
-              <span className="text-xs text-slate-400">Verified by Institute Legal Board & Physical Director</span>
-              <button
-                onClick={() => {
-                  window.print();
-                }}
-                className="px-5 py-2 rounded-lg font-bold text-xs bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-colors flex items-center gap-2 shadow-sm cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Print / Save PDF</span>
-              </button>
+            {/* Modal Content */}
+            <div className="flex-1 rounded-xl bg-slate-50 border border-slate-200 overflow-hidden relative">
+              {pdfViewMode === "pdf" ? (
+                <div className="w-full h-full flex flex-col">
+                  <iframe
+                    src="/KiTS-Sports-Rulebook-2026.pdf#toolbar=1"
+                    title="Official KiTS Sports Constitution Rulebook"
+                    className="w-full h-full border-0 rounded-xl"
+                  />
+                  {/* Fallback info bar below frame */}
+                  <div className="p-2 bg-slate-100 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between">
+                    <span>If the PDF preview does not load on your mobile device, use Download or Open in New Tab.</span>
+                    <a
+                      href="/KiTS-Sports-Rulebook-2026.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#0b2e5b] font-bold hover:underline inline-flex items-center gap-1"
+                    >
+                      <span>Open Externally</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-full p-6 overflow-y-auto text-xs text-slate-700 space-y-6">
+                  <div className="text-center pb-4 border-b border-slate-200 space-y-1">
+                    <h4 className="text-base font-bold text-[#0b2e5b]">KKR & KSR INSTITUTE OF TECHNOLOGY & SCIENCES</h4>
+                    <p className="font-semibold text-slate-800">DIRECTORATE OF PHYSICAL EDUCATION & SPORTS</p>
+                    <p className="text-slate-400">COMPLETE CONSTITUTION & REGULATION MANUAL 2026</p>
+                  </div>
+
+                  {chapters.map((ch, i) => (
+                    <div key={i} className="p-4 rounded-xl bg-white border border-slate-200 space-y-2">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span className="font-bold text-[#0b2e5b] text-sm">
+                          {ch.chapter}: {ch.title}
+                        </span>
+                        {ch.laws && (
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-mono">
+                            {ch.laws}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-slate-600 leading-relaxed whitespace-pre-line font-normal">
+                        {ch.content}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {/* Modal Footer Controls */}
+            <div className="flex flex-wrap justify-between items-center gap-3 pt-2">
+              <span className="text-xs text-slate-500">
+                Official document verified by Institute Directorate of Physical Education.
+              </span>
+              
+              <div className="flex items-center gap-2">
+                <a
+                  href="/KiTS-Sports-Rulebook-2026.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-lg font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors inline-flex items-center gap-1.5 border border-slate-300"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open in Tab</span>
+                </a>
+
+                <a
+                  href="/KiTS-Sports-Rulebook-2026.pdf"
+                  download="KiTS-Sports-Rulebook-2026.pdf"
+                  className="px-5 py-2 rounded-lg font-bold text-xs bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-colors inline-flex items-center gap-2 shadow-md cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Download Official PDF (514 KB)</span>
+                </a>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
