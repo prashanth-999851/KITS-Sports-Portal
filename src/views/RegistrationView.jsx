@@ -5,14 +5,17 @@ import { useConvexState } from '../context/ConvexStateContext';
 import { useToast } from '../context/ToastContext';
 import { ButtonSpinner } from '../components/LoadingSkeleton';
 import { 
-  ArrowLeft, 
   CheckCircle2, 
   AlertCircle, 
   FileText, 
   Send, 
   Search, 
   ShieldCheck, 
-  Clock 
+  Clock,
+  Upload,
+  Trash2,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
@@ -34,11 +37,22 @@ const DEFAULT_SPORTS = [
   "Athletics", "Throwball", "Kho-Kho"
 ];
 
+const EXPERIENCE_OPTIONS = [
+  "No Previous Experience",
+  "Have Playing Experience"
+];
+
 export default function RegistrationView({ onBack }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { showToast } = useToast();
-  const { sports: rawSports = [], applications = [], students = [], addStudentApplication } = useConvexState();
+  const { 
+    sports: rawSports = [], 
+    applications = [], 
+    students = [], 
+    addStudentApplication,
+    uploadExperienceCertificate 
+  } = useConvexState();
 
   const [activeTab, setActiveTab] = useState("Apply");
   const [trackingCode, setTrackingCode] = useState("");
@@ -63,8 +77,18 @@ export default function RegistrationView({ onBack }) {
     section: "Section 1",
     email: "",
     phone: "",
-    selectedSport: preselectedSport || ""
+    selectedSport: preselectedSport || "",
+    playingExperience: "",
+    experienceCertificateFileId: ""
   });
+
+  const [certificateFile, setCertificateFile] = useState(null);
+  const [certificateFileName, setCertificateFileName] = useState("");
+  const [certificateFileSize, setCertificateFileSize] = useState("");
+  const [certificatePreviewUrl, setCertificatePreviewUrl] = useState(null);
+  const [isUploadingCertificate, setIsUploadingCertificate] = useState(false);
+  const [certificateUploadError, setCertificateUploadError] = useState("");
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -121,6 +145,18 @@ export default function RegistrationView({ onBack }) {
       case "selectedSport":
         if (!value) {
           error = "Please select a preferred sport discipline.";
+        }
+        break;
+      case "playingExperience":
+        if (!value) {
+          error = "Please select your playing experience.";
+        } else if (value !== "No Previous Experience" && value !== "Have Playing Experience") {
+          error = "Please select your playing experience.";
+        }
+        break;
+      case "experienceCertificateFileId":
+        if (formData.playingExperience === "Have Playing Experience" && !value) {
+          error = "Please upload your playing experience certificate.";
         }
         break;
       default:
@@ -181,6 +217,110 @@ export default function RegistrationView({ onBack }) {
     }
   };
 
+  const handleExperienceSelect = (opt) => {
+    setFormData(prev => ({
+      ...prev,
+      playingExperience: opt,
+      experienceCertificateFileId: opt === "No Previous Experience" ? "" : prev.experienceCertificateFileId,
+    }));
+    setTouched(prev => ({ ...prev, playingExperience: true }));
+    setErrors(prev => {
+      const next = { ...prev };
+      delete next.playingExperience;
+      if (opt === "No Previous Experience") {
+        delete next.experienceCertificateFileId;
+      }
+      return next;
+    });
+
+    if (opt === "No Previous Experience") {
+      if (certificatePreviewUrl) {
+        URL.revokeObjectURL(certificatePreviewUrl);
+      }
+      setCertificateFile(null);
+      setCertificateFileName("");
+      setCertificateFileSize("");
+      setCertificatePreviewUrl(null);
+      setCertificateUploadError("");
+      setFileInputKey(prev => prev + 1);
+    }
+  };
+
+  const handleCertificateFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setCertificateUploadError("");
+    setTouched(prev => ({ ...prev, experienceCertificateFileId: true }));
+
+    // Validate PDF only
+    const isPdfMime = file.type === "application/pdf";
+    const isPdfExt = file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdfMime && !isPdfExt) {
+      const err = "Only PDF files are allowed.";
+      setCertificateUploadError(err);
+      setErrors(prev => ({ ...prev, experienceCertificateFileId: err }));
+      setFileInputKey(prev => prev + 1);
+      return;
+    }
+
+    // Validate size <= 2 MB (2,097,152 bytes)
+    const MAX_BYTES = 2097152;
+    if (file.size > MAX_BYTES) {
+      const err = "Certificate file size must be less than or equal to 2 MB.";
+      setCertificateUploadError(err);
+      setErrors(prev => ({ ...prev, experienceCertificateFileId: err }));
+      setFileInputKey(prev => prev + 1);
+      return;
+    }
+
+    const formattedSize = file.size < 1048576 
+      ? `${(file.size / 1024).toFixed(1)} KB` 
+      : `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+
+    setIsUploadingCertificate(true);
+    try {
+      const storageId = await uploadExperienceCertificate(file);
+      setFormData(prev => ({ ...prev, experienceCertificateFileId: storageId }));
+      setCertificateFile(file);
+      setCertificateFileName(file.name);
+      setCertificateFileSize(formattedSize);
+      const previewUrl = URL.createObjectURL(file);
+      setCertificatePreviewUrl(previewUrl);
+      setCertificateUploadError("");
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next.experienceCertificateFileId;
+        return next;
+      });
+      showToast("Certificate uploaded successfully!", "success");
+    } catch (err) {
+      console.error("Certificate upload error:", err);
+      const msg = err.message || "Failed to upload certificate. Please try again.";
+      setCertificateUploadError(msg);
+      setErrors(prev => ({ ...prev, experienceCertificateFileId: msg }));
+      showToast(msg, "error");
+    } finally {
+      setIsUploadingCertificate(false);
+    }
+  };
+
+  const handleRemoveCertificate = () => {
+    if (certificatePreviewUrl) {
+      URL.revokeObjectURL(certificatePreviewUrl);
+    }
+    setCertificateFile(null);
+    setCertificateFileName("");
+    setCertificateFileSize("");
+    setCertificatePreviewUrl(null);
+    setCertificateUploadError("");
+    setFormData(prev => ({ ...prev, experienceCertificateFileId: "" }));
+    setFileInputKey(prev => prev + 1);
+    if (touched.experienceCertificateFileId) {
+      setErrors(prev => ({ ...prev, experienceCertificateFileId: "Please upload your playing experience certificate." }));
+    }
+  };
+
   const validateAll = () => {
     const newErrors = {
       name: validateField("name", formData.name),
@@ -188,6 +328,10 @@ export default function RegistrationView({ onBack }) {
       email: validateField("email", formData.email),
       phone: validateField("phone", formData.phone),
       selectedSport: validateField("selectedSport", formData.selectedSport),
+      playingExperience: validateField("playingExperience", formData.playingExperience),
+      ...(formData.playingExperience === "Have Playing Experience" 
+        ? { experienceCertificateFileId: validateField("experienceCertificateFileId", formData.experienceCertificateFileId) }
+        : {}),
     };
 
     setErrors(newErrors);
@@ -197,6 +341,8 @@ export default function RegistrationView({ onBack }) {
       email: true,
       phone: true,
       selectedSport: true,
+      playingExperience: true,
+      ...(formData.playingExperience === "Have Playing Experience" ? { experienceCertificateFileId: true } : {}),
     });
 
     return !Object.values(newErrors).some(Boolean);
@@ -207,6 +353,16 @@ export default function RegistrationView({ onBack }) {
 
     if (!validateAll()) {
       showToast("Please correct the highlighted form errors before submitting.", "warning");
+      return;
+    }
+
+    if (isUploadingCertificate) {
+      showToast("Please wait for your certificate to finish uploading.", "warning");
+      return;
+    }
+
+    if (formData.playingExperience === "Have Playing Experience" && !formData.experienceCertificateFileId) {
+      showToast("Please upload your playing experience certificate.", "error");
       return;
     }
 
@@ -221,7 +377,9 @@ export default function RegistrationView({ onBack }) {
         section: formData.section || "Section 1",
         email: sanitizeInput(formData.email.trim().toLowerCase()),
         phone: sanitizeInput(formData.phone.trim()),
-        preferredSports: [formData.selectedSport]
+        preferredSports: [formData.selectedSport],
+        playingExperience: formData.playingExperience,
+        experienceCertificateFileId: formData.playingExperience === "Have Playing Experience" ? formData.experienceCertificateFileId : undefined,
       });
       const finalCode = trackingId || `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
       setSubmittedCode(finalCode);
@@ -235,8 +393,17 @@ export default function RegistrationView({ onBack }) {
         section: "Section 1",
         email: "",
         phone: "",
-        selectedSport: ""
+        selectedSport: "",
+        playingExperience: "",
+        experienceCertificateFileId: ""
       });
+      setCertificateFile(null);
+      setCertificateFileName("");
+      setCertificateFileSize("");
+      if (certificatePreviewUrl) URL.revokeObjectURL(certificatePreviewUrl);
+      setCertificatePreviewUrl(null);
+      setCertificateUploadError("");
+      setFileInputKey(prev => prev + 1);
       setErrors({});
       setTouched({});
     } catch (err) {
@@ -311,7 +478,7 @@ export default function RegistrationView({ onBack }) {
       />
 
       {/* Main Registration Body */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-8 sm:pb-12 space-y-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-36 lg:pt-40 pb-8 sm:pb-12 space-y-8">
         
         {/* Title Header */}
         <div className="text-center space-y-2.5">
@@ -338,7 +505,7 @@ export default function RegistrationView({ onBack }) {
               }`}
             >
               <FileText className="w-4 h-4" />
-              <span>Apply for Membership</span>
+              <span>New Registration</span>
             </button>
 
             <button
@@ -362,7 +529,7 @@ export default function RegistrationView({ onBack }) {
             {submittedCode ? (
               <div className="p-6 text-center space-y-4 max-w-md mx-auto animate-fadeIn">
                 <CheckCircle2 className="w-16 h-16 text-emerald-600 mx-auto" />
-                <h3 className="text-2xl font-bold text-slate-800">Application Submitted!</h3>
+                <h3 className="text-2xl font-bold text-slate-800">Registration Submitted!</h3>
                 <p className="text-xs sm:text-sm text-slate-600">
                   Your sports registration has been recorded successfully. Please save your application tracking code:
                 </p>
@@ -555,6 +722,128 @@ export default function RegistrationView({ onBack }) {
                   </div>
                 </div>
 
+                {/* 3. Playing Experience */}
+                <div className="space-y-4 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                      3. Playing Experience <span className="text-red-500">*</span>
+                    </label>
+                    {touched.playingExperience && errors.playingExperience && (
+                      <span className="text-[11px] text-red-500 font-semibold">{errors.playingExperience}</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {EXPERIENCE_OPTIONS.map((opt) => {
+                      const isSelected = formData.playingExperience === opt;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => handleExperienceSelect(opt)}
+                          className={`flex items-center gap-3 p-3.5 rounded-xl text-xs font-semibold text-left transition-all duration-200 border cursor-pointer ${
+                            isSelected
+                              ? 'bg-blue-50/70 border-[#0b2e5b] text-[#0b2e5b] ring-1 ring-[#0b2e5b] shadow-sm'
+                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-100'
+                          }`}
+                        >
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-colors shrink-0 ${
+                            isSelected ? 'border-[#0b2e5b] bg-[#0b2e5b]' : 'border-slate-300 bg-white'
+                          }`}>
+                            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                          </div>
+                          <span className="font-semibold text-slate-900">{opt}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Conditional Certificate Upload */}
+                  {formData.playingExperience === "Have Playing Experience" && (
+                    <div className="p-4 rounded-xl border border-dashed border-slate-300 bg-slate-50/70 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-bold text-slate-700">
+                          Upload Experience Certificate <span className="text-red-500">*</span>
+                        </label>
+                        <span className="text-[10px] text-slate-500 font-medium">PDF only • Maximum 2 MB</span>
+                      </div>
+
+                      {!formData.experienceCertificateFileId && !isUploadingCertificate && (
+                        <div className="space-y-2">
+                          <label className="flex flex-col items-center justify-center p-5 border-2 border-dashed border-slate-300 rounded-lg hover:border-[#0b2e5b] hover:bg-white transition-all cursor-pointer group bg-white/60">
+                            <Upload className="w-7 h-7 text-slate-400 group-hover:text-[#0b2e5b] transition-colors mb-2" />
+                            <span className="text-xs font-bold text-[#0b2e5b]">Choose PDF</span>
+                            <span className="text-[10px] text-slate-500 mt-0.5">PDF format only • Maximum 2 MB</span>
+                            <input
+                              key={fileInputKey}
+                              type="file"
+                              accept=".pdf,application/pdf"
+                              onChange={handleCertificateFileChange}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                      )}
+
+                      {isUploadingCertificate && (
+                        <div className="flex items-center justify-center gap-2 p-4 bg-white rounded-lg border border-slate-200 text-xs text-[#0b2e5b] font-semibold">
+                          <Loader2 className="w-4 h-4 animate-spin text-[#0b2e5b]" />
+                          <span>Uploading certificate...</span>
+                        </div>
+                      )}
+
+                      {formData.experienceCertificateFileId && !isUploadingCertificate && (
+                        <div className="flex items-center justify-between p-3.5 bg-white rounded-lg border border-slate-200 shadow-xs">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="p-2 rounded-lg bg-red-50 text-red-600 shrink-0">
+                              <FileText className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-slate-800 truncate" title={certificateFileName}>
+                                {certificateFileName || "experience_certificate.pdf"}
+                              </p>
+                              <p className="text-[10px] text-slate-500">
+                                {certificateFileSize || "PDF Document"} • <span className="text-emerald-600 font-semibold">Ready</span>
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {certificatePreviewUrl && (
+                              <a
+                                href={certificatePreviewUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1.5 rounded-md text-[11px] font-bold text-[#0b2e5b] hover:bg-slate-100 transition-colors flex items-center gap-1 cursor-pointer"
+                                title="View PDF"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                <span>View PDF</span>
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              onClick={handleRemoveCertificate}
+                              className="px-2.5 py-1.5 rounded-md text-[11px] font-bold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1 cursor-pointer"
+                              title="Remove Certificate"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>Remove</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Error Messages */}
+                      {((touched.experienceCertificateFileId && errors.experienceCertificateFileId) || certificateUploadError) && (
+                        <p className="text-[11px] text-red-500 font-medium flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{certificateUploadError || errors.experienceCertificateFileId}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* Submit CTA */}
                 <button
                   type="submit"
@@ -566,7 +855,7 @@ export default function RegistrationView({ onBack }) {
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>Submit Membership Registration</span>
+                      <span>Submit Sports Registration</span>
                     </>
                   )}
                 </button>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
 import { useToast } from '../../context/ToastContext';
-import { CardSkeleton } from '../../components/LoadingSkeleton';
+import { CardSkeleton, MetricCardSkeleton, AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { compressImage } from '../../utils/imageCompressor';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
@@ -15,7 +15,8 @@ export default function ExecutiveAdminPage() {
     addExecutiveMember, 
     updateExecutiveMember, 
     deleteExecutiveMember, 
-    isLoading 
+    isLoading,
+    isLoadingExecutive 
   } = useConvexState();
   const { showToast } = useToast();
 
@@ -118,6 +119,15 @@ export default function ExecutiveAdminPage() {
 
   const inputClass = "w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs focus:border-blue-500 focus:outline-none";
 
+  if (isLoading || isLoadingExecutive) {
+    return (
+      <AdminGridPageSkeleton 
+        title="Executive Body & Student Officers" 
+        subtitle="Loading executive leadership and student coordinators..." 
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       
@@ -138,31 +148,35 @@ export default function ExecutiveAdminPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <div className="flex items-center justify-between text-[var(--text-muted)]">
-            <span className="text-xs font-semibold">Total Leadership Roster</span>
-            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+      {isLoading ? (
+        <MetricCardSkeleton count={3} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <div className="flex items-center justify-between text-[var(--text-muted)]">
+              <span className="text-xs font-semibold">Total Leadership Roster</span>
+              <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <p className="text-2xl font-extrabold text-[var(--text-primary)]">{executiveBody.length}</p>
           </div>
-          <p className="text-2xl font-extrabold text-[var(--text-primary)]">{executiveBody.length}</p>
-        </div>
 
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <div className="flex items-center justify-between text-[var(--text-muted)]">
-            <span className="text-xs font-semibold">Executive Body (Faculty/Patrons)</span>
-            <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <div className="flex items-center justify-between text-[var(--text-muted)]">
+              <span className="text-xs font-semibold">Executive Body (Faculty/Patrons)</span>
+              <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            </div>
+            <p className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">{executiveCount}</p>
           </div>
-          <p className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">{executiveCount}</p>
-        </div>
 
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <div className="flex items-center justify-between text-[var(--text-muted)]">
-            <span className="text-xs font-semibold">Student Officers & Secretaries</span>
-            <UserCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <div className="flex items-center justify-between text-[var(--text-muted)]">
+              <span className="text-xs font-semibold">Student Officers & Secretaries</span>
+              <UserCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+            </div>
+            <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">{studentOfficerCount}</p>
           </div>
-          <p className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">{studentOfficerCount}</p>
         </div>
-      </div>
+      )}
 
       {/* Navigation Tabs & Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

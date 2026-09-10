@@ -20,7 +20,7 @@ export default function Navbar({
     { id: 'executive', label: 'Leadership' },
     { id: 'achievements', label: 'Achievements' },
     { id: 'jntuk-players', label: 'JNTUK Players' },
-    { id: 'membership', label: 'Membership' },
+    { id: 'membership', label: 'Registration' },
     { id: 'gallery', label: 'Gallery' },
     { id: 'rules', label: 'Rules' },
     { id: 'contact', label: 'Contact' },
@@ -42,6 +42,7 @@ export default function Navbar({
       achievements: '/#achievements',
       'jntuk-players': '/jntuk-players',
       membership: '/register',
+      registration: '/register',
       gallery: '/#gallery',
       rules: '/rules',
       contact: '/contact',
@@ -88,7 +89,7 @@ export default function Navbar({
                 className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />
               <h1 className={`${tw`text-body`} font-bold text-[#0b2e5b] leading-tight tracking-wide group-hover:text-[#0d3a73] transition-colors`}>
-                KiTS Sports Club
+                K<span className="text-red-600">i</span>TS Sports Club
               </h1>
             </div>
 
@@ -180,44 +181,48 @@ export default function Navbar({
 
           {/* Realistic Continuous Scrolling Ticker */}
           <div className="flex-1 overflow-hidden relative pl-4">
-            <div className="animate-ticker whitespace-nowrap flex items-center gap-10 text-white">
+            <div className="animate-ticker whitespace-nowrap flex items-center text-white">
               
               {/* Track 1 */}
-              <div className="flex items-center gap-10 shrink-0">
+              <div className="flex items-center shrink-0">
                 {tickerItems.map((notif, idx) => (
-                  <div key={`t1-${idx}`} className="inline-flex items-center gap-2.5">
-                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
-                      {notif.category || 'NOTICE'}
-                    </span>
-                    <span className="font-semibold text-[#f8fafc] text-xs">
-                      {notif.title}
-                    </span>
-                    {notif.message && (
-                      <span className="text-slate-400 text-xs">
-                        — {notif.message}
+                  <div key={`t1-${idx}`} className="inline-flex items-center">
+                    <div className="inline-flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
+                        {notif.category || 'NOTICE'}
                       </span>
-                    )}
-                    <span className="text-amber-400/80 font-bold ml-4">•</span>
+                      <span className="font-semibold text-[#f8fafc] text-xs">
+                        {notif.title}
+                      </span>
+                      {notif.message && (
+                        <span className="text-slate-400 text-xs">
+                          — {notif.message}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-amber-400/80 font-bold mx-3.5 text-xs select-none" aria-hidden="true">•</span>
                   </div>
                 ))}
               </div>
 
               {/* Track 2 (Duplicate for Seamless Infinite Marquee Loop) */}
-              <div className="flex items-center gap-10 shrink-0">
+              <div className="flex items-center shrink-0">
                 {tickerItems.map((notif, idx) => (
-                  <div key={`t2-${idx}`} className="inline-flex items-center gap-2.5">
-                    <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
-                      {notif.category || 'NOTICE'}
-                    </span>
-                    <span className="font-semibold text-[#f8fafc] text-xs">
-                      {notif.title}
-                    </span>
-                    {notif.message && (
-                      <span className="text-slate-400 text-xs">
-                        — {notif.message}
+                  <div key={`t2-${idx}`} className="inline-flex items-center">
+                    <div className="inline-flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
+                        {notif.category || 'NOTICE'}
                       </span>
-                    )}
-                    <span className="text-amber-400/80 font-bold ml-4">•</span>
+                      <span className="font-semibold text-[#f8fafc] text-xs">
+                        {notif.title}
+                      </span>
+                      {notif.message && (
+                        <span className="text-slate-400 text-xs">
+                          — {notif.message}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-amber-400/80 font-bold mx-3.5 text-xs select-none" aria-hidden="true">•</span>
                   </div>
                 ))}
               </div>
@@ -251,7 +256,7 @@ export default function Navbar({
               onClick={() => { setMobileMenuOpen(false); onOpenMembership ? onOpenMembership() : handleNavClick('membership'); }}
               className={`w-full py-2.5 rounded-lg ${tw`text-body`} font-bold bg-[#0b2e5b] text-white text-center transition-colors shadow-sm cursor-pointer`}
             >
-              Register for Membership
+              Register for Sports
             </button>
           </div>
         </div>

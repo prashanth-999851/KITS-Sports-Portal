@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
 import { useToast } from '../../context/ToastContext';
-import { CardSkeleton } from '../../components/LoadingSkeleton';
+import { CardSkeleton, MetricCardSkeleton, AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 import JntukPlayerCrestCard from '../../components/JntukPlayerCrestCard';
@@ -19,7 +19,8 @@ export default function JntukPlayersAdminPage() {
     addJntukPlayer, 
     updateJntukPlayer, 
     deleteJntukPlayer, 
-    isLoading 
+    isLoading,
+    isLoadingJntukPlayers 
   } = useConvexState();
   const { showToast } = useToast();
 
@@ -196,6 +197,15 @@ export default function JntukPlayersAdminPage() {
 
   const inputClass = "w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs focus:border-blue-500 focus:outline-none";
 
+  if (isLoading || isLoadingJntukPlayers) {
+    return (
+      <AdminGridPageSkeleton 
+        title="JNTUK Represented Players Roster" 
+        subtitle="Loading official JNTUK Varsity athletes roster..." 
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       
@@ -229,31 +239,35 @@ export default function JntukPlayersAdminPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <div className="flex items-center justify-between text-[var(--text-muted)]">
-            <span className="text-xs font-semibold">Total JNTUK Athletes</span>
-            <Award className="w-4 h-4 text-amber-500" />
+      {isLoading ? (
+        <MetricCardSkeleton count={3} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <div className="flex items-center justify-between text-[var(--text-muted)]">
+              <span className="text-xs font-semibold">Total JNTUK Athletes</span>
+              <Award className="w-4 h-4 text-amber-500" />
+            </div>
+            <p className="text-2xl font-extrabold text-[var(--text-primary)]">{jntukPlayers.length}</p>
           </div>
-          <p className="text-2xl font-extrabold text-[var(--text-primary)]">{jntukPlayers.length}</p>
-        </div>
 
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <div className="flex items-center justify-between text-[var(--text-muted)]">
-            <span className="text-xs font-semibold">Academic Years</span>
-            <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <div className="flex items-center justify-between text-[var(--text-muted)]">
+              <span className="text-xs font-semibold">Academic Years</span>
+              <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{availableYears.length}</p>
           </div>
-          <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{availableYears.length}</p>
-        </div>
 
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <div className="flex items-center justify-between text-[var(--text-muted)]">
-            <span className="text-xs font-semibold">Active Filtered</span>
-            <Trophy className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <div className="flex items-center justify-between text-[var(--text-muted)]">
+              <span className="text-xs font-semibold">Active Filtered</span>
+              <Trophy className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            </div>
+            <p className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">{filteredPlayers.length} <span className="text-xs text-[var(--text-muted)] font-normal">/ {jntukPlayers.length}</span></p>
           </div>
-          <p className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">{filteredPlayers.length} <span className="text-xs text-[var(--text-muted)] font-normal">/ {jntukPlayers.length}</span></p>
         </div>
-      </div>
+      )}
 
       {/* Multi-Filter Toolbar */}
       <div className="bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] space-y-3">

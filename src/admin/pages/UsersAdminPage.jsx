@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
-import { UserPlus, X } from 'lucide-react';
+import { useToast } from '../../context/ToastContext';
+import { TableRowSkeleton, AdminTablePageSkeleton } from '../../components/LoadingSkeleton';
+import EmptyState from '../../components/EmptyState';
+import { UserPlus, X, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function UsersAdminPage() {
-  const { users, addUser, toggleUserActive } = useConvexState();
+  const { users, addUser, toggleUserActive, isLoading, isLoadingUsers } = useConvexState();
+  const { showToast } = useToast();
   const [showModal, setShowModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -13,14 +19,43 @@ export default function UsersAdminPage() {
     role: 'Sports Coordinator'
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    addUser(formData);
-    setShowModal(false);
-    setFormData({ name: '', email: '', password: '', role: 'Sports Coordinator' });
+    setIsSubmitting(true);
+    try {
+      await addUser(formData);
+      showToast(`Admin account created for ${formData.email}!`, 'success');
+      setShowModal(false);
+      setFormData({ name: '', email: '', password: '', role: 'Sports Coordinator' });
+    } catch (err) {
+      showToast('Failed to create admin user: ' + (err.message || err), 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleToggleActive = async (u) => {
+    setTogglingId(u.id);
+    try {
+      await toggleUserActive(u.id);
+      showToast(`Admin account for ${u.name} is now ${u.isActive ? 'suspended' : 'active'}.`, 'info');
+    } catch (err) {
+      showToast('Failed to change admin status: ' + (err.message || err), 'error');
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   const inputClass = "w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs focus:border-blue-500 focus:outline-none";
+
+  if (isLoading || isLoadingUsers) {
+    return (
+      <AdminTablePageSkeleton 
+        title="Admin User Management & RBAC" 
+        subtitle="Loading authorized admin accounts and permissions..." 
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -39,43 +74,54 @@ export default function UsersAdminPage() {
       </div>
 
       <div className="p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[var(--bg-card-subtle)] text-[var(--text-muted)] uppercase font-bold border-b border-[var(--border-color)]">
-              <tr>
-                <th className="p-3">Admin ID</th>
-                <th className="p-3">Full Name</th>
-                <th className="p-3">Email Address</th>
-                <th className="p-3">Assigned Role</th>
-                <th className="p-3">Status</th>
-                <th className="p-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-secondary)]">
-              {users.map((u) => (
-                <tr key={u.id} className="hover:bg-[var(--bg-card-subtle)]">
-                  <td className="p-3 font-mono font-bold text-blue-600 dark:text-blue-400">{u.id}</td>
-                  <td className="p-3 font-bold text-[var(--text-primary)]">{u.name}</td>
-                  <td className="p-3">{u.email}</td>
-                  <td className="p-3 font-semibold text-amber-600 dark:text-amber-400">{u.role}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${u.isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'}`}>
-                      {u.isActive ? 'Active' : 'Suspended'}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right">
-                    <button
-                      onClick={() => toggleUserActive(u.id)}
-                      className={`px-3 py-1 rounded text-[10px] font-bold ${u.isActive ? 'bg-amber-600 text-white' : 'bg-emerald-600 text-white'}`}
-                    >
-                      {u.isActive ? 'Suspend' : 'Activate'}
-                    </button>
-                  </td>
+        {isLoading ? (
+          <TableRowSkeleton rows={4} />
+        ) : users.length === 0 ? (
+          <EmptyState
+            title="No Admin Staff Records Found"
+            description="Click 'Add Admin User' above to invite administrative officers and assign role permissions."
+            icon={ShieldCheck}
+          />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[var(--bg-card-subtle)] text-[var(--text-muted)] uppercase font-bold border-b border-[var(--border-color)]">
+                <tr>
+                  <th className="p-3">Admin ID</th>
+                  <th className="p-3">Full Name</th>
+                  <th className="p-3">Email Address</th>
+                  <th className="p-3">Assigned Role</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-secondary)]">
+                {users.map((u) => (
+                  <tr key={u.id} className="hover:bg-[var(--bg-card-subtle)]">
+                    <td className="p-3 font-mono font-bold text-blue-600 dark:text-blue-400">{u.id}</td>
+                    <td className="p-3 font-bold text-[var(--text-primary)]">{u.name}</td>
+                    <td className="p-3">{u.email}</td>
+                    <td className="p-3 font-semibold text-amber-600 dark:text-amber-400">{u.role}</td>
+                    <td className="p-3">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${u.isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'}`}>
+                        {u.isActive ? 'Active' : 'Suspended'}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right">
+                      <button
+                        onClick={() => handleToggleActive(u)}
+                        disabled={togglingId === u.id}
+                        className={`px-3 py-1 rounded text-[10px] font-bold transition-all cursor-pointer disabled:opacity-50 ${u.isActive ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
+                      >
+                        {togglingId === u.id ? 'Updating...' : u.isActive ? 'Suspend' : 'Activate'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {showModal && (
@@ -115,8 +161,19 @@ export default function UsersAdminPage() {
                 </select>
               </div>
 
-              <button type="submit" className="w-full py-2.5 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e]">
-                Create Admin & Assign Role
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full py-2.5 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Creating Account...</span>
+                  </>
+                ) : (
+                  <span>Create Admin & Assign Role</span>
+                )}
               </button>
             </form>
           </div>

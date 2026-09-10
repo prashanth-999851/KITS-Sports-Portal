@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useConvexState } from '../context/ConvexStateContext';
 import { 
   LayoutDashboard, 
+  ClipboardList,
   UserCheck, 
   Trophy, 
   Award, 
@@ -16,9 +17,11 @@ import {
   ExternalLink,
   ChevronRight
 } from 'lucide-react';
+import SessionExpiredModal from './components/SessionExpiredModal';
+import { AdminTablePageSkeleton } from '../components/LoadingSkeleton';
 
 export default function AdminLayout() {
-  const { currentUser, logout } = useConvexState();
+  const { currentUser, logout, applications = [] } = useConvexState();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -27,8 +30,17 @@ export default function AdminLayout() {
     navigate('/admin/login');
   };
 
+  const pendingCount = applications.filter(a => a.status === 'Pending').length;
+
   const navItems = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { 
+      path: '/admin/registrations', 
+      label: 'Registrations', 
+      icon: ClipboardList, 
+      badge: pendingCount > 0 ? pendingCount : null,
+      badgeColor: 'bg-amber-500 text-slate-950 font-extrabold shadow-sm'
+    },
     { path: '/admin/memberships', label: 'Memberships', icon: UserCheck },
     { path: '/admin/sports', label: 'Sports Panels', icon: Trophy },
     { path: '/admin/achievements', label: 'Achievements', icon: Award },
@@ -113,7 +125,7 @@ export default function AdminLayout() {
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
-                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-500 text-white animate-pulse">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${item.badgeColor || 'bg-red-500 text-white animate-pulse'}`}>
                       {item.badge}
                     </span>
                   )}
@@ -177,10 +189,15 @@ export default function AdminLayout() {
 
         {/* Route Content View */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
-          <Outlet />
+          <React.Suspense fallback={<AdminTablePageSkeleton />}>
+            <Outlet />
+          </React.Suspense>
         </main>
 
       </div>
+
+      {/* Global Admin Session Expired Modal */}
+      <SessionExpiredModal />
 
     </div>
   );

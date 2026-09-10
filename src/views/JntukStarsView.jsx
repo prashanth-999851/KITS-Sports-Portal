@@ -21,7 +21,7 @@ export default function JntukStarsView({ onBack }) {
       />
 
       {/* Main Content */}
-      <main className="flex-1 pt-20 sm:pt-24 lg:pt-28">
+      <main className="flex-1 pt-24 sm:pt-24 lg:pt-28">
         <JntukPlayersSection />
       </main>
 

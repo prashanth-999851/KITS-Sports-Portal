@@ -13,6 +13,7 @@ import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
 import type * as coreValues from "../coreValues.js";
 import type * as executiveMembers from "../executiveMembers.js";
+import type * as files from "../files.js";
 import type * as gallery from "../gallery.js";
 import type * as jntukPlayers from "../jntukPlayers.js";
 import type * as notifications from "../notifications.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   coreValues: typeof coreValues;
   executiveMembers: typeof executiveMembers;
+  files: typeof files;
   gallery: typeof gallery;
   jntukPlayers: typeof jntukPlayers;
   notifications: typeof notifications;

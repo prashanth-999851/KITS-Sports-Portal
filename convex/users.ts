@@ -21,6 +21,39 @@ export const list = query({
   },
 });
 
+export const validateSession = query({
+  args: { sessionToken: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    if (!args.sessionToken) {
+      return { isValid: false, reason: "No session token provided" };
+    }
+    const session = await ctx.db
+      .query("sessions")
+      .withIndex("by_token", (q: any) => q.eq("token", args.sessionToken))
+      .first();
+
+    if (!session || session.expiresAt <= Date.now()) {
+      return { isValid: false, reason: "Session expired or invalid" };
+    }
+
+    const user = await ctx.db.get(session.userId);
+    if (!user || !user.isActive) {
+      return { isValid: false, reason: "User is suspended or deleted" };
+    }
+
+    return {
+      isValid: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    };
+  },
+});
+
 export const seedInitialAdmin = mutation({
   args: {
     name: v.string(),

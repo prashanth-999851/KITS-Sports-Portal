@@ -1,8 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
-import { TableRowSkeleton } from '../../components/LoadingSkeleton';
+import { useToast } from '../../context/ToastContext';
+import { TableRowSkeleton, MetricCardSkeleton, AdminTablePageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
-import { UserCheck, Edit, Trash2, Search, Filter, X, Download, RotateCcw, FileSpreadsheet, AlertTriangle, ShieldCheck, Plus, UserPlus } from 'lucide-react';
+import { 
+  UserCheck, 
+  Edit, 
+  Trash2, 
+  Search, 
+  Filter, 
+  X, 
+  Download, 
+  RotateCcw, 
+  FileSpreadsheet, 
+  AlertTriangle, 
+  ShieldCheck, 
+  Plus, 
+  UserPlus, 
+  FileText,
+  Menu,
+  MoreVertical,
+  PauseCircle,
+  PlayCircle,
+  Check,
+  ChevronDown
+} from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 import { 
@@ -18,21 +40,70 @@ const STATUSES = ['Pending', 'Approved', 'Rejected', 'Suspended'];
 const GENDERS = ['Male', 'Female'];
 
 export default function MembershipsPage() {
-  const { applications, updateApplicationStatus, updateApplication, deleteApplication, addStudentApplication, isLoading } = useConvexState();
+  const { 
+    applications, 
+    updateApplicationStatus, 
+    updateApplication, 
+    deleteApplication, 
+    addStudentApplication, 
+    isLoading,
+    isLoadingApplications 
+  } = useConvexState();
+  const { showToast } = useToast();
 
   // Enterprise Filter States
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('Approved');
   const [deptFilter, setDeptFilter] = useState('All');
   const [yearFilter, setYearFilter] = useState('All');
   const [genderFilter, setGenderFilter] = useState('All');
   const [sportFilter, setSportFilter] = useState('All');
   
-  // Modals state
+  // Modals & Menu state
+  const [activeMenu, setActiveMenu] = useState(null); // { id, app, top, right, openUpward }
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingApp, setEditingApp] = useState(null);
   const [deletingApp, setDeletingApp] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Toggle floating actions menu with smart dropup detection
+  const handleToggleMenu = (e, app) => {
+    e.stopPropagation();
+    if (activeMenu?.id === app.id) {
+      setActiveMenu(null);
+      return;
+    }
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const dropdownHeight = 290;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUpward = spaceBelow < dropdownHeight && rect.top > dropdownHeight;
+
+    setActiveMenu({
+      id: app.id,
+      app,
+      rectTop: rect.top,
+      rectBottom: rect.bottom,
+      right: Math.max(16, window.innerWidth - rect.right),
+      openUpward,
+    });
+  };
+
+  // Close floating actions menu on outside click, window scroll, or resize
+  useEffect(() => {
+    const handleCloseMenu = (e) => {
+      if (e?.target?.closest?.('.floating-action-menu')) return;
+      setActiveMenu(null);
+    };
+    window.addEventListener('click', handleCloseMenu);
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+    return () => {
+      window.removeEventListener('click', handleCloseMenu);
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
+  }, []);
 
   // Form State for Add New Membership (Admin)
   const [addForm, setAddForm] = useState({
@@ -60,17 +131,21 @@ export default function MembershipsPage() {
     email: '',
     phone: '',
     preferredSports: 'Cricket',
+    playingExperience: 'No Previous Experience',
+    experienceCertificateFileId: '',
+    experienceCertificateUrl: null,
     status: 'Pending',
     remarks: '',
   });
 
   const handleResetFilters = () => {
     setSearchQuery('');
-    setStatusFilter('All');
+    setStatusFilter('Approved');
     setDeptFilter('All');
     setYearFilter('All');
     setGenderFilter('All');
     setSportFilter('All');
+    showToast('Filters reset to default.', 'info');
   };
 
   const handleOpenEdit = (app) => {
@@ -86,6 +161,9 @@ export default function MembershipsPage() {
       email: app.email || '',
       phone: app.phone || '',
       preferredSports: sportsVal,
+      playingExperience: app.playingExperience || 'No Previous Experience',
+      experienceCertificateFileId: app.experienceCertificateFileId || '',
+      experienceCertificateUrl: app.experienceCertificateUrl || null,
       status: app.status || 'Pending',
       remarks: app.remarks || '',
     });
@@ -106,6 +184,7 @@ export default function MembershipsPage() {
         email: addForm.email,
         phone: addForm.phone,
         preferredSports: [addForm.preferredSports],
+        playingExperience: 'No Previous Experience',
         status: addForm.status,
         remarks: addForm.remarks,
       });
@@ -115,6 +194,7 @@ export default function MembershipsPage() {
       }
 
       setShowAddModal(false);
+      showToast("Student membership created successfully!", "success");
       setAddForm({
         name: '',
         rollNumber: '',
@@ -129,7 +209,7 @@ export default function MembershipsPage() {
         remarks: '',
       });
     } catch (err) {
-      alert("Error adding membership: " + (err.message || err));
+      showToast("Error adding membership: " + (err.message || err), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -138,15 +218,27 @@ export default function MembershipsPage() {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingApp) return;
+
+    if (editForm.playingExperience === 'Have Playing Experience') {
+      const hasCert = editForm.experienceCertificateFileId || editingApp.experienceCertificateFileId;
+      if (!hasCert) {
+        showToast("Please ensure an experience certificate is associated with candidates having playing experience.", "warning");
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     try {
       await updateApplication(editingApp.id, {
         ...editForm,
-        preferredSports: [editForm.preferredSports]
+        preferredSports: [editForm.preferredSports],
+        playingExperience: editForm.playingExperience,
+        experienceCertificateFileId: editForm.playingExperience === 'No Previous Experience' ? undefined : (editForm.experienceCertificateFileId || editingApp.experienceCertificateFileId),
       });
+      showToast("Membership application details updated successfully.", "success");
       setEditingApp(null);
     } catch (err) {
-      alert("Error updating application: " + err.message);
+      showToast("Error updating application: " + err.message, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -157,11 +249,54 @@ export default function MembershipsPage() {
     setIsSubmitting(true);
     try {
       await deleteApplication(deletingApp.id);
+      showToast("Membership record deleted.", "success");
       setDeletingApp(null);
     } catch (err) {
-      alert("Error deleting application: " + err.message);
+      showToast("Error deleting application: " + err.message, "error");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleRevokeToRegistrations = async (app) => {
+    setIsSubmitting(true);
+    try {
+      await updateApplicationStatus(app._convexId || app.id, 'Pending', 'Membership revoked for re-evaluation by Directorate');
+      showToast(`Membership revoked for ${app.name}. Returned to Registrations review queue.`, 'warning');
+    } catch (err) {
+      showToast('Error revoking membership: ' + (err.message || err), 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSuspendMember = async (app) => {
+    try {
+      await updateApplicationStatus(app.id, 'Suspended', 'Membership suspended by Directorate');
+      showToast(`Membership suspended for ${app.name}.`, 'warning');
+    } catch (err) {
+      showToast('Error suspending membership: ' + (err.message || err), 'error');
+    }
+  };
+
+  const handleReactivateMember = async (app) => {
+    try {
+      await updateApplicationStatus(app.id, 'Approved', 'Membership reactivated by Directorate');
+      showToast(`Membership reactivated for ${app.name}.`, 'success');
+    } catch (err) {
+      showToast('Error reactivating membership: ' + (err.message || err), 'error');
+    }
+  };
+
+  const handleRevokeAndReject = async (app) => {
+    if (!window.confirm(`Revoke and reject membership for ${app.name} (${app.rollNumber})?`)) {
+      return;
+    }
+    try {
+      await updateApplicationStatus(app.id, 'Rejected', 'Membership revoked and rejected by Directorate');
+      showToast('Membership revoked and marked as Rejected.', 'error');
+    } catch (err) {
+      showToast('Error rejecting membership: ' + (err.message || err), 'error');
     }
   };
 
@@ -189,7 +324,7 @@ export default function MembershipsPage() {
     return matchesSearch && matchesStatus && matchesDepartment && matchesYear && matchesGender && matchesSport;
   });
 
-  const activeFilterCount = (statusFilter !== 'All' ? 1 : 0) + 
+  const activeFilterCount = (statusFilter !== 'Approved' ? 1 : 0) + 
                             (deptFilter !== 'All' ? 1 : 0) + 
                             (yearFilter !== 'All' ? 1 : 0) + 
                             (genderFilter !== 'All' ? 1 : 0) + 
@@ -199,7 +334,7 @@ export default function MembershipsPage() {
   // Enterprise Export to Excel
   const handleExportToExcel = () => {
     if (filteredApps.length === 0) {
-      alert("No membership records match the current filter criteria to export.");
+      showToast("No membership records match the current filter criteria to export.", "warning");
       return;
     }
 
@@ -214,6 +349,8 @@ export default function MembershipsPage() {
       "Email Address": app.email || '',
       "Phone Number": app.phone || '',
       "Preferred Sport": Array.isArray(app.preferredSports) ? app.preferredSports.join(", ") : (app.preferredSports || ''),
+      "Playing Experience": app.playingExperience || 'No Previous Experience',
+      "Has Certificate": (app.experienceCertificateFileId || app.experienceCertificateUrl) ? 'Yes' : 'No',
       "Review Status": app.status || 'Pending',
       "Applied Date": app.appliedDate || '',
       "Directorate Remarks": app.remarks || '',
@@ -232,6 +369,8 @@ export default function MembershipsPage() {
       { wch: 28 }, // Email
       { wch: 16 }, // Phone
       { wch: 22 }, // Preferred Sport
+      { wch: 24 }, // Playing Experience
+      { wch: 16 }, // Has Certificate
       { wch: 14 }, // Status
       { wch: 14 }, // Applied Date
       { wch: 45 }, // Remarks
@@ -243,7 +382,17 @@ export default function MembershipsPage() {
     const dateTag = new Date().toISOString().split('T')[0];
     const fileName = `KITS_Sports_Memberships_${dateTag}.xlsx`;
     XLSX.writeFile(workbook, fileName);
+    showToast(`Exported ${filteredApps.length} membership records to Excel.`, "success");
   };
+
+  if (isLoading || isLoadingApplications) {
+    return (
+      <AdminTablePageSkeleton 
+        title="Official Sports Club Memberships" 
+        subtitle="Loading inducted student athletes and active sports club membership records..." 
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -251,8 +400,8 @@ export default function MembershipsPage() {
       {/* Header & Action Toolbar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[var(--border-color)] pb-4">
         <div>
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">Membership Approvals & Data Management</h2>
-          <p className="text-xs text-[var(--text-muted)]">Enterprise portal to add, review, filter, edit, delete, and export student sports club registrations.</p>
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">Official Sports Club Memberships</h2>
+          <p className="text-xs text-[var(--text-muted)]">Official roster of inducted student athletes and active sports club members. Search, manage disciplinary status, onboard members, and export records.</p>
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
@@ -277,25 +426,44 @@ export default function MembershipsPage() {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <span className="text-xs text-[var(--text-muted)] font-semibold">Approved Members</span>
-          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{applications.filter(a => a.status === 'Approved').length}</p>
+      {/* Notice Banner */}
+      <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 text-xs text-blue-900 dark:text-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm">
+        <div className="flex items-center gap-2">
+          <span className="px-2 py-0.5 rounded bg-[#0b2e5b] text-white font-extrabold text-[10px] tracking-wide uppercase">Notice</span>
+          <span>Showing approved student club members. New student applications can be reviewed and approved in the <strong>Registrations</strong> queue.</span>
         </div>
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <span className="text-xs text-[var(--text-muted)] font-semibold">Pending Review</span>
-          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{applications.filter(a => a.status === 'Pending').length}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <span className="text-xs text-[var(--text-muted)] font-semibold">Rejected / Suspended</span>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400">{applications.filter(a => a.status === 'Rejected' || a.status === 'Suspended').length}</p>
-        </div>
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-          <span className="text-xs text-[var(--text-muted)] font-semibold">Filtered Output</span>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{filteredApps.length} <span className="text-xs text-[var(--text-muted)] font-normal">/ {applications.length} total</span></p>
-        </div>
+        <a
+          href="/admin/registrations"
+          className="inline-flex items-center gap-1 font-bold text-[#0d3a73] dark:text-blue-400 hover:underline shrink-0"
+        >
+          <span>Go to Registrations Review</span>
+          <span>→</span>
+        </a>
       </div>
+
+      {/* Summary Cards */}
+      {isLoading ? (
+        <MetricCardSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <span className="text-xs text-[var(--text-muted)] font-semibold">Approved Members</span>
+            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{applications.filter(a => a.status === 'Approved').length}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <span className="text-xs text-[var(--text-muted)] font-semibold">Pending Review</span>
+            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{applications.filter(a => a.status === 'Pending').length}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <span className="text-xs text-[var(--text-muted)] font-semibold">Rejected / Suspended</span>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{applications.filter(a => a.status === 'Rejected' || a.status === 'Suspended').length}</p>
+          </div>
+          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
+            <span className="text-xs text-[var(--text-muted)] font-semibold">Filtered Output</span>
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{filteredApps.length} <span className="text-xs text-[var(--text-muted)] font-normal">/ {applications.length} total</span></p>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area with Enterprise Filters */}
       <div className="p-5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
@@ -426,6 +594,7 @@ export default function MembershipsPage() {
                   <th className="p-3">Roll & Dept</th>
                   <th className="p-3">Gender & Sec</th>
                   <th className="p-3">Sport Preference</th>
+                  <th className="p-3">Certificate</th>
                   <th className="p-3">Contact Email & Phone</th>
                   <th className="p-3">Status</th>
                   <th className="p-3 text-right">Actions</th>
@@ -450,6 +619,26 @@ export default function MembershipsPage() {
                       </span>
                     </td>
                     <td className="p-3 whitespace-nowrap">
+                      {app.experienceCertificateUrl ? (
+                        <a
+                          href={app.experienceCertificateUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 text-[11px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors"
+                          title="View Experience Certificate PDF"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                          <span>View Certificate</span>
+                        </a>
+                      ) : app.playingExperience === 'Have Playing Experience' ? (
+                        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                          No Certificate
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-[var(--text-muted)]">—</span>
+                      )}
+                    </td>
+                    <td className="p-3 whitespace-nowrap">
                       <div>{app.email}</div>
                       <div className="text-[10px] text-[var(--text-muted)]">{app.phone}</div>
                     </td>
@@ -464,46 +653,21 @@ export default function MembershipsPage() {
                       </span>
                     </td>
                     <td className="p-3 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-1.5">
-                        
-                        {/* Quick Approve / Reject for Pending */}
-                        {app.status === 'Pending' && (
-                          <>
-                            <button
-                              onClick={() => updateApplicationStatus(app.id, 'Approved', 'Membership approved by Physical Education Desk')}
-                              className="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition-colors cursor-pointer"
-                              title="Approve Membership"
-                            >
-                              Approve
-                            </button>
-                            <button
-                              onClick={() => updateApplicationStatus(app.id, 'Rejected', 'Membership application rejected')}
-                              className="px-2 py-1 rounded bg-red-600 hover:bg-red-500 text-white text-[11px] font-bold transition-colors cursor-pointer"
-                              title="Reject Application"
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
-
-                        {/* Edit Button */}
+                      <div className="flex items-center justify-end">
+                        {/* Actions Trigger Button */}
                         <button
-                          onClick={() => handleOpenEdit(app)}
-                          className="p-1.5 rounded-lg bg-[var(--bg-card-subtle)] text-blue-600 dark:text-blue-400 border border-[var(--border-color)] hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
-                          title="Edit Application Details"
+                          onClick={(e) => handleToggleMenu(e, app)}
+                          className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-sm ${
+                            activeMenu?.id === app.id
+                              ? 'bg-blue-600 text-white border-blue-600 shadow-md ring-2 ring-blue-500/20'
+                              : 'bg-[var(--bg-card)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-blue-500/40 hover:bg-[var(--bg-card-subtle)]'
+                          }`}
+                          title="Membership Actions"
                         >
-                          <Edit className="w-3.5 h-3.5" />
+                          <MoreVertical className={`w-3.5 h-3.5 ${activeMenu?.id === app.id ? 'text-white' : 'text-blue-600 dark:text-blue-400'}`} />
+                          <span>Actions</span>
+                          <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${activeMenu?.id === app.id ? 'rotate-180 text-white' : 'text-[var(--text-muted)]'}`} />
                         </button>
-
-                        {/* Delete Button */}
-                        <button
-                          onClick={() => setDeletingApp(app)}
-                          className="p-1.5 rounded-lg bg-[var(--bg-card-subtle)] text-red-600 dark:text-red-400 border border-[var(--border-color)] hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
-                          title="Delete Application Record"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-
                       </div>
                     </td>
                   </tr>
@@ -513,6 +677,145 @@ export default function MembershipsPage() {
           </div>
         )}
       </div>
+
+      {/* ================= FLOATING ACTIONS MENU (NEVER CLIPPED) ================= */}
+      {activeMenu && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: 'fixed',
+            top: activeMenu.openUpward ? 'auto' : `${activeMenu.rectBottom + 6}px`,
+            bottom: activeMenu.openUpward ? `${window.innerHeight - activeMenu.rectTop + 6}px` : 'auto',
+            right: `${activeMenu.right}px`,
+            maxHeight: 'min(360px, calc(100vh - 32px))',
+            zIndex: 99999,
+          }}
+          className="floating-action-menu w-56 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-[0_20px_50px_rgba(0,0,0,0.25)] p-1.5 animate-fadeIn text-xs space-y-1 divide-y divide-[var(--border-color)]/70 overflow-y-auto"
+        >
+          {/* Header */}
+          <div className="px-3 py-1.5 flex items-center justify-between text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+            <span>Membership Actions</span>
+            <span className="font-mono text-[10px] text-blue-600 dark:text-blue-400 font-bold">{activeMenu.app.id}</span>
+          </div>
+
+          {/* Edit & Certificate */}
+          <div className="space-y-0.5 pt-1">
+            <button
+              onClick={() => {
+                const app = activeMenu.app;
+                setActiveMenu(null);
+                handleOpenEdit(app);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[var(--text-primary)] hover:bg-blue-50 dark:hover:bg-blue-500/10 hover:text-blue-600 transition-colors cursor-pointer font-semibold"
+            >
+              <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+              <span>Edit Member</span>
+            </button>
+
+            {activeMenu.app.experienceCertificateUrl && (
+              <a
+                href={activeMenu.app.experienceCertificateUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setActiveMenu(null)}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-[var(--text-primary)] hover:bg-indigo-50 dark:hover:bg-indigo-500/10 hover:text-indigo-600 transition-colors cursor-pointer font-semibold"
+              >
+                <FileText className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span>View Certificate PDF</span>
+              </a>
+            )}
+          </div>
+
+          {/* Status & Lifecycle Decisions */}
+          <div className="space-y-0.5 pt-1">
+            {activeMenu.app.status !== 'Pending' && (
+              <button
+                onClick={() => {
+                  const app = activeMenu.app;
+                  setActiveMenu(null);
+                  handleRevokeToRegistrations(app);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors cursor-pointer font-semibold"
+              >
+                <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span>Revoke to Review</span>
+              </button>
+            )}
+
+            {activeMenu.app.status === 'Approved' && (
+              <button
+                onClick={() => {
+                  const app = activeMenu.app;
+                  setActiveMenu(null);
+                  handleSuspendMember(app);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition-colors cursor-pointer font-semibold"
+              >
+                <PauseCircle className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>Suspend Member</span>
+              </button>
+            )}
+
+            {activeMenu.app.status === 'Suspended' && (
+              <button
+                onClick={() => {
+                  const app = activeMenu.app;
+                  setActiveMenu(null);
+                  handleReactivateMember(app);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer font-semibold"
+              >
+                <PlayCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>Reactivate Member</span>
+              </button>
+            )}
+
+            {activeMenu.app.status === 'Pending' && (
+              <button
+                onClick={async () => {
+                  const app = activeMenu.app;
+                  setActiveMenu(null);
+                  await updateApplicationStatus(app.id, 'Approved', 'Membership approved by Directorate');
+                  showToast(`Membership approved for ${app.name}.`, 'success');
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors cursor-pointer font-semibold"
+              >
+                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>Approve Membership</span>
+              </button>
+            )}
+
+            {activeMenu.app.status !== 'Rejected' && (
+              <button
+                onClick={() => {
+                  const app = activeMenu.app;
+                  setActiveMenu(null);
+                  handleRevokeAndReject(app);
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer font-semibold"
+              >
+                <X className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+                <span>Reject Membership</span>
+              </button>
+            )}
+          </div>
+
+          {/* Delete Record */}
+          <div className="pt-1">
+            <button
+              onClick={() => {
+                const app = activeMenu.app;
+                setActiveMenu(null);
+                setDeletingApp(app);
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer font-semibold"
+            >
+              <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+              <span>Delete Record</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ================= ADD MEMBERSHIP MODAL (ADMIN) ================= */}
       {showAddModal && (
@@ -883,6 +1186,55 @@ export default function MembershipsPage() {
                   >
                     {AVAILABLE_SPORTS.map(sp => <option key={sp} value={sp}>{sp}</option>)}
                   </select>
+                </div>
+              </div>
+
+              {/* Playing Experience & Certificate */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 rounded-xl bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">
+                <div className="space-y-1">
+                  <label className="block font-semibold text-[var(--text-secondary)]">Playing Experience *</label>
+                  <select
+                    value={editForm.playingExperience}
+                    onChange={(e) => {
+                      const newExp = e.target.value;
+                      setEditForm(prev => ({
+                        ...prev,
+                        playingExperience: newExp,
+                        experienceCertificateFileId: newExp === 'No Previous Experience' ? '' : prev.experienceCertificateFileId,
+                      }));
+                    }}
+                    className="w-full px-3 py-2 rounded-lg bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] font-bold focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="No Previous Experience">No Previous Experience</option>
+                    <option value="Have Playing Experience">Have Playing Experience</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="block font-semibold text-[var(--text-secondary)]">Experience Certificate</label>
+                  {editForm.playingExperience === 'Have Playing Experience' ? (
+                    editForm.experienceCertificateUrl || editingApp.experienceCertificateUrl ? (
+                      <div className="flex items-center gap-2 pt-1.5">
+                        <a
+                          href={editForm.experienceCertificateUrl || editingApp.experienceCertificateUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 text-xs font-bold hover:underline"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>View Certificate (PDF)</span>
+                        </a>
+                      </div>
+                    ) : (
+                      <div className="pt-1.5 text-xs text-amber-600 dark:text-amber-400 font-medium">
+                        No certificate file attached
+                      </div>
+                    )
+                  ) : (
+                    <div className="pt-1.5 text-xs text-[var(--text-muted)] italic">
+                      Cleared for No Previous Experience
+                    </div>
+                  )}
                 </div>
               </div>
 

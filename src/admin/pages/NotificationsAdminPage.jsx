@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
+import { useToast } from '../../context/ToastContext';
+import { TableRowSkeleton, AdminTablePageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Bell, Send, Megaphone, Loader2, Trash2 } from 'lucide-react';
 
 export default function NotificationsAdminPage() {
-  const { notifications, broadcastNotification, deleteNotification, clearNotifications } = useConvexState();
+  const { notifications, broadcastNotification, deleteNotification, clearNotifications, isLoading, isLoadingNotifications } = useConvexState();
+  const { showToast } = useToast();
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -15,7 +18,10 @@ export default function NotificationsAdminPage() {
     setIsSubmitting(true);
     try {
       await broadcastNotification(message.trim());
+      showToast("Announcement published and broadcasting live!", "success");
       setMessage('');
+    } catch (err) {
+      showToast("Failed to broadcast announcement: " + (err.message || err), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -25,10 +31,32 @@ export default function NotificationsAdminPage() {
     setDeletingId(id);
     try {
       await deleteNotification(id);
+      showToast("Announcement removed.", "info");
+    } catch (err) {
+      showToast("Failed to delete announcement: " + (err.message || err), "error");
     } finally {
       setDeletingId(null);
     }
   };
+
+  const handleClearAll = async () => {
+    if (!window.confirm("Are you sure you want to clear all live announcements?")) return;
+    try {
+      await clearNotifications();
+      showToast("All announcements cleared from live broadcast.", "info");
+    } catch (err) {
+      showToast("Failed to clear announcements: " + (err.message || err), "error");
+    }
+  };
+
+  if (isLoading || isLoadingNotifications) {
+    return (
+      <AdminTablePageSkeleton 
+        title="Announcement Broadcaster" 
+        subtitle="Loading broadcast announcements history..." 
+      />
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -39,7 +67,7 @@ export default function NotificationsAdminPage() {
         </div>
         {notifications.length > 0 && (
           <button 
-            onClick={clearNotifications} 
+            onClick={handleClearAll} 
             className="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors cursor-pointer self-start sm:self-auto"
           >
             Clear All Announcements
@@ -96,7 +124,9 @@ export default function NotificationsAdminPage() {
           <span className="text-[11px] text-[var(--text-muted)]">Updates in real-time</span>
         </div>
 
-        {notifications.length === 0 ? (
+        {isLoading ? (
+          <TableRowSkeleton rows={3} />
+        ) : notifications.length === 0 ? (
           <EmptyState
             title="No Active Announcements"
             description="Use the form above to broadcast official announcements to the top website banner."

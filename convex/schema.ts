@@ -67,6 +67,8 @@ export default defineSchema({
     email: v.string(),
     phone: v.string(),
     preferredSports: v.union(v.array(v.string()), v.string()),
+    playingExperience: v.optional(v.string()),
+    experienceCertificateFileId: v.optional(v.string()),
     status: v.string(),
     remarks: v.string(),
     appliedDate: v.string(),

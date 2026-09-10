@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
-import { CardSkeleton } from '../../components/LoadingSkeleton';
+import { useToast } from '../../context/ToastContext';
+import { CardSkeleton, AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Trophy, Plus, Edit, Trash2, MapPin, X, Upload, Loader2 } from 'lucide-react';
 import { compressImage } from '../../utils/imageCompressor';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 
 export default function SportsAdminPage() {
-  const { sports, addSport, updateSport, deleteSport, isLoading } = useConvexState();
+  const { sports, addSport, updateSport, deleteSport, isLoading, isLoadingSports } = useConvexState();
+  const { showToast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
   const [editingSport, setEditingSport] = useState(null);
@@ -35,7 +37,7 @@ export default function SportsAdminPage() {
         const compressed = await compressImage(file);
         callback(compressed);
       } catch (err) {
-        alert("Failed to process image: " + err.message);
+        showToast("Failed to process image: " + err.message, "error");
       }
     }
   };
@@ -70,9 +72,12 @@ export default function SportsAdminPage() {
     try {
       if (editingImageSport) {
         await updateSport(editingImageSport.id, { image: newImageUrl });
+        showToast(`Image updated for ${editingImageSport.name}.`, 'success');
       }
       setShowImageModal(false);
       setEditingImageSport(null);
+    } catch (err) {
+      showToast('Failed to update image: ' + (err.message || err), 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -100,17 +105,40 @@ export default function SportsAdminPage() {
 
       if (editingSport) {
         await updateSport(editingSport.id, payload);
+        showToast(`Sport "${formData.name}" updated successfully!`, 'success');
       } else {
         await addSport(payload);
+        showToast(`Sport discipline "${formData.name}" created successfully!`, 'success');
       }
       setShowModal(false);
       setEditingSport(null);
+    } catch (err) {
+      showToast('Error saving sport: ' + (err.message || err), 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleDeleteSport = async (sport) => {
+    if (!window.confirm(`Are you sure you want to delete "${sport.name}"?`)) return;
+    try {
+      await deleteSport(sport.id);
+      showToast(`Sport discipline "${sport.name}" deleted.`, 'info');
+    } catch (err) {
+      showToast('Failed to delete sport: ' + (err.message || err), 'error');
+    }
+  };
+
   const inputClass = "w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs focus:border-blue-500 focus:outline-none";
+
+  if (isLoading || isLoadingSports) {
+    return (
+      <AdminGridPageSkeleton 
+        title="Sports Discipline Management" 
+        subtitle="Loading sports panels, assigned coordinators, venues, and schedules..." 
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -213,8 +241,8 @@ export default function SportsAdminPage() {
                 <span>Edit Details</span>
               </button>
               <button
-                onClick={() => deleteSport(s.id)}
-                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-red-200 dark:border-red-500/30 transition-colors"
+                onClick={() => handleDeleteSport(s)}
+                className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 border border-red-200 dark:border-red-500/30 transition-colors cursor-pointer"
                 title="Delete Sport"
               >
                 <Trash2 className="w-3.5 h-3.5" />

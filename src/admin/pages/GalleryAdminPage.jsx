@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
-import { CardSkeleton } from '../../components/LoadingSkeleton';
+import { useToast } from '../../context/ToastContext';
+import { CardSkeleton, AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Image as ImageIcon, Plus, Pencil, Trash2, X, Link as LinkIcon, Loader2, Search, Filter } from 'lucide-react';
 import { compressImage } from '../../utils/imageCompressor';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 
 export default function GalleryAdminPage() {
-  const { gallery, addGalleryItem, updateGalleryItem, deleteGalleryItem, isLoading } = useConvexState();
+  const { gallery, addGalleryItem, updateGalleryItem, deleteGalleryItem, isLoading, isLoadingGallery } = useConvexState();
+  const { showToast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,8 +61,9 @@ export default function GalleryAdminPage() {
       try {
         const compressed = await compressImage(file);
         setFormData(prev => ({ ...prev, image: compressed }));
+        showToast("Image processed and ready.", "info");
       } catch (err) {
-        alert("Failed to process image: " + err.message);
+        showToast("Failed to process image: " + err.message, "error");
       } finally {
         setIsCompressing(false);
       }
@@ -69,18 +72,24 @@ export default function GalleryAdminPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.title.trim()) {
+      showToast("Please provide a title for the media item.", "warning");
+      return;
+    }
     setIsSubmitting(true);
     try {
       if (editingItem) {
         await updateGalleryItem(editingItem.id, formData);
+        showToast(`Gallery item "${formData.title}" updated successfully!`, "success");
       } else {
         await addGalleryItem(formData);
+        showToast(`New media "${formData.title}" added to gallery!`, "success");
       }
       setShowModal(false);
       setEditingItem(null);
       setFormData(defaultForm);
     } catch (err) {
-      console.error("Failed to save gallery media:", err);
+      showToast("Failed to save gallery media: " + (err.message || err), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +97,12 @@ export default function GalleryAdminPage() {
 
   const handleDelete = async (id, title) => {
     if (window.confirm(`Are you sure you want to delete "${title || 'this media item'}"?`)) {
-      await deleteGalleryItem(id);
+      try {
+        await deleteGalleryItem(id);
+        showToast(`Deleted "${title || 'media item'}" from gallery.`, "info");
+      } catch (err) {
+        showToast("Failed to delete media: " + (err.message || err), "error");
+      }
     }
   };
 
@@ -103,6 +117,15 @@ export default function GalleryAdminPage() {
       (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
+
+  if (isLoading || isLoadingGallery) {
+    return (
+      <AdminGridPageSkeleton 
+        title="Media Gallery Management" 
+        subtitle="Loading campus sports events and tournament media..." 
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

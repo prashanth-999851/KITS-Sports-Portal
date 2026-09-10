@@ -43,8 +43,39 @@ export function ConvexStateProvider({ children }) {
   const qCoreValues = useQuery(api.coreValues.list);
   const qRules = useQuery(api.rules.list);
   const qJntukPlayers = useQuery(api.jntukPlayers.list);
+  const qSessionValidation = useQuery(
+    api.users.validateSession,
+    adminSessionToken ? { sessionToken: adminSessionToken } : "skip"
+  );
 
-  const isLoading = qSports === undefined || qExecutiveBody === undefined || qSettings === undefined || qAchievements === undefined;
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
+
+  useEffect(() => {
+    if (adminSessionToken && qSessionValidation !== undefined) {
+      if (!qSessionValidation.isValid) {
+        setIsSessionExpired(true);
+      } else {
+        setIsSessionExpired(false);
+      }
+    }
+  }, [adminSessionToken, qSessionValidation]);
+
+  const isLoadingApplications = adminSessionToken ? qApplications === undefined : false;
+  const isLoadingStudents = adminSessionToken ? qStudents === undefined : false;
+  const isLoadingSports = qSports === undefined;
+  const isLoadingAchievements = qAchievements === undefined;
+  const isLoadingExecutive = qExecutiveBody === undefined;
+  const isLoadingJntukPlayers = qJntukPlayers === undefined;
+  const isLoadingGallery = qGallery === undefined;
+  const isLoadingNotifications = qNotifications === undefined;
+  const isLoadingUsers = adminSessionToken && currentUser?.role === 'Super Admin' ? qUsers === undefined : false;
+
+  const isLoading = 
+    qSports === undefined || 
+    qExecutiveBody === undefined || 
+    qSettings === undefined || 
+    qAchievements === undefined ||
+    (adminSessionToken ? (qApplications === undefined || qStudents === undefined) : false);
 
   const rawSports = qSports ?? [];
   const rawAchievements = qAchievements ?? [];
@@ -133,6 +164,9 @@ export function ConvexStateProvider({ children }) {
     status: a.status,
     appliedDate: a.appliedDate,
     remarks: a.remarks,
+    playingExperience: a.playingExperience || '',
+    experienceCertificateFileId: a.experienceCertificateFileId || '',
+    experienceCertificateUrl: a.experienceCertificateUrl || null,
   }));
 
   // Master Students Roster: components expect { id, name, rollNumber, department, year, section, email, phone, gender, sportId, status, createdAt }
@@ -242,6 +276,7 @@ export function ConvexStateProvider({ children }) {
   const updateRegStatus = useMutation(api.registrations.updateStatus);
   const updateRegistrationMut = useMutation(api.registrations.update);
   const removeRegistration = useMutation(api.registrations.remove);
+  const generateUploadUrlMut = useMutation(api.files.generateUploadUrl);
   const createStudentMut = useMutation(api.students.create);
   const updateStudentMut = useMutation(api.students.update);
   const removeStudentMut = useMutation(api.students.remove);
@@ -267,18 +302,37 @@ export function ConvexStateProvider({ children }) {
   const updateSettingsBatch = useMutation(api.settings.updateBatch);
   const createAuditLog = useMutation(api.auditLogs.create);
 
-  // ========== HELPER: Audit Log ==========
+  // ========== HELPER: Audit Log & Error Interceptor ==========
+  const handleMutationError = (err) => {
+    const rawMsg = err?.message || String(err || '');
+    if (
+      rawMsg.includes('session expired') || 
+      rawMsg.includes('Admin session expired') || 
+      rawMsg.includes('session is no longer valid')
+    ) {
+      setIsSessionExpired(true);
+    }
+  };
+
   const requireSessionToken = () => {
     if (!currentUser?.sessionToken) {
+      setIsSessionExpired(true);
       throw new Error('Admin session expired. Please sign in again.');
     }
     return currentUser.sessionToken;
   };
 
-  const withSession = (args = {}) => ({
-    ...args,
-    sessionToken: requireSessionToken(),
-  });
+  const withSession = (args = {}) => {
+    try {
+      return {
+        ...args,
+        sessionToken: requireSessionToken(),
+      };
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
 
   const logAction = async (action, details) => {
     if (!currentUser?.sessionToken) return;
@@ -291,6 +345,7 @@ export function ConvexStateProvider({ children }) {
         details,
       });
     } catch (e) {
+      handleMutationError(e);
       console.error("Audit log error:", e);
     }
   };
@@ -322,6 +377,21 @@ export function ConvexStateProvider({ children }) {
     }
   };
 
+  // ========== FILE STORAGE & UPLOADS ==========
+  const uploadExperienceCertificate = async (file) => {
+    const postUrl = await generateUploadUrlMut();
+    const result = await fetch(postUrl, {
+      method: "POST",
+      headers: { "Content-Type": file.type || "application/pdf" },
+      body: file,
+    });
+    if (!result.ok) {
+      throw new Error(`Failed to upload certificate. Server returned ${result.status}`);
+    }
+    const { storageId } = await result.json();
+    return storageId;
+  };
+
   // ========== PUBLIC ACTIONS ==========
   const addStudentApplication = async (appData) => {
     try {
@@ -335,54 +405,73 @@ export function ConvexStateProvider({ children }) {
         email: appData.email,
         phone: appData.phone,
         preferredSports: appData.preferredSports,
+        playingExperience: appData.playingExperience,
+        experienceCertificateFileId: appData.experienceCertificateFileId || undefined,
         status: appData.status || undefined,
         remarks: appData.remarks || undefined,
       });
       return trackingId;
     } catch (err) {
       console.error("Registration error:", err);
-      return `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      throw err;
     }
   };
 
   // ========== ADMIN CRUD ACTIONS ==========
   const updateApplicationStatus = async (id, newStatus, remarks) => {
     const app = applications.find(a => a.id === id || a._convexId === id);
-    const targetId = app ? app._convexId : id;
+    const targetId = app ? (app.id || app._convexId) : id;
     if (targetId) {
-      await updateRegStatus(withSession({ id: targetId, status: newStatus, remarks: remarks || undefined }));
-      await logAction('UPDATE_APPLICATION_STATUS', `Application ${id} status updated to ${newStatus}.`);
+      try {
+        await updateRegStatus(withSession({ id: targetId, status: newStatus, remarks: remarks || undefined }));
+        await logAction('UPDATE_APPLICATION_STATUS', `Application ${id} status updated to ${newStatus}.`);
+      } catch (err) {
+        handleMutationError(err);
+        throw err;
+      }
     }
   };
 
   const updateApplication = async (id, appData) => {
     const app = applications.find(a => a.id === id || a._convexId === id);
-    const targetId = app ? app._convexId : id;
+    const targetId = app ? (app.id || app._convexId) : id;
     if (targetId) {
-      await updateRegistrationMut(withSession({
-        id: targetId,
-        studentName: appData.name || appData.studentName,
-        rollNumber: appData.rollNumber,
-        department: appData.department,
-        year: appData.year,
-        section: appData.section,
-        gender: appData.gender,
-        email: appData.email,
-        phone: appData.phone,
-        preferredSports: appData.preferredSports,
-        status: appData.status,
-        remarks: appData.remarks,
-      }));
-      await logAction('UPDATE_APPLICATION', `Application ${id} updated.`);
+      try {
+        await updateRegistrationMut(withSession({
+          id: targetId,
+          studentName: appData.name || appData.studentName,
+          rollNumber: appData.rollNumber,
+          department: appData.department,
+          year: appData.year,
+          section: appData.section,
+          gender: appData.gender,
+          email: appData.email,
+          phone: appData.phone,
+          preferredSports: appData.preferredSports,
+          playingExperience: appData.playingExperience,
+          experienceCertificateFileId: appData.experienceCertificateFileId,
+          status: appData.status,
+          remarks: appData.remarks,
+        }));
+        await logAction('UPDATE_APPLICATION', `Application ${id} updated.`);
+      } catch (err) {
+        handleMutationError(err);
+        throw err;
+      }
     }
   };
 
   const deleteApplication = async (id) => {
     const app = applications.find(a => a.id === id || a._convexId === id);
-    const targetId = app ? app._convexId : id;
+    const targetId = app ? (app.id || app._convexId) : id;
     if (targetId) {
-      await removeRegistration(withSession({ id: targetId }));
-      await logAction('DELETE_APPLICATION', `Application ${id} deleted.`);
+      try {
+        await removeRegistration(withSession({ id: targetId }));
+        await logAction('DELETE_APPLICATION', `Application ${id} deleted.`);
+      } catch (err) {
+        handleMutationError(err);
+        throw err;
+      }
     }
   };
 
@@ -635,6 +724,17 @@ export function ConvexStateProvider({ children }) {
   return (
     <ConvexStateContext.Provider value={{
       isLoading,
+      isLoadingApplications,
+      isLoadingStudents,
+      isLoadingSports,
+      isLoadingAchievements,
+      isLoadingExecutive,
+      isLoadingJntukPlayers,
+      isLoadingGallery,
+      isLoadingNotifications,
+      isLoadingUsers,
+      isSessionExpired,
+      setIsSessionExpired,
       currentUser,
       users,
       sports,
@@ -651,6 +751,8 @@ export function ConvexStateProvider({ children }) {
       rules,
       login,
       logout,
+      generateUploadUrl: generateUploadUrlMut,
+      uploadExperienceCertificate,
       addStudentApplication,
       updateApplicationStatus,
       updateApplication,

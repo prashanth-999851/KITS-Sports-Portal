@@ -165,7 +165,7 @@ export default function ContactSection({ onBack }) {
   const faqs = [
     {
       q: "How can I register for college sports teams and trials?",
-      a: "Students can register online through our official Membership Portal. Trials are conducted at the beginning of each semester for all 11 sports disciplines."
+      a: "Students can register online through our official Registration Portal. Trials are conducted at the beginning of each semester for all 11 sports disciplines."
     },
     {
       q: "Are academic attendance on-duties (OD) provided for tournaments?",
@@ -197,10 +197,10 @@ export default function ContactSection({ onBack }) {
       office: "Sports Club, Room No: 29"
     },
     {
-      name: "M. Bharath Kumar",
+      name: "N. Prasanth Chowdary",
       role: "Club President",
       dept: "Department of Physical Education",
-      phone: "+91 91827 55664",
+      phone: "+91 95155 68743",
       office: "Sports Club, Room No: 29"
     }
   ];
@@ -215,7 +215,7 @@ export default function ContactSection({ onBack }) {
       />
 
       {/* Main Page Body */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-36 lg:pt-40 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
 
         {/* Banner */}
         <div className="p-5 sm:p-6 rounded-2xl bg-[#0b2e5b] text-white shadow-md space-y-2.5">

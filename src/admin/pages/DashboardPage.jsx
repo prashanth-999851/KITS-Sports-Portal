@@ -1,15 +1,37 @@
 import React from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
-import { LoadingSpinner } from '../../components/LoadingSkeleton';
+import { AdminDashboardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Users, UserCheck, Clock, XCircle, Trophy, Calendar, Activity, Award, BarChart2, PieChart as PieIcon, FileText } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 export default function DashboardPage() {
-  const { applications, sports, jntukPlayers = [], executiveBody = [], achievements, isLoading } = useConvexState();
+  const { 
+    applications, 
+    sports, 
+    jntukPlayers = [], 
+    executiveBody = [], 
+    achievements, 
+    isLoading,
+    isLoadingApplications,
+    isLoadingSports,
+    isLoadingAchievements,
+    isLoadingJntukPlayers,
+    isLoadingExecutive 
+  } = useConvexState();
 
-  if (isLoading) {
-    return <LoadingSpinner text="Loading Admin Dashboard Analytics..." />;
+  const isDashboardLoading = 
+    isLoading || 
+    isLoadingApplications || 
+    isLoadingSports || 
+    isLoadingAchievements || 
+    isLoadingJntukPlayers || 
+    isLoadingExecutive || 
+    !achievements?.tallies ||
+    !applications;
+
+  if (isDashboardLoading) {
+    return <AdminDashboardSkeleton />;
   }
 
   const totalApps = applications.length;
@@ -161,11 +183,11 @@ export default function DashboardPage() {
 
       {/* Recent Applications Activity List */}
       <div className="p-6 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-4">
-        <h3 className="text-sm font-bold text-[var(--text-primary)]">Recent Membership Requests</h3>
+        <h3 className="text-sm font-bold text-[var(--text-primary)]">Recent Registration & Membership Requests</h3>
         
         {recentApplications.length === 0 ? (
           <EmptyState
-            title="No Recent Membership Requests"
+            title="No Recent Registration Requests"
             description="There are currently no student registration requests in the system."
             icon={FileText}
           />

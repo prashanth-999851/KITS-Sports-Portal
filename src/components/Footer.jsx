@@ -17,7 +17,7 @@ export default function Footer({ setActiveSection }) {
                 className="h-10 w-auto object-contain" 
               />
               <div>
-                <h4 className="text-sm font-bold text-white tracking-wide">KiTS Sports Club</h4>
+                <h4 className="text-sm font-bold text-white tracking-wide">K<span className="text-red-500">i</span>TS Sports Club</h4>
                 <p className="text-[10px] text-slate-500">Official Sports Portal</p>
               </div>
             </div>
@@ -56,7 +56,7 @@ export default function Footer({ setActiveSection }) {
             <ul className="space-y-2">
               {[
                 { id: 'jntuk-players', label: 'JNTUK Players', url: '/jntuk-players' },
-                { id: 'membership', label: 'Membership & Registration', url: '/register' },
+                { id: 'registration', label: 'Sports Registration', url: '/register' },
                 { id: 'gallery', label: 'Gallery' },
                 { id: 'rules', label: 'Constitution', url: '/rules' },
                 { id: 'contact', label: 'Contact Us', url: '/contact' }

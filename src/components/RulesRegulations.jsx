@@ -114,7 +114,7 @@ export default function RulesRegulations({ onBack }) {
       />
 
       {/* Main Page Layout */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 lg:pt-32 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-36 lg:pt-40 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
         
         {/* Banner */}
         <div className="p-5 sm:p-6 rounded-2xl bg-[#0b2e5b] text-white shadow-md space-y-3">

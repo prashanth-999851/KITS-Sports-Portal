@@ -110,7 +110,7 @@ export default function Hero({ onJoinClick, onExploreClick }) {
       </div>
 
       {/* Content Container */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 pt-32 sm:pt-36 lg:pt-40 pb-12 sm:pb-16 lg:pb-20">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-10 lg:px-16 pt-36 sm:pt-36 lg:pt-40 pb-12 sm:pb-16 lg:pb-20">
 
         {/* DESKTOP LAYOUT (Left-Aligned Full-Bleed Content) */}
         <div className="hidden lg:block max-w-xl space-y-5">
@@ -118,7 +118,7 @@ export default function Hero({ onJoinClick, onExploreClick }) {
           {/* Title */}
           <div className="space-y-3">
             <h1 className="text-hero font-extrabold tracking-tight leading-[1.15] text-white">
-              KiTS
+              K<span className="text-red-500">i</span>TS
               <span className="block text-amber-400">Sports Club</span>
             </h1>
             <p className={`${tw`text-bodyLg`} text-slate-300/90 font-normal leading-relaxed max-w-md`}>
@@ -169,7 +169,7 @@ export default function Hero({ onJoinClick, onExploreClick }) {
           {/* Title */}
           <div className="space-y-2">
             <h1 className="text-hero font-extrabold tracking-tight leading-tight">
-              KiTS <span className="text-amber-400">Sports Club</span>
+              K<span className="text-red-500">i</span>TS <span className="text-amber-400">Sports Club</span>
             </h1>
             <p className={`${tw`text-bodyLg`} text-slate-300 font-normal max-w-md mx-auto`}>
               Official Platform for Sports Registrations, Tournaments, and Athletic Excellence.

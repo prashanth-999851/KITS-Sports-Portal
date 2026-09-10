@@ -28,13 +28,14 @@ const RegistrationView = lazy(() => import('../views/RegistrationView'));
 const RulesRegulations = lazy(() => import('../components/RulesRegulations'));
 const ContactSection = lazy(() => import('../components/ContactSection'));
 
-// Admin Architecture & Guards (Lazily Loaded)
-const ProtectedRoute = lazy(() => import('../admin/ProtectedRoute'));
-const AdminLayout = lazy(() => import('../admin/AdminLayout'));
+// Admin Architecture & Guards (Eagerly Loaded for Immediate Shell Paint on Reload)
+import ProtectedRoute from '../admin/ProtectedRoute';
+import AdminLayout from '../admin/AdminLayout';
 
 // Admin Pages (Lazily Loaded)
 const AdminLoginPage = lazy(() => import('../admin/pages/AdminLoginPage'));
 const DashboardPage = lazy(() => import('../admin/pages/DashboardPage'));
+const RegistrationsAdminPage = lazy(() => import('../admin/pages/RegistrationsAdminPage'));
 const MembershipsPage = lazy(() => import('../admin/pages/MembershipsPage'));
 const SportsAdminPage = lazy(() => import('../admin/pages/SportsAdminPage'));
 const AchievementsAdminPage = lazy(() => import('../admin/pages/AchievementsAdminPage'));
@@ -47,8 +48,15 @@ const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <LoadingSpinner text="Loading Sports Portal..." />
+    <div className="min-h-screen bg-[#0b1e38] text-white flex flex-col items-center justify-center space-y-4 animate-fadeIn">
+      <div className="relative w-16 h-16 flex items-center justify-center">
+        <div className="absolute inset-0 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
+        <img src="/logo.png" alt="KITS" className="w-10 h-10 object-contain drop-shadow-md" />
+      </div>
+      <div className="text-center space-y-1">
+        <p className="text-sm font-bold text-white tracking-wide">KiTS Sports Directorate</p>
+        <p className="text-xs text-slate-400 animate-pulse">Loading Sports Management Portal...</p>
+      </div>
     </div>
   );
 }
@@ -89,6 +97,7 @@ export default function AppRouter() {
               >
                 <Route index element={<Navigate to="/admin/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
+                <Route path="registrations" element={<RegistrationsAdminPage />} />
                 <Route path="memberships" element={<MembershipsPage />} />
                 <Route path="sports" element={<SportsAdminPage />} />
                 <Route path="achievements" element={<AchievementsAdminPage />} />

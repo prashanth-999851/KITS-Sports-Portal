@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
 import { useToast } from '../../context/ToastContext';
-import { CardSkeleton } from '../../components/LoadingSkeleton';
+import { CardSkeleton, AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { Award, Medal, Trophy, Plus, X, Trash2, Edit, Loader2 } from 'lucide-react';
 import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 
 export default function AchievementsAdminPage() {
-  const { achievements, addAchievement, deleteAchievement, updateSettings, isLoading } = useConvexState();
+  const { achievements, addAchievement, deleteAchievement, updateSettings, isLoading, isLoadingAchievements } = useConvexState();
   const { showToast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [showTallyModal, setShowTallyModal] = useState(false);
@@ -101,7 +101,26 @@ export default function AchievementsAdminPage() {
     setShowTallyModal(true);
   };
 
+  const handleDeleteAward = async (award) => {
+    if (!window.confirm(`Are you sure you want to delete the award "${award.title}"?`)) return;
+    try {
+      await deleteAchievement(award.id);
+      showToast(`Award "${award.title}" removed successfully.`, 'info');
+    } catch (err) {
+      showToast('Failed to delete award: ' + (err.message || err), 'error');
+    }
+  };
+
   const inputClass = "w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs focus:border-blue-500 focus:outline-none";
+
+  if (isLoading || isLoadingAchievements) {
+    return (
+      <AdminGridPageSkeleton 
+        title="Achievements & Wall of Fame Manager" 
+        subtitle="Loading institutional medal tallies and sports achievements..." 
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -192,8 +211,8 @@ export default function AchievementsAdminPage() {
               <p className="text-[var(--text-secondary)] leading-relaxed">{award.achievement}</p>
             </div>
             <button
-              onClick={() => deleteAchievement(award.id)}
-              className="absolute top-3 right-3 p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+              onClick={() => handleDeleteAward(award)}
+              className="absolute top-3 right-3 p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
               title="Delete Achievement"
             >
               <Trash2 className="w-4 h-4" />
