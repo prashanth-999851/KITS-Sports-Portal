@@ -173,58 +173,52 @@ export default function Navbar({
 
       {/* 2. Announcement Header */}
       {hasNotifications && (
-        <div className={`bg-black text-white py-1.5 px-3 sm:px-4 ${tw`text-helper`} flex items-center overflow-hidden border-t border-white/10 shadow-inner select-none`}>
+        <div className="bg-gradient-to-r from-[#0b2e5b] to-[#143d6b] py-1.5 px-3 sm:px-5 flex items-center overflow-hidden select-none">
           
-          <div className="shrink-0 bg-black pr-3.5 z-10 border-r border-white/20">
-            <span className={`${tw`text-caption`} font-extrabold uppercase tracking-wider text-amber-400`}>
-              Announcements
+          <div className="shrink-0 pr-3 sm:pr-4 z-10 flex items-center gap-1.5 border-r border-white/15 mr-3 sm:mr-4">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400" />
+            </span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-white/80">
+              Updates
             </span>
           </div>
 
-          {/* Realistic Continuous Scrolling Ticker */}
-          <div className="flex-1 overflow-hidden relative pl-4">
-            <div className="animate-ticker whitespace-nowrap flex items-center text-white">
+          {/* Scrolling Ticker */}
+          <div className="flex-1 overflow-hidden relative">
+            <div className="animate-ticker whitespace-nowrap flex items-center">
               
               {/* Track 1 */}
               <div className="flex items-center shrink-0">
                 {tickerItems.map((notif, idx) => (
                   <div key={`t1-${idx}`} className="inline-flex items-center">
-                    <div className="inline-flex items-center gap-2">
-                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
-                        {notif.category || 'NOTICE'}
+                    <span className="text-[11px] sm:text-xs font-semibold text-amber-300">
+                      {notif.title}
+                    </span>
+                    {notif.message && (
+                      <span className="text-[11px] sm:text-xs text-white ml-1.5">
+                        — {notif.message}
                       </span>
-                      <span className="font-semibold text-[#f8fafc] text-xs">
-                        {notif.title}
-                      </span>
-                      {notif.message && (
-                        <span className="text-slate-400 text-xs">
-                          — {notif.message}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-amber-400/80 font-bold mx-3.5 text-xs select-none" aria-hidden="true">•</span>
+                    )}
+                    <span className="text-amber-400/40 mx-5 text-[8px] select-none" aria-hidden="true">●</span>
                   </div>
                 ))}
               </div>
 
-              {/* Track 2 (Duplicate for Seamless Infinite Marquee Loop) */}
+              {/* Track 2 (Duplicate for Seamless Loop) */}
               <div className="flex items-center shrink-0">
                 {tickerItems.map((notif, idx) => (
                   <div key={`t2-${idx}`} className="inline-flex items-center">
-                    <div className="inline-flex items-center gap-2">
-                      <span className="inline-flex items-center justify-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 uppercase tracking-wider">
-                        {notif.category || 'NOTICE'}
+                    <span className="text-[11px] sm:text-xs font-semibold text-amber-300">
+                      {notif.title}
+                    </span>
+                    {notif.message && (
+                      <span className="text-[11px] sm:text-xs text-white ml-1.5">
+                        — {notif.message}
                       </span>
-                      <span className="font-semibold text-[#f8fafc] text-xs">
-                        {notif.title}
-                      </span>
-                      {notif.message && (
-                        <span className="text-slate-400 text-xs">
-                          — {notif.message}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-amber-400/80 font-bold mx-3.5 text-xs select-none" aria-hidden="true">•</span>
+                    )}
+                    <span className="text-amber-400/40 mx-5 text-[8px] select-none" aria-hidden="true">●</span>
                   </div>
                 ))}
               </div>
