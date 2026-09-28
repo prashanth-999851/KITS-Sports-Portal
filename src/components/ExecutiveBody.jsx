@@ -144,11 +144,21 @@ export default function ExecutiveBody() {
                   </h3>
                 </div>
 
-                <div className="flex flex-wrap justify-center items-start gap-6 sm:gap-10 md:gap-16 lg:gap-20 max-w-sm sm:max-w-none mx-auto">
-                  {studentLeads.map((member) => (
+                {/* First row: up to 5 members */}
+                <div className="flex flex-wrap justify-center items-start gap-4 sm:gap-6 md:gap-10 lg:gap-14 max-w-sm sm:max-w-none mx-auto">
+                  {studentLeads.slice(0, 5).map((member) => (
                     <MemberCard key={member.id} member={member} />
                   ))}
                 </div>
+
+                {/* Remaining rows */}
+                {studentLeads.length > 5 && (
+                  <div className="flex flex-wrap justify-center items-start gap-6 sm:gap-10 md:gap-16 lg:gap-20 max-w-sm sm:max-w-none mx-auto">
+                    {studentLeads.slice(5).map((member) => (
+                      <MemberCard key={member.id} member={member} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
