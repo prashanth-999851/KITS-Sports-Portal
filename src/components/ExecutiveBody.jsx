@@ -17,7 +17,7 @@ function ExecutiveSkeleton() {
       {/* Tier 2 Skeleton (2 in a row on mobile) */}
       <div className="flex justify-center gap-4 sm:gap-10 md:gap-16">
         {Array.from({ length: 2 }).map((_, idx) => (
-          <div key={idx} className="flex flex-col items-center text-center space-y-2.5 w-36 sm:w-48">
+          <div key={idx} className="flex flex-col items-center text-center space-y-2.5 w-full max-w-[10rem] sm:w-48 sm:max-w-none">
             <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full skeleton-shimmer ring-4 ring-slate-100" />
             <div className="space-y-1 w-full flex flex-col items-center">
               <div className="h-3.5 w-3/4 skeleton-shimmer rounded" />
@@ -32,7 +32,7 @@ function ExecutiveSkeleton() {
 
 function MemberCard({ member, isTopTier = false }) {
   return (
-    <div className="group flex flex-col items-center text-center space-y-2.5 sm:space-y-3 w-36 sm:w-48 md:w-52 animate-slideUp cursor-default">
+    <div className="group flex flex-col items-center text-center space-y-2.5 sm:space-y-3 w-full max-w-[10rem] sm:w-48 sm:max-w-none md:w-52 animate-slideUp cursor-default">
       {/* Circular Portrait Frame */}
       <div className="relative">
         <div className={`rounded-full p-1 sm:p-1.5 bg-white border-2 border-slate-200 shadow-md group-hover:border-[#0b2e5b] group-hover:shadow-lg transition-all duration-300 ${
@@ -126,7 +126,7 @@ export default function ExecutiveBody() {
 
               {/* Tier 2: Next Management Members */}
               {tier2.length > 0 && (
-                <div className="flex flex-wrap justify-center items-start gap-6 sm:gap-10 md:gap-16 lg:gap-20 max-w-sm sm:max-w-none mx-auto pt-2">
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center sm:items-start gap-4 sm:gap-10 md:gap-16 lg:gap-20 justify-items-center mx-auto pt-2">
                   {tier2.map((member) => (
                     <MemberCard key={member.id} member={member} />
                   ))}
@@ -145,7 +145,7 @@ export default function ExecutiveBody() {
                 </div>
 
                 {/* First row: up to 5 members */}
-                <div className="student-leads-row-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-6 gap-x-4 sm:gap-x-6 lg:gap-x-8 justify-items-center max-w-sm sm:max-w-none mx-auto">
+                <div className="student-leads-row-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-6 gap-x-4 sm:gap-x-6 lg:gap-x-8 justify-items-center mx-auto">
                   {studentLeads.slice(0, 5).map((member) => (
                     <MemberCard key={member.id} member={member} />
                   ))}
@@ -153,7 +153,7 @@ export default function ExecutiveBody() {
 
                 {/* Remaining rows */}
                 {studentLeads.length > 5 && (
-                  <div className="flex flex-wrap justify-center items-start gap-6 sm:gap-10 md:gap-16 lg:gap-20 max-w-sm sm:max-w-none mx-auto">
+                  <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center sm:items-start gap-4 sm:gap-10 md:gap-16 lg:gap-20 justify-items-center mx-auto">
                     {studentLeads.slice(5).map((member) => (
                       <MemberCard key={member.id} member={member} />
                     ))}
