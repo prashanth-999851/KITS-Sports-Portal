@@ -144,11 +144,27 @@ export default function ExecutiveBody() {
                   </h3>
                 </div>
 
-                {/* All student leads in a single grid — continuous flow on mobile */}
-                <div className="student-leads-row-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-6 gap-x-4 sm:gap-x-6 lg:gap-x-8 justify-items-center mx-auto">
+                {/* Mobile: single continuous grid (2 per row) */}
+                <div className="sm:hidden grid grid-cols-2 gap-y-6 gap-x-4 justify-items-center mx-auto">
                   {studentLeads.map((member) => (
                     <MemberCard key={member.id} member={member} />
                   ))}
+                </div>
+
+                {/* Desktop: first 5 in a row, remaining centered below */}
+                <div className="hidden sm:block space-y-6">
+                  <div className="flex flex-wrap justify-center gap-x-6 lg:gap-x-8 gap-y-6">
+                    {studentLeads.slice(0, 5).map((member) => (
+                      <MemberCard key={member.id} member={member} />
+                    ))}
+                  </div>
+                  {studentLeads.length > 5 && (
+                    <div className="flex flex-wrap justify-center gap-x-6 lg:gap-x-8 gap-y-6">
+                      {studentLeads.slice(5).map((member) => (
+                        <MemberCard key={member.id} member={member} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
