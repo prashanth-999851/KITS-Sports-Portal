@@ -84,7 +84,7 @@ export default function Navbar({
               className="flex items-center gap-2.5 cursor-pointer group"
             >
               <img 
-                src="/logo.png" 
+                src="/logo.png?v=2" 
                 alt="KiTS Sports Club" 
                 className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />

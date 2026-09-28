@@ -145,7 +145,7 @@ export default function ExecutiveBody() {
                 </div>
 
                 {/* First row: up to 5 members */}
-                <div className="flex flex-wrap justify-center items-start gap-4 sm:gap-6 md:gap-10 lg:gap-14 max-w-sm sm:max-w-none mx-auto">
+                <div className="student-leads-row-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-6 gap-x-4 sm:gap-x-6 lg:gap-x-8 justify-items-center max-w-sm sm:max-w-none mx-auto">
                   {studentLeads.slice(0, 5).map((member) => (
                     <MemberCard key={member.id} member={member} />
                   ))}

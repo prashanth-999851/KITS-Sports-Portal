@@ -11,7 +11,7 @@ export default function Footer({ setActiveSection }) {
           <div className="space-y-4 md:col-span-1">
             <div className="flex items-center gap-2.5">
               <img 
-                src="/logo.png" 
+                src="/logo.png?v=2" 
                 alt="Logo" 
                 className="h-10 w-auto object-contain" 
               />

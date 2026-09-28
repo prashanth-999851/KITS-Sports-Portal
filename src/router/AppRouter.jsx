@@ -76,7 +76,7 @@ function PageLoader() {
     <div className="min-h-screen bg-[#0b1e38] text-white flex flex-col items-center justify-center space-y-4 animate-fadeIn">
       <div className="relative w-16 h-16 flex items-center justify-center">
         <div className="absolute inset-0 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
-        <img src="/logo.png" alt="KITS" className="w-10 h-10 object-contain drop-shadow-md" />
+        <img src="/logo.png?v=2" alt="KITS" className="w-10 h-10 object-contain drop-shadow-md" />
       </div>
       <div className="text-center space-y-1">
         <p className="text-sm font-bold text-white tracking-wide">KiTS Sports Directorate</p>

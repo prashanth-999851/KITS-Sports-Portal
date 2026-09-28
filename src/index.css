@@ -298,6 +298,12 @@ h1, h2, h3, h4, h5, h6 {
   background: #1a5cad;
 }
 
+/* Student Leads 5-column first row: override MemberCard fixed widths so cards fill grid cells */
+.student-leads-row-5 > div {
+  width: 100%;
+  max-width: 13rem;
+}
+
 /* Typography Design System Utilities */
 @layer utilities {
   .text-hero {
