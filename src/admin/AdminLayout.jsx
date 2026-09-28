@@ -72,7 +72,7 @@ export default function AdminLayout() {
           {/* Header Logo */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-4">
             <div className="flex items-center gap-3">
-              <img src="/logo.png?v=2" alt="KITS Logo" className="h-8 w-auto object-contain" />
+              <img src="/kits_logo.png?v=2" alt="KITS Logo" className="h-8 w-auto object-contain" />
               <div>
                 <h2 className="text-sm font-bold text-white leading-none">KITS Admin</h2>
                 <p className="text-[10px] text-amber-400 font-semibold mt-0.5">Management Portal</p>

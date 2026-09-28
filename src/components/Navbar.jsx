@@ -84,7 +84,7 @@ export default function Navbar({
               className="flex items-center gap-2.5 cursor-pointer group"
             >
               <img 
-                src="/logo.png?v=2" 
+                src="/kits_logo.png?v=2" 
                 alt="KiTS Sports Club" 
                 className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />
@@ -131,16 +131,18 @@ export default function Navbar({
                   </span>
                 </button>
 
-                <div className="absolute right-0 top-full mt-1 w-48 rounded-xl bg-white border border-slate-200 shadow-2xl p-1.5 hidden group-hover:block animate-fadeIn z-50">
-                  {navLinks.slice(7).map((link) => (
-                    <button
-                      key={link.id}
-                      onClick={() => handleNavClick(link.id)}
-                      className={`w-full text-left px-3 py-2 rounded-lg ${tw`text-body`} font-semibold text-slate-700 hover:text-[#0b2e5b] hover:bg-slate-50 transition-colors`}
-                    >
-                      {link.label}
-                    </button>
-                  ))}
+                <div className="absolute right-0 top-full w-48 pt-2 hidden group-hover:block z-50">
+                  <div className="rounded-xl bg-white border border-slate-200 shadow-2xl p-1.5 animate-fadeIn">
+                    {navLinks.slice(7).map((link) => (
+                      <button
+                        key={link.id}
+                        onClick={() => handleNavClick(link.id)}
+                        className={`w-full text-left px-3 py-2 rounded-lg ${tw`text-body`} font-semibold text-slate-700 hover:text-[#0b2e5b] hover:bg-slate-50 transition-colors`}
+                      >
+                        {link.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </nav>

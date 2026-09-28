@@ -142,7 +142,7 @@ export default function AdminLoginPage() {
         {/* Logo Banner */}
         <div className="text-center space-y-2">
           <img 
-            src="/logo.png?v=2" 
+            src="/kits_logo.png?v=2" 
             alt="KiTS Logo" 
             className="h-16 w-auto object-contain mx-auto" 
           />

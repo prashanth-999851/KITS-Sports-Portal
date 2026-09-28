@@ -129,7 +129,9 @@ export default function ContactSection({ onBack }) {
     return !Object.values(newErrors).some(Boolean);
   };
 
-  const handleSubmit = (e) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateAll()) {
@@ -147,9 +149,40 @@ export default function ContactSection({ onBack }) {
       message: sanitizeInput(formState.message.trim()),
     };
 
-    console.log("Inquiry transmitted:", sanitizedData);
-    setSubmitted(true);
-    showToast("Your inquiry has been successfully transmitted to the Sports Directorate!", "success");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/kitssportsclub.ksc@gmail.com", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          _subject: `[KiTS Sports] ${sanitizedData.category} — ${sanitizedData.subject}`,
+          _template: "table",
+          _captcha: "false",
+          Name: sanitizedData.name,
+          Email: sanitizedData.email,
+          Phone: sanitizedData.phone,
+          Category: sanitizedData.category,
+          Subject: sanitizedData.subject,
+          Message: sanitizedData.message,
+        }),
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        showToast("Your inquiry has been successfully sent to the Sports Directorate!", "success");
+      } else {
+        showToast("Failed to send inquiry. Please try again.", "error");
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      showToast("Network error. Please check your connection and try again.", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getInputClass = (fieldName) => {
@@ -376,10 +409,24 @@ export default function ContactSection({ onBack }) {
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl font-bold text-xs bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-98"
+                  disabled={isSubmitting}
+                  className={`w-full py-3 rounded-xl font-bold text-xs text-white transition-all duration-200 flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-98 ${
+                    isSubmitting 
+                      ? 'bg-slate-400 cursor-not-allowed' 
+                      : 'bg-[#0b2e5b] hover:bg-[#0d3a73]'
+                  }`}
                 >
-                  <Send className="w-4 h-4" />
-                  <span>Transmit Inquiry to Sports Office</span>
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      <span>Transmit Inquiry to Sports Office</span>
+                    </>
+                  )}
                 </button>
               </form>
             )}
