@@ -65,7 +65,7 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
   const displayList = maxDisplay ? filteredAthletes.slice(0, maxDisplay) : filteredAthletes;
 
   return (
-    <section id="jntuk-players" className={`${isEmbedded ? 'py-6' : 'py-12 sm:py-16'} bg-slate-50 transition-colors`}>
+    <section id="jntuk-players" className={`${isEmbedded ? 'py-6' : 'pt-12 sm:pt-14 lg:pt-16 pb-12 sm:pb-16'} bg-slate-50 transition-colors`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* Section Header */}

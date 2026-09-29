@@ -26,6 +26,7 @@ const JntukStarsView = lazy(() => import('../views/JntukStarsView'));
 const RegistrationView = lazy(() => import('../views/RegistrationView'));
 const RulesRegulations = lazy(() => import('../components/RulesRegulations'));
 const ContactSection = lazy(() => import('../components/ContactSection'));
+const SportsMembersView = lazy(() => import('../views/SportsMembersView'));
 
 // Admin Architecture & Guards (Eagerly Loaded for Immediate Shell Paint on Reload)
 import ProtectedRoute from '../admin/ProtectedRoute';
@@ -71,6 +72,11 @@ function ContactSectionWrapper() {
   return <ContactSection onBack={() => navigate('/')} />;
 }
 
+function SportsMembersViewWrapper() {
+  const navigate = useNavigate();
+  return <SportsMembersView onBack={() => navigate('/')} />;
+}
+
 function PageLoader() {
   return (
     <div className="min-h-screen bg-[#0b1e38] text-white flex flex-col items-center justify-center space-y-4 animate-fadeIn">
@@ -104,6 +110,7 @@ export default function AppRouter() {
               <Route path="/about" element={<AboutViewWrapper />} />
               <Route path="/jntuk-players" element={<JntukStarsViewWrapper />} />
               <Route path="/jntuk-stars" element={<JntukStarsViewWrapper />} />
+              <Route path="/sports-members" element={<SportsMembersViewWrapper />} />
               <Route path="/rules" element={<RulesRegulationsWrapper />} />
               <Route path="/constitution" element={<RulesRegulationsWrapper />} />
               <Route path="/contact" element={<ContactSectionWrapper />} />

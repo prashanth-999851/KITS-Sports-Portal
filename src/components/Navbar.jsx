@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useConvexState } from '../context/ConvexStateContext';
@@ -13,6 +13,21 @@ export default function Navbar({
   const { notifications = [] } = useConvexState();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [mobileMenuOpen]);
+
   const navLinks = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About' },
@@ -20,18 +35,14 @@ export default function Navbar({
     { id: 'executive', label: 'Leadership' },
     { id: 'achievements', label: 'Achievements' },
     { id: 'jntuk-players', label: 'JNTUK Players' },
-    { id: 'gallery', label: 'Gallery' },
+    { id: 'sports-members', label: 'Sports Members' },
     { id: 'rules', label: 'Rules' },
+    { id: 'gallery', label: 'Gallery' },
     { id: 'contact', label: 'Contact' },
   ];
 
   const handleNavClick = (id) => {
     setMobileMenuOpen(false);
-
-    if (setActiveSection) {
-      setActiveSection(id);
-      return;
-    }
 
     const routeMap = {
       home: '/',
@@ -40,6 +51,7 @@ export default function Navbar({
       executive: '/#executive',
       achievements: '/#achievements',
       'jntuk-players': '/jntuk-players',
+      'sports-members': '/sports-members',
       membership: '/register',
       registration: '/register',
       gallery: '/#gallery',
@@ -48,15 +60,27 @@ export default function Navbar({
     };
 
     const targetRoute = routeMap[id] || '/';
-    if (targetRoute.startsWith('/#')) {
-      if (window.location.pathname !== '/') {
-        navigate(targetRoute);
-      } else {
-        const sectionId = targetRoute.replace('/#', '');
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+
+    // Standalone page routes: always navigate directly
+    if (!targetRoute.startsWith('/#')) {
+      if (setActiveSection) {
+        setActiveSection(id);
       }
-    } else {
       navigate(targetRoute);
+      return;
+    }
+
+    // In-page hash sections
+    if (setActiveSection) {
+      setActiveSection(id);
+      return;
+    }
+
+    if (window.location.pathname !== '/') {
+      navigate(targetRoute);
+    } else {
+      const sectionId = targetRoute.replace('/#', '');
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -227,41 +251,47 @@ export default function Navbar({
         </div>
       )}
 
-      {/* 3. Mobile Navigation Drawer */}
+      {/* 3. Mobile Navigation Drawer & Backdrop */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-slate-200 shadow-xl px-4 pt-3 pb-6 space-y-3 animate-fadeIn">
-          {navLinks.map((link) => {
-            const isActive = activeSection === link.id;
-            return (
+        <>
+          <div 
+            className="lg:hidden fixed inset-0 top-16 bg-black/40 z-40 backdrop-blur-xs animate-fadeIn"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="lg:hidden relative z-50 bg-white border-b border-slate-200 shadow-2xl px-4 pt-3 pb-6 space-y-3 max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain animate-fadeIn">
+            {navLinks.map((link) => {
+              const isActive = activeSection === link.id;
+              return (
+                <button
+                  key={link.id}
+                  onClick={() => handleNavClick(link.id)}
+                  className={`w-full text-left px-3 py-2.5 ${tw`text-body`} font-semibold transition-all border-l-2 cursor-pointer ${
+                    isActive
+                      ? 'border-[#0b2e5b] text-[#0b2e5b] bg-slate-50 pl-4'
+                      : 'border-transparent text-[#0b2e5b] hover:text-[#0b2e5b] hover:border-slate-300 pl-3'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              );
+            })}
+            <div className="pt-3 flex flex-col gap-2 border-t border-slate-200">
               <button
-                key={link.id}
-                onClick={() => handleNavClick(link.id)}
-                className={`w-full text-left px-3 py-2.5 ${tw`text-body`} font-semibold transition-all border-l-2 ${
-                  isActive
-                    ? 'border-[#0b2e5b] text-[#0b2e5b] bg-slate-50 pl-4'
-                    : 'border-transparent text-[#0b2e5b] hover:text-[#0b2e5b] hover:border-slate-300 pl-3'
-                }`}
+                onClick={() => { 
+                  setMobileMenuOpen(false); 
+                  if (onOpenMembership) {
+                    onOpenMembership();
+                  } else {
+                    handleNavClick('membership');
+                  }
+                }}
+                className={`w-full py-2.5 rounded-lg ${tw`text-body`} font-bold bg-[#0b2e5b] text-white text-center transition-colors shadow-sm cursor-pointer`}
               >
-                {link.label}
+                Register for Sports
               </button>
-            );
-          })}
-          <div className="pt-3 flex flex-col gap-2 border-t border-slate-200">
-            <button
-              onClick={() => { 
-                setMobileMenuOpen(false); 
-                if (onOpenMembership) {
-                  onOpenMembership();
-                } else {
-                  handleNavClick('membership');
-                }
-              }}
-              className={`w-full py-2.5 rounded-lg ${tw`text-body`} font-bold bg-[#0b2e5b] text-white text-center transition-colors shadow-sm cursor-pointer`}
-            >
-              Register for Sports
-            </button>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );

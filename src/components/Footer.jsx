@@ -55,6 +55,7 @@ export default function Footer({ setActiveSection }) {
             <ul className="space-y-2">
               {[
                 { id: 'jntuk-players', label: 'JNTUK Players', url: '/jntuk-players' },
+                { id: 'sports-members', label: 'Sports Members', url: '/sports-members' },
                 { id: 'registration', label: 'Sports Registration', url: '/register' },
                 { id: 'gallery', label: 'Gallery' },
                 { id: 'rules', label: 'Constitution', url: '/rules' },

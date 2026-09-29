@@ -23,7 +23,9 @@ import {
 import * as XLSX from 'xlsx';
 
 import { 
-  ADMIN_ACADEMIC_YEARS 
+  ADMIN_ACADEMIC_YEARS,
+  getAvailableDepartments,
+  getAvailableSections
 } from '../../constants/academicRules';
 
 const ALL_FILTER_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];

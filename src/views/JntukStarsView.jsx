@@ -95,7 +95,7 @@ export default function JntukStarsView() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 pt-24 sm:pt-24 lg:pt-28">
+      <main className="flex-1 pt-16 sm:pt-16 lg:pt-16">
         {isLoadingJntukPlayers ? <JntukPlayersPageSkeleton /> : <JntukPlayersSection />}
       </main>
 

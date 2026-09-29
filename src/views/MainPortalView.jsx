@@ -40,7 +40,9 @@ export default function MainPortalView() {
     } else if (id === 'membership' || id === 'register') {
       navigate('/register');
     } else if (id === 'jntuk-players' || id === 'jntuk-stars') {
-      navigate('/jntuk-stars');
+      navigate('/jntuk-players');
+    } else if (id === 'sports-members') {
+      navigate('/sports-members');
     } else if (id === 'admin') {
       navigate('/admin/dashboard');
     } else {

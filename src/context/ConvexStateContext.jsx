@@ -43,6 +43,7 @@ export function ConvexStateProvider({ children }) {
   const qCoreValues = useQuery(api.coreValues.list);
   const qRules = useQuery(api.rules.list);
   const qJntukPlayers = useQuery(api.jntukPlayers.list);
+  const qApprovedMembers = useQuery(api.registrations.listApprovedPublic);
   const qSessionValidation = useQuery(
     api.users.validateSession,
     adminSessionToken ? { sessionToken: adminSessionToken } : "skip"
@@ -66,6 +67,7 @@ export function ConvexStateProvider({ children }) {
   const isLoadingAchievements = qAchievements === undefined;
   const isLoadingExecutive = qExecutiveBody === undefined;
   const isLoadingJntukPlayers = qJntukPlayers === undefined;
+  const isLoadingApprovedMembers = qApprovedMembers === undefined;
   const isLoadingGallery = qGallery === undefined;
   const isLoadingNotifications = qNotifications === undefined;
   const isLoadingUsers = adminSessionToken && currentUser?.role === 'Super Admin' ? qUsers === undefined : false;
@@ -90,6 +92,7 @@ export function ConvexStateProvider({ children }) {
   const rawCoreValues = qCoreValues ?? [];
   const rawRules = qRules ?? [];
   const rawJntukPlayers = qJntukPlayers ?? [];
+  const rawApprovedMembers = qApprovedMembers ?? [];
 
   // ========== TRANSFORM DATA to match component expectations ==========
 
@@ -267,6 +270,16 @@ export function ConvexStateProvider({ children }) {
     photoUrl: p.photoUrl || '',
     achievementDetails: p.achievementDetails || '',
     createdAt: p.createdAt,
+  }));
+
+  // Approved Sports Members (Public)
+  const approvedMembers = rawApprovedMembers.map(m => ({
+    id: m._id,
+    studentName: m.studentName,
+    rollNumber: m.rollNumber,
+    department: m.department,
+    year: m.year,
+    preferredSports: m.preferredSports,
   }));
 
   // ========== CONVEX MUTATIONS ==========
@@ -730,6 +743,7 @@ export function ConvexStateProvider({ children }) {
       isLoadingAchievements,
       isLoadingExecutive,
       isLoadingJntukPlayers,
+      isLoadingApprovedMembers,
       isLoadingGallery,
       isLoadingNotifications,
       isLoadingUsers,
@@ -741,6 +755,7 @@ export function ConvexStateProvider({ children }) {
       achievements,
       executiveBody,
       jntukPlayers,
+      approvedMembers,
       applications,
       students,
       gallery,

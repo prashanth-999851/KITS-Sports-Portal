@@ -470,7 +470,7 @@ export default function RegistrationView({ onBack }) {
       />
 
       {/* Main Registration Body */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-36 lg:pt-40 pb-8 sm:pb-12 space-y-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-[116px] sm:pt-[124px] lg:pt-40 pb-8 sm:pb-12 space-y-8">
         
         {/* Title Header */}
         <div className="text-center space-y-2.5">

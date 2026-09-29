@@ -144,7 +144,7 @@ export default function AdminLoginPage() {
           <img 
             src="/kits_logo.png?v=2" 
             alt="KiTS Logo" 
-            className="h-16 w-auto object-contain mx-auto" 
+            className="h-16 w-16 object-contain mx-auto bg-white rounded-full p-1 shadow-md" 
           />
           <h1 className="text-xl font-extrabold tracking-tight">KiTS Sports Directorate</h1>
           <p className="text-xs text-amber-400 font-semibold">Admin & Sports Officers Console</p>

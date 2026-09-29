@@ -2,6 +2,24 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdmin, sessionToken } from "./auth";
 
+// Public query: returns only approved registrations with limited fields
+export const listApprovedPublic = query({
+  args: {},
+  handler: async (ctx) => {
+    const records = await ctx.db.query("registrations").collect();
+    return records
+      .filter((r) => r.status === "Approved")
+      .map((r) => ({
+        _id: r._id,
+        studentName: r.studentName,
+        rollNumber: r.rollNumber,
+        department: r.department,
+        year: r.year,
+        preferredSports: r.preferredSports,
+      }));
+  },
+});
+
 export const list = query({
   args: { sessionToken },
   handler: async (ctx, args) => {

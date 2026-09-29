@@ -247,7 +247,7 @@ export default function ContactSection({ onBack }) {
       />
 
       {/* Main Page Body */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-36 sm:pt-36 lg:pt-40 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[116px] sm:pt-[120px] lg:pt-32 pb-6 sm:pb-8 space-y-6 sm:space-y-8">
 
         {/* Banner */}
         <div className="p-5 sm:p-6 rounded-2xl bg-[#0b2e5b] text-white shadow-md space-y-2.5">
