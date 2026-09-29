@@ -13,7 +13,7 @@ export default function Footer({ setActiveSection }) {
               <img 
                 src="/kits_logo.png?v=2" 
                 alt="Logo" 
-                className="h-10 w-auto object-contain" 
+                className="h-10 w-10 object-contain bg-white rounded-full p-0.5" 
               />
               <div>
                 <h4 className="text-sm font-bold text-white tracking-wide">K<span className="text-red-500">i</span>TS Sports Club</h4>

@@ -20,7 +20,6 @@ export default function Navbar({
     { id: 'executive', label: 'Leadership' },
     { id: 'achievements', label: 'Achievements' },
     { id: 'jntuk-players', label: 'JNTUK Players' },
-    { id: 'membership', label: 'Registration' },
     { id: 'gallery', label: 'Gallery' },
     { id: 'rules', label: 'Rules' },
     { id: 'contact', label: 'Contact' },
