@@ -1,0 +1,17 @@
+{
+  "short_name": "KiTS Sports",
+  "name": "KiTS Sports Club Portal",
+  "description": "Official Sports Management Portal of KKR & KSR Institute of Technology & Sciences",
+  "icons": [
+    {
+      "src": "/kits_logo.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "https://kitssports.netlify.app/",
+  "scope": "https://kitssports.netlify.app/",
+  "background_color": "#0b1e38",
+  "theme_color": "#0b2e5b",
+  "display": "standalone"
+}

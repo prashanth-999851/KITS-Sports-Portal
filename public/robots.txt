@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /admin
 
-Sitemap: https://kkrksr.ac.in/sitemap.xml
+Sitemap: https://kitssports.netlify.app/sitemap.xml
