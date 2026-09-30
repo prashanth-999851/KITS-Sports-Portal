@@ -8,7 +8,7 @@ import JntukPlayerCrestCard from '../../components/JntukPlayerCrestCard';
 import { 
   Award, Plus, Edit, Trash2, X, Search, Calendar, 
   Trophy, Loader2, FileSpreadsheet, RotateCcw,
-  Users, Eye, Sparkles
+  Users, Eye, Sparkles, ShieldCheck
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { 
@@ -36,6 +36,7 @@ export default function JntukPlayersAdminPage() {
   const [isNormalizing, setIsNormalizing] = useState(false);
 
   // Enterprise Filter States
+  const [selectedCategory, setSelectedCategory] = useState('All'); // 'All' | 'JNTUK' | 'District'
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedSport, setSelectedSport] = useState('All');
@@ -56,10 +57,12 @@ export default function JntukPlayersAdminPage() {
     venueHost: '',
     photo: '',
     achievementDetails: 'Represented JNTUK University Team',
+    level: 'JNTUK',
   });
 
   const handleResetFilters = () => {
     setSearchTerm('');
+    setSelectedCategory('All');
     setSelectedYear('All');
     setSelectedDept('All');
     setSelectedSport('All');
@@ -77,22 +80,28 @@ export default function JntukPlayersAdminPage() {
       venueHost: player.venueHost || '',
       photo: player.photoUrl || '',
       achievementDetails: player.achievementDetails || '',
+      level: player.level === 'District' ? 'District' : 'JNTUK',
     });
     setShowModal(true);
   };
 
-  const handleAddNew = () => {
+  const handleAddNew = (defaultCategory = null) => {
     setEditingPlayer(null);
+    const targetLevel = (typeof defaultCategory === 'string' && defaultCategory !== 'All') 
+      ? defaultCategory 
+      : (selectedCategory !== 'All' ? selectedCategory : 'JNTUK');
+
     setFormData({
       studentName: '',
       rollNumber: '',
       department: 'CSE',
       sport: 'Cricket',
       academicYear: '2024-2025',
-      tournamentName: 'South Zone Inter-University Championship',
+      tournamentName: targetLevel === 'District' ? 'AP State District Championship' : 'South Zone Inter-University Championship',
       venueHost: '',
       photo: '',
-      achievementDetails: 'Represented JNTUK University Team',
+      achievementDetails: targetLevel === 'District' ? 'Represented District Team' : 'Represented JNTUK University Team',
+      level: targetLevel,
     });
     setShowModal(true);
   };
@@ -117,6 +126,7 @@ export default function JntukPlayersAdminPage() {
         venueHost: formData.venueHost.trim(),
         photoUrl: formData.photo,
         achievementDetails: formData.achievementDetails.trim(),
+        level: formData.level === 'District' ? 'District' : 'JNTUK',
       };
 
       if (editingPlayer) {
@@ -124,7 +134,7 @@ export default function JntukPlayersAdminPage() {
         showToast(`Updated record for ${cleanData.studentName}`, 'success');
       } else {
         await addJntukPlayer(cleanData);
-        showToast(`Added ${cleanData.studentName} to JNTUK Roster`, 'success');
+        showToast(`Added ${cleanData.studentName} to ${cleanData.level} Roster`, 'success');
       }
       setShowModal(false);
       setEditingPlayer(null);
@@ -137,7 +147,7 @@ export default function JntukPlayersAdminPage() {
   };
 
   const handleDelete = async (id, name) => {
-    if (window.confirm(`Are you sure you want to remove ${name} from JNTUK Represented Players roster?`)) {
+    if (window.confirm(`Are you sure you want to remove ${name} from Elite Players roster?`)) {
       try {
         await deleteJntukPlayer(id);
         showToast(`Removed ${name} from roster`, 'info');
@@ -169,8 +179,8 @@ export default function JntukPlayersAdminPage() {
 
   // Compute unique athlete counts and identify athletes with multi-year representation
   const athleteCounts = useMemo(() => {
-    return computeJntukPlayerCounts(jntukPlayers);
-  }, [jntukPlayers]);
+    return computeJntukPlayerCounts(jntukPlayers, selectedCategory);
+  }, [jntukPlayers, selectedCategory]);
 
   const multiYearPlayerKeys = useMemo(() => {
     const keyMap = new Map();
@@ -195,14 +205,16 @@ export default function JntukPlayersAdminPage() {
       (player.tournamentName && player.tournamentName.toLowerCase().includes(term)) ||
       (player.venueHost && player.venueHost.toLowerCase().includes(term));
 
+    const matchesCategory = selectedCategory === 'All' || (player.level === 'District' ? 'District' : 'JNTUK') === selectedCategory;
     const matchesYear = selectedYear === 'All' || normalizeAcademicYear(player.academicYear) === normalizeAcademicYear(selectedYear);
     const matchesDept = selectedDept === 'All' || normalizeDepartment(player.department) === normalizeDepartment(selectedDept);
     const matchesSport = selectedSport === 'All' || normalizeSportName(player.sport) === normalizeSportName(selectedSport);
 
-    return matchesSearch && matchesYear && matchesDept && matchesSport;
+    return matchesSearch && matchesCategory && matchesYear && matchesDept && matchesSport;
   });
 
-  const activeFilterCount = (selectedYear !== 'All' ? 1 : 0) + 
+  const activeFilterCount = (selectedCategory !== 'All' ? 1 : 0) +
+                            (selectedYear !== 'All' ? 1 : 0) + 
                             (selectedDept !== 'All' ? 1 : 0) + 
                             (selectedSport !== 'All' ? 1 : 0) + 
                             (searchTerm ? 1 : 0);
@@ -218,6 +230,7 @@ export default function JntukPlayersAdminPage() {
       "Athlete Name": player.studentName || '',
       "Roll Number": player.rollNumber || '',
       "Department": player.department || '',
+      "Representation Category": player.level === 'District' ? 'District Level' : 'JNTUK Varsity',
       "Sport Discipline": player.sport || '',
       "Academic Year": player.academicYear || '',
       "Tournament Name": player.tournamentName || '',
@@ -231,6 +244,7 @@ export default function JntukPlayersAdminPage() {
       { wch: 25 }, // Athlete Name
       { wch: 16 }, // Roll Number
       { wch: 14 }, // Department
+      { wch: 24 }, // Category
       { wch: 20 }, // Sport Discipline
       { wch: 16 }, // Academic Year
       { wch: 40 }, // Tournament Name
@@ -239,10 +253,10 @@ export default function JntukPlayersAdminPage() {
     ];
 
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "JNTUK Representation");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Elite Players Roster");
 
     const dateTag = new Date().toISOString().split('T')[0];
-    const fileName = `JNTUK_Represented_Athletes_${dateTag}.xlsx`;
+    const fileName = `Elite_Players_Roster_${dateTag}.xlsx`;
     XLSX.writeFile(workbook, fileName);
     showToast(`Exported ${filteredPlayers.length} athlete records to Excel!`, 'success');
   };
@@ -250,8 +264,8 @@ export default function JntukPlayersAdminPage() {
   if (isLoading || isLoadingJntukPlayers) {
     return (
       <AdminGridPageSkeleton 
-        title="JNTUK Represented Players Roster" 
-        subtitle="Loading official JNTUK Varsity athletes roster..." 
+        title="Elite Players Roster" 
+        subtitle="Loading official JNTUK & District athletes roster..." 
       />
     );
   }
@@ -262,8 +276,8 @@ export default function JntukPlayersAdminPage() {
       {/* Header & Action Toolbar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[var(--border-color)] pb-4">
         <div>
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">JNTUK Represented Players Roster</h2>
-          <p className="text-xs text-[var(--text-muted)]">Enterprise management to add, edit, remove, and export official JNTUK Varsity athletes.</p>
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">Elite Players Roster</h2>
+          <p className="text-xs text-[var(--text-muted)]">Enterprise management to add, edit, remove, and export official JNTUK Varsity and District represented athletes.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
@@ -292,11 +306,17 @@ export default function JntukPlayersAdminPage() {
 
           {/* Add Athlete Button */}
           <button
-            onClick={handleAddNew}
+            onClick={() => handleAddNew()}
             className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-[#0d3a73] hover:bg-[#104a8e] text-white transition-all shadow-sm cursor-pointer whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
-            <span>Add JNTUK Athlete</span>
+            <span>
+              {selectedCategory === 'District' 
+                ? 'Add District Athlete' 
+                : selectedCategory === 'JNTUK' 
+                ? 'Add JNTUK Athlete' 
+                : 'Add Elite Athlete'}
+            </span>
           </button>
 
           {/* Export to Excel */}
@@ -308,6 +328,48 @@ export default function JntukPlayersAdminPage() {
             <FileSpreadsheet className="w-4 h-4" />
             <span>Export ({filteredPlayers.length}) to Excel</span>
           </button>
+        </div>
+      </div>
+
+      {/* Category Segmented Selector: All / JNTUK / District */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-card)] p-2 rounded-2xl border border-[var(--border-color)] shadow-xs">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+          <button
+            onClick={() => setSelectedCategory('All')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              selectedCategory === 'All'
+                ? 'bg-white dark:bg-slate-700 text-[#0b2e5b] dark:text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            All Elite Athletes ({jntukPlayers.length})
+          </button>
+          <button
+            onClick={() => setSelectedCategory('JNTUK')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedCategory === 'JNTUK'
+                ? 'bg-[#0b2e5b] text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-300" />
+            <span>JNTUK Varsity ({athleteCounts.jntukTotalRecords || 0})</span>
+          </button>
+          <button
+            onClick={() => setSelectedCategory('District')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedCategory === 'District'
+                ? 'bg-purple-600 text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+            }`}
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span>District Level ({athleteCounts.districtTotalRecords || 0})</span>
+          </button>
+        </div>
+
+        <div className="text-xs text-[var(--text-muted)] px-2">
+          Showing <span className="font-bold text-[var(--text-primary)]">{filteredPlayers.length}</span> of {jntukPlayers.length} athletes
         </div>
       </div>
 
@@ -442,8 +504,18 @@ export default function JntukPlayersAdminPage() {
         <CardSkeleton count={6} />
       ) : filteredPlayers.length === 0 ? (
         <EmptyState
-          title="No JNTUK Represented Players Found"
-          description={activeFilterCount > 0 ? "No student athletes match the active filter criteria. Try resetting your filters." : "Click 'Add JNTUK Athlete' above to register player representations."}
+          title={
+            selectedCategory === 'District'
+              ? 'No District Represented Players Found'
+              : selectedCategory === 'JNTUK'
+              ? 'No JNTUK Represented Players Found'
+              : 'No Elite Players Found'
+          }
+          description={
+            activeFilterCount > 0
+              ? 'No student athletes match the active filter criteria. Try resetting your filters.'
+              : `Click 'Add ${selectedCategory === 'District' ? 'District' : selectedCategory === 'JNTUK' ? 'JNTUK' : 'Elite'} Athlete' above to register player representations.`
+          }
           icon={Award}
         />
       ) : (
@@ -453,8 +525,15 @@ export default function JntukPlayersAdminPage() {
               
               {/* Card Action Header */}
               <div className="flex items-center justify-between pb-2 border-b border-[var(--border-color)] mb-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-[#0b2e5b] text-white">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded border ${
+                    player.level === 'District'
+                      ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800'
+                      : 'bg-blue-50 text-[#0b2e5b] border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+                  }`}>
+                    {player.level === 'District' ? 'District' : 'JNTUK'}
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                     AY {player.academicYear}
                   </span>
                   {multiYearPlayerKeys.has(getPlayerKey(player)) && (
@@ -501,7 +580,7 @@ export default function JntukPlayersAdminPage() {
             <div className="flex items-center justify-between border-b border-slate-200 pb-3">
               <div>
                 <h3 className="text-lg font-bold text-[#0b2e5b]">
-                  {editingPlayer ? 'Edit JNTUK Athlete Representation' : 'Add JNTUK Athlete Representation'}
+                  {editingPlayer ? 'Edit Elite Athlete Representation' : 'Add Elite Athlete Representation'}
                 </h3>
                 <p className="text-xs text-slate-500">Live preview updates instantly as you input details and upload photo.</p>
               </div>
@@ -518,6 +597,48 @@ export default function JntukPlayersAdminPage() {
               
               {/* Left: Input Form (7 cols) */}
               <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-4 text-xs">
+                {/* Level / Category Selector */}
+                <div>
+                  <label className="block text-slate-700 mb-1.5 font-bold">Representation Category / Level *</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
+                        level: 'JNTUK',
+                        tournamentName: prev.tournamentName.includes('District') ? 'South Zone Inter-University Championship' : prev.tournamentName,
+                        achievementDetails: prev.achievementDetails.includes('District') ? 'Represented JNTUK University Team' : prev.achievementDetails,
+                      }))}
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                        formData.level !== 'District'
+                          ? 'border-[#0b2e5b] bg-blue-50/70 text-[#0b2e5b] shadow-xs'
+                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <ShieldCheck className="w-4 h-4 text-[#0b2e5b]" />
+                      <span>JNTUK (University Level)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
+                        level: 'District',
+                        tournamentName: prev.tournamentName.includes('Inter-University') ? 'AP State District Championship' : prev.tournamentName,
+                        achievementDetails: prev.achievementDetails.includes('University') ? 'Represented District Team' : prev.achievementDetails,
+                      }))}
+                      className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                        formData.level === 'District'
+                          ? 'border-purple-600 bg-purple-50 text-purple-900 shadow-xs'
+                          : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
+                      }`}
+                    >
+                      <Trophy className="w-4 h-4 text-purple-600" />
+                      <span>District Level</span>
+                    </button>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-slate-700 mb-1 font-bold">Student Athlete Full Name *</label>
                   <input 

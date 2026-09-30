@@ -108,6 +108,7 @@ export default function AppRouter() {
               <Route path="/membership" element={<RegistrationViewWrapper />} />
               <Route path="/memberships" element={<RegistrationViewWrapper />} />
               <Route path="/about" element={<AboutViewWrapper />} />
+              <Route path="/elite-players" element={<JntukStarsViewWrapper />} />
               <Route path="/jntuk-players" element={<JntukStarsViewWrapper />} />
               <Route path="/jntuk-stars" element={<JntukStarsViewWrapper />} />
               <Route path="/sports-members" element={<SportsMembersViewWrapper />} />
@@ -133,6 +134,7 @@ export default function AppRouter() {
                 <Route path="memberships" element={<MembershipsPage />} />
                 <Route path="sports" element={<SportsAdminPage />} />
                 <Route path="achievements" element={<AchievementsAdminPage />} />
+                <Route path="elite-players" element={<JntukPlayersAdminPage />} />
                 <Route path="jntuk-players" element={<JntukPlayersAdminPage />} />
                 <Route path="executive-body" element={<ExecutiveAdminPage />} />
                 <Route path="gallery" element={<GalleryAdminPage />} />

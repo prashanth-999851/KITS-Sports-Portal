@@ -28,8 +28,10 @@ export default function JntukPlayerCrestCard({
     isMultiYear = false,
     representationCount = 1,
     yearsLabel = '',
+    level = 'JNTUK',
   } = player || {};
 
+  const isDistrict = level === 'District';
   const eventName = sport ? sport.toUpperCase() : 'SPORTS';
   const rollNoDisplay = rollNumber ? rollNumber.toUpperCase() : '';
   const nameDisplay = studentName ? studentName.toUpperCase() : 'ATHLETE NAME';
@@ -43,7 +45,9 @@ export default function JntukPlayerCrestCard({
     >
       {/* Plain Diamond Portrait Frame (Rotated Square) */}
       <div className="relative py-2 sm:py-3">
-        <div className="w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 p-1 bg-white border border-gray-300 shadow-md group-hover:border-[#0b2e5b] group-hover:shadow-lg transition-all duration-300 rotate-45 rounded-2xl sm:rounded-3xl overflow-hidden">
+        <div className={`w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 p-1 bg-white border ${
+          isDistrict ? 'border-purple-300 group-hover:border-purple-600' : 'border-gray-300 group-hover:border-[#0b2e5b]'
+        } shadow-md group-hover:shadow-lg transition-all duration-300 rotate-45 rounded-2xl sm:rounded-3xl overflow-hidden`}>
           <div className="w-full h-full overflow-hidden bg-slate-100 rounded-xl sm:rounded-2xl flex items-center justify-center">
             {hasPhoto ? (
               <img
@@ -64,11 +68,16 @@ export default function JntukPlayerCrestCard({
       {/* Athlete Information Directly Below */}
       <div className="space-y-0.5 sm:space-y-1 max-w-full px-1">
         
-        {/* Multi-Year Varsity Honor Badge */}
-        {isMultiYear && showBadge && (
+        {/* Level & Multi-Year Honor Badge */}
+        {showBadge && (
           <div className="pb-0.5">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-900 border border-amber-300/80 shadow-2xs">
-              <span className="text-amber-600">★</span> {representationCount}x Varsity Athlete
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold shadow-2xs ${
+              isDistrict 
+                ? 'bg-purple-50 text-purple-900 border border-purple-300/80'
+                : 'bg-amber-50 text-amber-900 border border-amber-300/80'
+            }`}>
+              <span className={isDistrict ? 'text-purple-600' : 'text-amber-600'}>★</span> 
+              {isMultiYear ? `${representationCount}x ` : ''}{isDistrict ? 'District Athlete' : 'Varsity Athlete'}
             </span>
           </div>
         )}

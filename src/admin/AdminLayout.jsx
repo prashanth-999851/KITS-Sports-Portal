@@ -44,7 +44,7 @@ export default function AdminLayout() {
     { path: '/admin/memberships', label: 'Memberships', icon: UserCheck },
     { path: '/admin/sports', label: 'Sports Panels', icon: Trophy },
     { path: '/admin/achievements', label: 'Achievements', icon: Award },
-    { path: '/admin/jntuk-players', label: 'JNTUK Representation', icon: ShieldCheck },
+    { path: '/admin/elite-players', label: 'Elite Players', icon: ShieldCheck },
     { path: '/admin/executive-body', label: 'Executive Body', icon: Sparkles },
     { path: '/admin/gallery', label: 'Media Gallery', icon: Image },
     { path: '/admin/notifications', label: 'Notifications', icon: Bell },
@@ -113,12 +113,14 @@ export default function AdminLayout() {
                   key={item.path}
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) => `
+                  className={({ isActive }) => {
+                    const isItemActive = isActive || (item.path === '/admin/elite-players' && window.location.pathname.includes('/admin/jntuk-players'));
+                    return `
                     flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors
-                    ${isActive 
+                    ${isItemActive 
                       ? 'bg-[#0d3a73] text-white shadow-sm font-semibold' 
                       : 'text-slate-400 hover:text-white hover:bg-slate-800/80'}
-                  `}
+                  `;}}
                 >
                   <div className="flex items-center gap-2.5">
                     <Icon className="w-4 h-4" />

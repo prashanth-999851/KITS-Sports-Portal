@@ -162,6 +162,7 @@ export default defineSchema({
     photoStorageId: v.optional(v.string()),
     photoUrl: v.optional(v.string()),
     achievementDetails: v.optional(v.string()),
+    level: v.optional(v.string()), // "JNTUK" | "District" (defaults to "JNTUK")
     createdAt: v.optional(v.string()),
   }),
 });

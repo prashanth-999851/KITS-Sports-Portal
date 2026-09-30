@@ -167,17 +167,27 @@ export function formatAcademicYears(years = []) {
  * 
  * @param {Array} rawPlayers - List of player representation records from database
  * @param {string} activeYear - 'All' or a specific academic year (e.g., '2024-2025')
+ * @param {string} activeLevel - 'All', 'JNTUK', or 'District'
  * @returns {Array} Consolidated unique athlete profiles
  */
-export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All') {
+export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All', activeLevel = 'All') {
   if (!Array.isArray(rawPlayers) || rawPlayers.length === 0) {
+    return [];
+  }
+
+  // Pre-filter by level/category if requested
+  const filteredByLevel = activeLevel === 'All'
+    ? rawPlayers
+    : rawPlayers.filter(p => (p.level === 'District' ? 'District' : 'JNTUK') === activeLevel);
+
+  if (filteredByLevel.length === 0) {
     return [];
   }
 
   // 1. Group records by athlete identity
   const athleteGroups = new Map();
 
-  for (const player of rawPlayers) {
+  for (const player of filteredByLevel) {
     const key = getPlayerKey(player);
     if (!athleteGroups.has(key)) {
       athleteGroups.set(key, []);
@@ -231,10 +241,12 @@ export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All') {
 
     const isMultiYear = distinctYears.length > 1;
     const representationCount = sortedRecords.length;
+    const playerLevel = primaryRecord.level === 'District' ? 'District' : 'JNTUK';
 
     consolidatedList.push({
       // Base attributes from primary record with normalized sport & department
       ...primaryRecord,
+      level: playerLevel,
       sport: normalizeSportName(primaryRecord.sport),
       department: normalizeDepartment(primaryRecord.department),
       academicYear: normalizeAcademicYear(primaryRecord.academicYear),
@@ -255,6 +267,7 @@ export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All') {
       // All participation history for modal timeline
       allRepresentations: sortedRecords.map(r => ({
         ...r,
+        level: r.level === 'District' ? 'District' : 'JNTUK',
         sport: normalizeSportName(r.sport),
         department: normalizeDepartment(r.department),
         academicYear: normalizeAcademicYear(r.academicYear),
@@ -326,18 +339,26 @@ export function filterConsolidatedAthletes(athletes = [], { searchQuery = '', se
 }
 
 /**
- * Computes unique athlete counts per academic year and overall.
+ * Computes unique athlete counts per academic year, per level, and overall.
  */
-export function computeJntukPlayerCounts(rawPlayers = []) {
-  const totalRepresentations = rawPlayers.length;
+export function computeJntukPlayerCounts(rawPlayers = [], activeLevel = 'All') {
+  const levelFiltered = activeLevel === 'All'
+    ? rawPlayers
+    : rawPlayers.filter(p => (p.level === 'District' ? 'District' : 'JNTUK') === activeLevel);
+
+  const totalRepresentations = levelFiltered.length;
   
   // Overall unique athletes
-  const uniqueKeys = new Set(rawPlayers.map(p => getPlayerKey(p)).filter(Boolean));
+  const uniqueKeys = new Set(levelFiltered.map(p => getPlayerKey(p)).filter(Boolean));
   const uniqueAthletesCount = uniqueKeys.size;
 
-  // Counts per academic year
+  // JNTUK vs District unique athlete counts
+  const jntukAthletes = new Set(rawPlayers.filter(p => (p.level || 'JNTUK') !== 'District').map(p => getPlayerKey(p)).filter(Boolean));
+  const districtAthletes = new Set(rawPlayers.filter(p => (p.level || 'JNTUK') === 'District').map(p => getPlayerKey(p)).filter(Boolean));
+
+  // Counts per academic year for current active level
   const yearCounts = {};
-  for (const player of rawPlayers) {
+  for (const player of levelFiltered) {
     const yr = normalizeAcademicYear(player.academicYear);
     if (yr) {
       if (!yearCounts[yr]) {
@@ -356,5 +377,15 @@ export function computeJntukPlayerCounts(rawPlayers = []) {
     totalRepresentations,
     uniqueAthletesCount,
     yearUniqueCounts,
+    jntukCount: jntukAthletes.size,
+    districtCount: districtAthletes.size,
+    jntukTotalRecords: rawPlayers.filter(p => (p.level || 'JNTUK') !== 'District').length,
+    districtTotalRecords: rawPlayers.filter(p => (p.level || 'JNTUK') === 'District').length,
   };
 }
+
+// Aliases for unified Elite Players terminology
+export const consolidateElitePlayers = consolidateJntukPlayers;
+export const filterEliteAthletes = filterConsolidatedAthletes;
+export const computeElitePlayerCounts = computeJntukPlayerCounts;
+

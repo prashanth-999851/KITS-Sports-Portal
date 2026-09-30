@@ -89,6 +89,12 @@ function cleanRollNumber(roll?: string): string {
   return roll.trim().toUpperCase();
 }
 
+function cleanLevel(level?: string): string {
+  if (!level) return "JNTUK";
+  const trimmed = level.trim().toLowerCase();
+  return trimmed.includes("district") ? "District" : "JNTUK";
+}
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -109,6 +115,7 @@ export const create = mutation({
     photoStorageId: v.optional(v.string()),
     photoUrl: v.optional(v.string()),
     achievementDetails: v.optional(v.string()),
+    level: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.sessionToken);
@@ -120,6 +127,7 @@ export const create = mutation({
       department: cleanDepartment(fields.department),
       sport: cleanSport(fields.sport),
       academicYear: cleanAcademicYear(fields.academicYear),
+      level: cleanLevel(fields.level),
       createdAt: new Date().toISOString(),
     });
   },
@@ -139,6 +147,7 @@ export const update = mutation({
     photoStorageId: v.optional(v.string()),
     photoUrl: v.optional(v.string()),
     achievementDetails: v.optional(v.string()),
+    level: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.sessionToken);
@@ -149,6 +158,7 @@ export const update = mutation({
     if (cleanUpdates.department) cleanUpdates.department = cleanDepartment(cleanUpdates.department);
     if (cleanUpdates.sport) cleanUpdates.sport = cleanSport(cleanUpdates.sport);
     if (cleanUpdates.academicYear) cleanUpdates.academicYear = cleanAcademicYear(cleanUpdates.academicYear);
+    if (cleanUpdates.level !== undefined) cleanUpdates.level = cleanLevel(cleanUpdates.level);
 
     await ctx.db.patch(id, cleanUpdates);
   },
@@ -174,6 +184,7 @@ export const normalizeAllRecords = mutation({
       const d = cleanDepartment(record.department);
       const y = cleanAcademicYear(record.academicYear);
       const r = cleanRollNumber(record.rollNumber);
+      const l = cleanLevel(record.level);
       const n = record.studentName ? record.studentName.trim().replace(/\s+/g, ' ') : record.studentName;
 
       if (
@@ -181,6 +192,7 @@ export const normalizeAllRecords = mutation({
         d !== record.department ||
         y !== record.academicYear ||
         r !== record.rollNumber ||
+        l !== record.level ||
         n !== record.studentName
       ) {
         await ctx.db.patch(record._id, {
@@ -188,6 +200,7 @@ export const normalizeAllRecords = mutation({
           department: d,
           academicYear: y,
           rollNumber: r,
+          level: l,
           studentName: n,
         });
         updatedCount++;

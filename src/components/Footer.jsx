@@ -54,7 +54,7 @@ export default function Footer({ setActiveSection }) {
             <h5 className="text-xs font-bold text-slate-300 uppercase tracking-[0.15em] mb-3">Resources</h5>
             <ul className="space-y-2">
               {[
-                { id: 'jntuk-players', label: 'JNTUK Players', url: '/jntuk-players' },
+                { id: 'elite-players', label: 'Elite Players', url: '/elite-players' },
                 { id: 'sports-members', label: 'Sports Members', url: '/sports-members' },
                 { id: 'registration', label: 'Sports Registration', url: '/register' },
                 { id: 'gallery', label: 'Gallery' },

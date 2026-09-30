@@ -34,7 +34,7 @@ export default function Navbar({
     { id: 'sports', label: 'Sports' },
     { id: 'executive', label: 'Leadership' },
     { id: 'achievements', label: 'Achievements' },
-    { id: 'jntuk-players', label: 'JNTUK Players' },
+    { id: 'elite-players', label: 'Elite Players' },
     { id: 'sports-members', label: 'Sports Members' },
     { id: 'rules', label: 'Rules' },
     { id: 'gallery', label: 'Gallery' },
@@ -50,7 +50,9 @@ export default function Navbar({
       sports: '/#sports',
       executive: '/#executive',
       achievements: '/#achievements',
-      'jntuk-players': '/jntuk-players',
+      'elite-players': '/elite-players',
+      'jntuk-players': '/elite-players',
+      'jntuk-stars': '/elite-players',
       'sports-members': '/sports-members',
       membership: '/register',
       registration: '/register',
@@ -119,7 +121,7 @@ export default function Navbar({
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-2 h-16">
               {navLinks.slice(0, 7).map((link) => {
-                const isActive = activeSection === link.id;
+                const isActive = activeSection === link.id || (link.id === 'elite-players' && (activeSection === 'jntuk-players' || activeSection === 'jntuk-stars'));
                 return (
                   <button
                     key={link.id}
@@ -260,7 +262,7 @@ export default function Navbar({
           />
           <div className="lg:hidden relative z-50 bg-white border-b border-slate-200 shadow-2xl px-4 pt-3 pb-6 space-y-3 max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain animate-fadeIn">
             {navLinks.map((link) => {
-              const isActive = activeSection === link.id;
+              const isActive = activeSection === link.id || (link.id === 'elite-players' && (activeSection === 'jntuk-players' || activeSection === 'jntuk-stars'));
               return (
                 <button
                   key={link.id}

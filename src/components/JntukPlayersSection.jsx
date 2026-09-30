@@ -19,37 +19,44 @@ import {
 export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = null }) {
   const { jntukPlayers = [], isLoading } = useConvexState();
 
+  // Category selection: 'JNTUK' or 'District'
+  const [activeCategory, setActiveCategory] = useState('JNTUK');
   const [activeYear, setActiveYear] = useState('All');
   const [selectedSport, setSelectedSport] = useState('All');
   const [selectedDept, setSelectedDept] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPlayerModal, setSelectedPlayerModal] = useState(null);
 
-  // Compute unique athlete counts (both overall unique and per-year unique)
+  // Compute unique athlete counts (both overall and broken down by JNTUK vs District)
   const counts = useMemo(() => {
-    return computeJntukPlayerCounts(jntukPlayers);
-  }, [jntukPlayers]);
+    return computeJntukPlayerCounts(jntukPlayers, activeCategory);
+  }, [jntukPlayers, activeCategory]);
 
-  // Extract unique academic years dynamically from database records (normalized)
+  // Players belonging to the currently active category
+  const categoryPlayers = useMemo(() => {
+    return jntukPlayers.filter(p => (p.level === 'District' ? 'District' : 'JNTUK') === activeCategory);
+  }, [jntukPlayers, activeCategory]);
+
+  // Extract unique academic years dynamically from active category records (normalized)
   const availableYears = useMemo(() => {
-    const years = Array.from(new Set(jntukPlayers.map(p => normalizeAcademicYear(p.academicYear)).filter(Boolean)));
+    const years = Array.from(new Set(categoryPlayers.map(p => normalizeAcademicYear(p.academicYear)).filter(Boolean)));
     years.sort().reverse();
     return ['All', ...years];
-  }, [jntukPlayers]);
+  }, [categoryPlayers]);
 
-  // Extract unique sports dynamically from database records (normalized to prevent repeats like CRICKET/Cricket)
+  // Extract unique sports dynamically from active category records (normalized)
   const availableSports = useMemo(() => {
-    const sports = Array.from(new Set(jntukPlayers.map(p => normalizeSportName(p.sport)).filter(Boolean)));
+    const sports = Array.from(new Set(categoryPlayers.map(p => normalizeSportName(p.sport)).filter(Boolean)));
     sports.sort((a, b) => a.localeCompare(b));
     return ['All', ...sports];
-  }, [jntukPlayers]);
+  }, [categoryPlayers]);
 
-  // Extract unique departments dynamically from database records (normalized)
+  // Extract unique departments dynamically from active category records (normalized)
   const availableDepts = useMemo(() => {
-    const depts = Array.from(new Set(jntukPlayers.map(p => normalizeDepartment(p.department)).filter(Boolean)));
+    const depts = Array.from(new Set(categoryPlayers.map(p => normalizeDepartment(p.department)).filter(Boolean)));
     depts.sort((a, b) => a.localeCompare(b));
     return ['All', ...depts];
-  }, [jntukPlayers]);
+  }, [categoryPlayers]);
 
   // Auto-reset filters if current selection is no longer present
   useEffect(() => {
@@ -64,10 +71,16 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
     }
   }, [availableDepts, selectedDept]);
 
-  // Consolidate multi-year player representations into unified athlete profiles
+  useEffect(() => {
+    if (activeYear !== 'All' && !availableYears.includes(activeYear)) {
+      setActiveYear('All');
+    }
+  }, [availableYears, activeYear]);
+
+  // Consolidate multi-year player representations into unified athlete profiles for the active category
   const consolidatedAthletes = useMemo(() => {
-    return consolidateJntukPlayers(jntukPlayers, activeYear);
-  }, [jntukPlayers, activeYear]);
+    return consolidateJntukPlayers(jntukPlayers, activeYear, activeCategory);
+  }, [jntukPlayers, activeYear, activeCategory]);
 
   // Filter consolidated athletes dynamically by search query, sport, and department
   const filteredAthletes = useMemo(() => {
@@ -81,7 +94,7 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
   const displayList = maxDisplay ? filteredAthletes.slice(0, maxDisplay) : filteredAthletes;
 
   return (
-    <section id="jntuk-players" className={`${isEmbedded ? 'py-6' : 'pt-12 sm:pt-14 lg:pt-16 pb-12 sm:pb-16'} bg-slate-50 transition-colors`}>
+    <section id="elite-players" className={`${isEmbedded ? 'py-6' : 'pt-12 sm:pt-14 lg:pt-16 pb-12 sm:pb-16'} bg-slate-50 transition-colors`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* Section Header */}
@@ -89,111 +102,143 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#0b2e5b] text-xs font-bold uppercase tracking-widest shadow-xs">
               <ShieldCheck className="w-4 h-4 text-[#0b2e5b]" />
-              <span>Inter-University Athletic Honors</span>
+              <span>Elite Athletic Honors</span>
             </div>
             
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0b2e5b] tracking-tight">
-              Represented <span className="text-amber-500">JNTUK Players</span>
+              Elite <span className="text-amber-500">Players</span>
             </h2>
             
             <p className="text-slate-600 text-sm leading-relaxed max-w-2xl mx-auto">
-              Honoring our student-athletes who represent Jawaharlal Nehru Technological University Kakinada (JNTUK) and KKR & KSR Institute at South Zone & All-India Inter-University Championships.
+              {activeCategory === 'District'
+                ? 'Celebrating our student-athletes representing Guntur and regional districts at Andhra Pradesh State & Inter-District Championships.'
+                : 'Honoring our varsity student-athletes representing Jawaharlal Nehru Technological University Kakinada (JNTUK) at South Zone & All-India Inter-University Championships.'}
             </p>
           </div>
         )}
 
-        {/* Academic Year Navigation & Filters (shown if records exist or loading) */}
-        {(jntukPlayers.length > 0 || isLoading) && (
-          <div className="flex flex-col items-center gap-5">
+        {/* Sliding Segmented Category Navigation: JNTUK vs District */}
+        <div className="flex justify-center">
+          <div className="relative inline-flex p-1.5 rounded-2xl bg-white border border-slate-200 shadow-sm max-w-full">
+            <button
+              onClick={() => {
+                setActiveCategory('JNTUK');
+                setSelectedSport('All');
+                setActiveYear('All');
+              }}
+              className={`relative z-10 px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                activeCategory === 'JNTUK'
+                  ? 'bg-[#0b2e5b] text-white shadow-md'
+                  : 'text-slate-600 hover:text-[#0b2e5b] hover:bg-slate-50'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-blue-300" />
+              <span>JNTUK Represented</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold transition-colors ${
+                activeCategory === 'JNTUK' ? 'bg-amber-400 text-slate-950' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {counts.jntukCount}
+              </span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveCategory('District');
+                setSelectedSport('All');
+                setActiveYear('All');
+              }}
+              className={`relative z-10 px-5 sm:px-8 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-2 cursor-pointer ${
+                activeCategory === 'District'
+                  ? 'bg-[#0b2e5b] text-white shadow-md'
+                  : 'text-slate-600 hover:text-[#0b2e5b] hover:bg-slate-50'
+              }`}
+            >
+              <Trophy className="w-4 h-4 text-amber-400" />
+              <span>District Represented</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold transition-colors ${
+                activeCategory === 'District' ? 'bg-amber-400 text-slate-950' : 'bg-slate-100 text-slate-600'
+              }`}>
+                {counts.districtCount}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Filters & Search Toolbar (shown if records exist or loading) */}
+        {(categoryPlayers.length > 0 || isLoading) && (
+          <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
             
-            {/* Year Buttons Bar */}
-            {availableYears.length > 1 && (
-              <div className="flex flex-wrap justify-center gap-2 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-                {availableYears.map((year) => {
-                  // Show unique athlete count for "All" and for specific years
-                  const count = year === 'All' 
-                    ? counts.uniqueAthletesCount 
-                    : (counts.yearUniqueCounts[year] || 0);
-                  
-                  const isSelected = activeYear === year;
+            {/* Sport Discipline Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto max-w-full pb-1 md:pb-0">
+              {availableSports.map((sp) => {
+                const isSelected = selectedSport === sp;
+                return (
+                  <button
+                    key={sp}
+                    onClick={() => setSelectedSport(sp)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                      isSelected
+                        ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                    }`}
+                  >
+                    {sp}
+                  </button>
+                );
+              })}
+            </div>
 
-                  return (
-                    <button
-                      key={year}
-                      onClick={() => setActiveYear(year)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center gap-1.5 cursor-pointer ${
-                        isSelected
-                          ? 'bg-[#0b2e5b] text-white shadow-sm scale-100'
-                          : 'text-slate-600 hover:text-[#0b2e5b] hover:bg-slate-50'
-                      }`}
-                    >
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>{year === 'All' ? 'All Academic Years' : `AY ${year}`}</span>
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                        isSelected ? 'bg-amber-400 text-slate-950' : 'bg-slate-100 text-slate-500'
-                      }`}>
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Filters & Search Toolbar */}
-            <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+            {/* Right Controls: Academic Year, Department & Search */}
+            <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto shrink-0">
               
-              {/* Sport Discipline Filter Pills */}
-              <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto max-w-full pb-1 md:pb-0">
-                {availableSports.map((sp) => {
-                  const isSelected = selectedSport === sp;
-                  return (
-                    <button
-                      key={sp}
-                      onClick={() => setSelectedSport(sp)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
-                        isSelected
-                          ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
-                      }`}
-                    >
-                      {sp}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Right Controls: Department & Search */}
-              <div className="flex items-center gap-2.5 w-full md:w-auto shrink-0">
-                
-                {/* Department Dropdown */}
-                {availableDepts.length > 1 && (
-                  <div className="relative">
-                    <select
-                      value={selectedDept}
-                      onChange={(e) => setSelectedDept(e.target.value)}
-                      className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] cursor-pointer"
-                    >
-                      <option value="All">All Departments</option>
-                      {availableDepts.filter(d => d !== 'All').map(d => (
-                        <option key={d} value={d}>Dept: {d}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Search Bar */}
-                <div className="relative flex-1 md:w-56">
-                  <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search athlete, roll no..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] focus:bg-white"
-                  />
+              {/* Academic Year Dropdown */}
+              {availableYears.length > 1 && (
+                <div className="relative">
+                  <select
+                    value={activeYear}
+                    onChange={(e) => setActiveYear(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] cursor-pointer"
+                  >
+                    {availableYears.map((yr) => {
+                      const count = yr === 'All' 
+                        ? counts.uniqueAthletesCount 
+                        : (counts.yearUniqueCounts[yr] || 0);
+                      return (
+                        <option key={yr} value={yr}>
+                          {yr === 'All' ? `All Years (${count})` : `AY ${yr} (${count})`}
+                        </option>
+                      );
+                    })}
+                  </select>
                 </div>
+              )}
 
+              {/* Department Dropdown */}
+              {availableDepts.length > 1 && (
+                <div className="relative">
+                  <select
+                    value={selectedDept}
+                    onChange={(e) => setSelectedDept(e.target.value)}
+                    className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] cursor-pointer"
+                  >
+                    <option value="All">All Departments</option>
+                    {availableDepts.filter(d => d !== 'All').map(d => (
+                      <option key={d} value={d}>Dept: {d}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Search Bar */}
+              <div className="relative flex-1 md:w-56 min-w-[180px]">
+                <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search athlete, roll no..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] focus:bg-white"
+                />
               </div>
 
             </div>
@@ -204,10 +249,10 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
         {/* Dynamic Players Showcase Grid with the Crest Badge Cards */}
         {isLoading ? (
           <CardSkeleton count={6} />
-        ) : jntukPlayers.length === 0 ? (
+        ) : categoryPlayers.length === 0 ? (
           <EmptyState
-            title="No JNTUK Represented Players Added Yet"
-            description="The physical education department updates student representation records after every university athletic championship."
+            title={`No ${activeCategory === 'District' ? 'District' : 'JNTUK'} Represented Players Added Yet`}
+            description={`Official student representation records are updated after every ${activeCategory === 'District' ? 'district' : 'inter-university'} championship meet.`}
             icon={Award}
           />
         ) : displayList.length === 0 ? (
@@ -266,9 +311,13 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
                         {selectedPlayerModal.studentName}
                       </h3>
                       {selectedPlayerModal.isMultiYear && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                          <Trophy className="w-3 h-3 text-amber-600" />
-                          {selectedPlayerModal.representationCount}x Varsity Athlete
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          selectedPlayerModal.level === 'District' 
+                            ? 'bg-purple-100 text-purple-900 border border-purple-300' 
+                            : 'bg-amber-100 text-amber-900 border border-amber-300'
+                        }`}>
+                          <Trophy className={`w-3 h-3 ${selectedPlayerModal.level === 'District' ? 'text-purple-600' : 'text-amber-600'}`} />
+                          {selectedPlayerModal.representationCount}x {selectedPlayerModal.level === 'District' ? 'District Athlete' : 'Varsity Athlete'}
                         </span>
                       )}
                     </div>
@@ -281,6 +330,12 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
 
                   <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <div>
+                      <span className="text-slate-400 text-[10px] font-bold uppercase block">Category / Level</span>
+                      <span className="font-bold text-[#0b2e5b]">
+                        {selectedPlayerModal.level === 'District' ? 'District Representation' : 'JNTUK Varsity'}
+                      </span>
+                    </div>
+                    <div>
                       <span className="text-slate-400 text-[10px] font-bold uppercase block">Discipline</span>
                       <span className="font-bold text-slate-800">{selectedPlayerModal.sport || 'Sports'}</span>
                     </div>
@@ -288,8 +343,8 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
                       <span className="text-slate-400 text-[10px] font-bold uppercase block">Department</span>
                       <span className="font-bold text-slate-800">{selectedPlayerModal.department || 'N/A'}</span>
                     </div>
-                    <div className="col-span-2">
-                      <span className="text-slate-400 text-[10px] font-bold uppercase block">Academic Years Active</span>
+                    <div>
+                      <span className="text-slate-400 text-[10px] font-bold uppercase block">Academic Years</span>
                       <span className="font-bold text-[#0b2e5b]">{selectedPlayerModal.yearsLabel || `AY ${selectedPlayerModal.academicYear}`}</span>
                     </div>
                   </div>
@@ -297,14 +352,14 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
 
               </div>
 
-              {/* Varsity Representation History Timeline */}
+              {/* Representation History Timeline */}
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Award className="w-4 h-4 text-amber-500" />
                   <h4 className="text-xs font-extrabold text-[#0b2e5b] uppercase tracking-wider">
-                    {selectedPlayerModal.allRepresentations?.length > 1 
-                      ? `University Representation History (${selectedPlayerModal.allRepresentations.length} Championships)` 
-                      : 'University Championship Representation'}
+                    {selectedPlayerModal.level === 'District' 
+                      ? 'District Championship Representation History' 
+                      : 'Inter-University Representation History'}
                   </h4>
                 </div>
 

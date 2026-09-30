@@ -39,8 +39,8 @@ export default function MainPortalView() {
       navigate('/contact');
     } else if (id === 'membership' || id === 'register') {
       navigate('/register');
-    } else if (id === 'jntuk-players' || id === 'jntuk-stars') {
-      navigate('/jntuk-players');
+    } else if (id === 'elite-players' || id === 'jntuk-players' || id === 'jntuk-stars') {
+      navigate('/elite-players');
     } else if (id === 'sports-members') {
       navigate('/sports-members');
     } else if (id === 'admin') {

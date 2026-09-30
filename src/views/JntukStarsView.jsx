@@ -15,7 +15,7 @@ function JntukPlayersPageSkeleton() {
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#0b2e5b] text-xs font-bold uppercase tracking-widest shadow-xs">
             <ShieldCheck className="w-4 h-4 text-[#0b2e5b]" />
-            <span>Inter-University Athletic Honors</span>
+            <span>Elite Athletic Honors</span>
           </div>
           <div className="h-9 bg-slate-200 rounded-xl w-80 mx-auto animate-pulse" />
           <div className="space-y-2 max-w-2xl mx-auto">
@@ -31,18 +31,9 @@ function JntukPlayersPageSkeleton() {
             <Trophy className="w-4 h-4 text-amber-500 absolute" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-bold text-[#0b2e5b]">Loading JNTUK Athletes</p>
-            <p className="text-xs text-slate-400 animate-pulse">Fetching university representation records...</p>
+            <p className="text-sm font-bold text-[#0b2e5b]">Loading Elite Athletes</p>
+            <p className="text-xs text-slate-400 animate-pulse">Fetching university & district representation records...</p>
           </div>
-        </div>
-
-        {/* Year Tabs Skeleton */}
-        <div className="flex flex-wrap justify-center gap-2 p-1.5 rounded-2xl bg-white border border-slate-200 shadow-sm">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className={`px-6 py-2.5 rounded-xl animate-pulse ${
-              i === 0 ? 'bg-[#0b2e5b]/20 w-36' : 'bg-slate-100 w-28'
-            }`} />
-          ))}
         </div>
 
         {/* Filter Bar Skeleton */}
@@ -52,9 +43,10 @@ function JntukPlayersPageSkeleton() {
               <div key={i} className="px-5 py-2 rounded-lg bg-slate-100 animate-pulse w-20 h-8" />
             ))}
           </div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-36 h-9 rounded-xl bg-slate-100 animate-pulse" />
-            <div className="w-52 h-9 rounded-xl bg-slate-100 animate-pulse" />
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="w-32 h-9 rounded-xl bg-slate-100 animate-pulse" />
+            <div className="w-32 h-9 rounded-xl bg-slate-100 animate-pulse" />
+            <div className="w-48 h-9 rounded-xl bg-slate-100 animate-pulse" />
           </div>
         </div>
 
@@ -83,6 +75,7 @@ export default function JntukStarsView() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    document.title = 'Elite Players | KKR & KSR Institute of Technology & Sciences';
   }, []);
 
   return (
@@ -90,7 +83,7 @@ export default function JntukStarsView() {
       
       {/* Unified Top Navbar */}
       <Navbar
-        activeSection="jntuk-players"
+        activeSection="elite-players"
         onOpenMembership={() => navigate('/register')}
       />
 

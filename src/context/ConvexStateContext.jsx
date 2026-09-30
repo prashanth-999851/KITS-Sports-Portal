@@ -274,6 +274,7 @@ export function ConvexStateProvider({ children }) {
     venueHost: (p.venueHost || '').trim(),
     photoUrl: p.photoUrl || '',
     achievementDetails: (p.achievementDetails || '').trim(),
+    level: p.level === 'District' ? 'District' : 'JNTUK',
     createdAt: p.createdAt,
   }));
 
@@ -689,8 +690,9 @@ export function ConvexStateProvider({ children }) {
       venueHost: (playerData.venueHost || '').trim(),
       photoUrl: playerData.photo || playerData.photoUrl,
       achievementDetails: (playerData.achievementDetails || '').trim(),
+      level: playerData.level === 'District' ? 'District' : 'JNTUK',
     }));
-    await logAction('ADD_JNTUK_PLAYER', `Added JNTUK Athlete: ${playerData.studentName} (${playerData.academicYear})`);
+    await logAction('ADD_JNTUK_PLAYER', `Added ${playerData.level || 'JNTUK'} Athlete: ${playerData.studentName} (${playerData.academicYear})`);
   };
 
   const updateJntukPlayer = async (id, playerData) => {
@@ -705,8 +707,9 @@ export function ConvexStateProvider({ children }) {
       venueHost: (playerData.venueHost || '').trim(),
       photoUrl: playerData.photo || playerData.photoUrl,
       achievementDetails: (playerData.achievementDetails || '').trim(),
+      level: playerData.level ? (playerData.level === 'District' ? 'District' : 'JNTUK') : undefined,
     }));
-    await logAction('UPDATE_JNTUK_PLAYER', `Updated JNTUK Athlete ID: ${id}`);
+    await logAction('UPDATE_JNTUK_PLAYER', `Updated Athlete ID: ${id}`);
   };
 
   const deleteJntukPlayer = async (id) => {
@@ -805,6 +808,12 @@ export function ConvexStateProvider({ children }) {
       updateJntukPlayer,
       deleteJntukPlayer,
       normalizeAllJntukPlayers,
+      // Elite Players aliases
+      elitePlayers: jntukPlayers,
+      addElitePlayer: addJntukPlayer,
+      updateElitePlayer: updateJntukPlayer,
+      deleteElitePlayer: deleteJntukPlayer,
+      isLoadingElitePlayers: isLoadingJntukPlayers,
       addUser,
       toggleUserActive,
       updateSettings
