@@ -32,33 +32,33 @@ export default function JntukPlayerCrestCard({
   } = player || {};
 
   const isDistrict = level === 'District';
-  const eventName = sport ? sport.toUpperCase() : 'SPORTS';
+  const eventName = sport ? sport.toUpperCase() : '';
   const rollNoDisplay = rollNumber ? rollNumber.toUpperCase() : '';
-  const nameDisplay = studentName ? studentName.toUpperCase() : 'ATHLETE NAME';
+  const nameDisplay = studentName ? studentName.toUpperCase() : '';
   const hasPhoto = Boolean(photoUrl) && !imgError;
   const displayYear = yearsLabel || (academicYear ? `AY ${academicYear}` : '');
 
   return (
     <div 
       onClick={() => onClick && onClick(player)}
-      className="group flex flex-col items-center text-center space-y-3 w-36 sm:w-48 md:w-52 animate-slideUp cursor-pointer select-none mx-auto"
+      className="group flex flex-col items-center text-center space-y-2.5 w-full max-w-[200px] animate-slideUp cursor-pointer select-none mx-auto min-w-0"
     >
       {/* Plain Diamond Portrait Frame (Rotated Square) */}
-      <div className="relative py-2 sm:py-3">
-        <div className={`w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 p-1 bg-white border ${
+      <div className="relative py-2 sm:py-3 flex items-center justify-center w-full overflow-visible">
+        <div className={`w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 p-1 bg-white border ${
           isDistrict ? 'border-purple-300 group-hover:border-purple-600' : 'border-gray-300 group-hover:border-[#0b2e5b]'
-        } shadow-md group-hover:shadow-lg transition-all duration-300 rotate-45 rounded-2xl sm:rounded-3xl overflow-hidden`}>
+        } shadow-md group-hover:shadow-lg transition-all duration-300 rotate-45 rounded-2xl sm:rounded-3xl overflow-hidden shrink-0`}>
           <div className="w-full h-full overflow-hidden bg-slate-100 rounded-xl sm:rounded-2xl flex items-center justify-center">
             {hasPhoto ? (
               <img
                 src={photoUrl}
-                alt={studentName}
+                alt={studentName || 'Athlete'}
                 className="w-full h-full object-cover -rotate-45 scale-145 group-hover:scale-155 transition-transform duration-300 rounded-xl sm:rounded-2xl"
                 onError={() => setImgError(true)}
               />
             ) : (
               <div className="-rotate-45 text-slate-400 group-hover:text-slate-600 transition-colors flex items-center justify-center">
-                <User className="w-8 h-8 sm:w-12 sm:h-12 stroke-[1.5]" />
+                <User className="w-8 h-8 sm:w-11 sm:h-11 stroke-[1.5]" />
               </div>
             )}
           </div>
@@ -66,7 +66,7 @@ export default function JntukPlayerCrestCard({
       </div>
 
       {/* Athlete Information Directly Below */}
-      <div className="space-y-0.5 sm:space-y-1 max-w-full px-1">
+      <div className="space-y-0.5 sm:space-y-1 max-w-full w-full px-1 min-w-0">
         
         {/* Level & Multi-Year Honor Badge */}
         {showBadge && (
@@ -83,28 +83,36 @@ export default function JntukPlayerCrestCard({
         )}
 
         {/* Athlete Name */}
-        <h3 className="font-bold text-[#0b2e5b] leading-snug group-hover:text-[#0d3a73] transition-colors text-xs sm:text-sm md:text-base uppercase line-clamp-1">
-          {nameDisplay}
-        </h3>
+        {nameDisplay ? (
+          <h3 className="font-bold text-[#0b2e5b] leading-snug group-hover:text-[#0d3a73] transition-colors text-xs sm:text-sm md:text-base uppercase line-clamp-1">
+            {nameDisplay}
+          </h3>
+        ) : (
+          <h3 className="font-medium text-slate-400 italic leading-snug text-xs sm:text-sm uppercase line-clamp-1">
+            [Full Name]
+          </h3>
+        )}
 
         {/* Registration Number */}
-        {rollNoDisplay && (
+        {rollNoDisplay ? (
           <p className="text-[10.5px] sm:text-xs font-bold text-red-700 font-mono leading-tight">
             Reg no: {rollNoDisplay}
           </p>
-        )}
+        ) : null}
 
         {/* Event */}
-        <p className="text-[10.5px] sm:text-xs font-bold text-slate-700 uppercase leading-tight">
-          Event : <span className="text-amber-600 font-extrabold">{eventName}</span>
-        </p>
+        {eventName ? (
+          <p className="text-[10.5px] sm:text-xs font-bold text-slate-700 uppercase leading-tight truncate">
+            Event : <span className="text-amber-600 font-extrabold">{eventName}</span>
+          </p>
+        ) : null}
 
         {/* Academic Year & Department */}
-        {(displayYear || department) && (
-          <p className="text-[10px] font-semibold text-slate-500 leading-tight pt-0.5">
+        {(displayYear || department) ? (
+          <p className="text-[10px] font-semibold text-slate-500 leading-tight pt-0.5 truncate">
             {displayYear}{displayYear && department ? ' • ' : ''}{department ? `Dept: ${department}` : ''}
           </p>
-        )}
+        ) : null}
 
       </div>
     </div>

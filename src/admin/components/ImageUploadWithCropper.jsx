@@ -86,7 +86,7 @@ export default function ImageUploadWithCropper({
               className="w-full h-full object-cover"
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300";
+                e.target.style.display = 'none';
               }}
             />
           </div>
