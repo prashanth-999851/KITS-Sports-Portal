@@ -10,7 +10,10 @@ import {
 import { 
   consolidateJntukPlayers, 
   filterConsolidatedAthletes, 
-  computeJntukPlayerCounts 
+  computeJntukPlayerCounts,
+  normalizeSportName,
+  normalizeDepartment,
+  normalizeAcademicYear
 } from '../utils/jntukPlayerUtils';
 
 export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = null }) {
@@ -27,26 +30,39 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
     return computeJntukPlayerCounts(jntukPlayers);
   }, [jntukPlayers]);
 
-  // Extract unique academic years dynamically from database records
+  // Extract unique academic years dynamically from database records (normalized)
   const availableYears = useMemo(() => {
-    const years = Array.from(new Set(jntukPlayers.map(p => p.academicYear).filter(Boolean)));
+    const years = Array.from(new Set(jntukPlayers.map(p => normalizeAcademicYear(p.academicYear)).filter(Boolean)));
     years.sort().reverse();
     return ['All', ...years];
   }, [jntukPlayers]);
 
-  // Extract unique sports dynamically from database records
+  // Extract unique sports dynamically from database records (normalized to prevent repeats like CRICKET/Cricket)
   const availableSports = useMemo(() => {
-    const sports = Array.from(new Set(jntukPlayers.map(p => p.sport).filter(Boolean)));
-    sports.sort();
+    const sports = Array.from(new Set(jntukPlayers.map(p => normalizeSportName(p.sport)).filter(Boolean)));
+    sports.sort((a, b) => a.localeCompare(b));
     return ['All', ...sports];
   }, [jntukPlayers]);
 
-  // Extract unique departments dynamically from database records
+  // Extract unique departments dynamically from database records (normalized)
   const availableDepts = useMemo(() => {
-    const depts = Array.from(new Set(jntukPlayers.map(p => p.department).filter(Boolean)));
-    depts.sort();
+    const depts = Array.from(new Set(jntukPlayers.map(p => normalizeDepartment(p.department)).filter(Boolean)));
+    depts.sort((a, b) => a.localeCompare(b));
     return ['All', ...depts];
   }, [jntukPlayers]);
+
+  // Auto-reset filters if current selection is no longer present
+  useEffect(() => {
+    if (selectedSport !== 'All' && !availableSports.includes(selectedSport)) {
+      setSelectedSport('All');
+    }
+  }, [availableSports, selectedSport]);
+
+  useEffect(() => {
+    if (selectedDept !== 'All' && !availableDepts.includes(selectedDept)) {
+      setSelectedDept('All');
+    }
+  }, [availableDepts, selectedDept]);
 
   // Consolidate multi-year player representations into unified athlete profiles
   const consolidatedAthletes = useMemo(() => {

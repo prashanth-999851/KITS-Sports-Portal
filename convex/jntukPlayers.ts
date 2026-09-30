@@ -2,6 +2,93 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdmin, sessionToken } from "./auth";
 
+const CANONICAL_SPORTS_MAP: Record<string, string> = {
+  'cricket': 'Cricket',
+  'kho kho': 'Kho-Kho',
+  'kho-kho': 'Kho-Kho',
+  'khokho': 'Kho-Kho',
+  'netball': 'Netball',
+  'fencing': 'Fencing',
+  'shooting': 'Shooting',
+  'volleyball': 'Volleyball',
+  'volley ball': 'Volleyball',
+  'basketball': 'Basketball',
+  'basket ball': 'Basketball',
+  'badminton': 'Badminton',
+  'ball badminton': 'Ball-Badminton',
+  'ball-badminton': 'Ball-Badminton',
+  'ballbadminton': 'Ball-Badminton',
+  'kabaddi': 'Kabaddi',
+  'athletics': 'Athletics',
+  'athletic': 'Athletics',
+  'football': 'Football',
+  'foot ball': 'Football',
+  'soccer': 'Football',
+  'chess': 'Chess',
+  'table tennis': 'Table Tennis',
+  'table-tennis': 'Table Tennis',
+  'tabletennis': 'Table Tennis',
+  'tennis': 'Tennis',
+  'lawn tennis': 'Lawn Tennis',
+  'handball': 'Handball',
+  'hand ball': 'Handball',
+  'softball': 'Softball',
+  'soft ball': 'Softball',
+  'swimming': 'Swimming',
+  'judo': 'Judo',
+  'taekwondo': 'Taekwondo',
+  'yoga': 'Yoga',
+  'weightlifting': 'Weightlifting',
+  'weight lifting': 'Weightlifting',
+  'powerlifting': 'Powerlifting',
+  'power lifting': 'Powerlifting',
+  'archery': 'Archery',
+  'cross country': 'Cross Country',
+  'cross-country': 'Cross Country',
+  'hockey': 'Hockey',
+  'boxing': 'Boxing',
+  'wrestling': 'Wrestling',
+};
+
+function cleanSport(sport?: string): string {
+  if (!sport) return "";
+  const trimmed = sport.trim();
+  const lower = trimmed.toLowerCase();
+  if (CANONICAL_SPORTS_MAP[lower]) return CANONICAL_SPORTS_MAP[lower];
+
+  const cleanKey = lower.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (CANONICAL_SPORTS_MAP[cleanKey]) return CANONICAL_SPORTS_MAP[cleanKey];
+
+  const cleanDashKey = lower.replace(/\s+/g, '-').trim();
+  if (CANONICAL_SPORTS_MAP[cleanDashKey]) return CANONICAL_SPORTS_MAP[cleanDashKey];
+
+  return trimmed
+    .split(/([ -])/)
+    .map(p => (p === ' ' || p === '-') ? p : p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+    .join('');
+}
+
+function cleanDepartment(dept?: string): string {
+  if (!dept) return "";
+  return dept.trim().toUpperCase();
+}
+
+function cleanAcademicYear(yr?: string): string {
+  if (!yr) return "";
+  const trimmed = yr.trim();
+  const shortMatch = trimmed.match(/^(\d{4})-(\d{2})$/);
+  if (shortMatch) {
+    const century = shortMatch[1].slice(0, 2);
+    return `${shortMatch[1]}-${century}${shortMatch[2]}`;
+  }
+  return trimmed;
+}
+
+function cleanRollNumber(roll?: string): string {
+  if (!roll) return "";
+  return roll.trim().toUpperCase();
+}
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -28,6 +115,11 @@ export const create = mutation({
     const { sessionToken: _sessionToken, ...fields } = args;
     return await ctx.db.insert("jntukPlayers", {
       ...fields,
+      studentName: fields.studentName.trim().replace(/\s+/g, ' '),
+      rollNumber: cleanRollNumber(fields.rollNumber),
+      department: cleanDepartment(fields.department),
+      sport: cleanSport(fields.sport),
+      academicYear: cleanAcademicYear(fields.academicYear),
       createdAt: new Date().toISOString(),
     });
   },
@@ -51,7 +143,14 @@ export const update = mutation({
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.sessionToken);
     const { id, sessionToken: _sessionToken, ...updates } = args;
-    await ctx.db.patch(id, updates);
+    const cleanUpdates = { ...updates };
+    if (cleanUpdates.studentName) cleanUpdates.studentName = cleanUpdates.studentName.trim().replace(/\s+/g, ' ');
+    if (cleanUpdates.rollNumber) cleanUpdates.rollNumber = cleanRollNumber(cleanUpdates.rollNumber);
+    if (cleanUpdates.department) cleanUpdates.department = cleanDepartment(cleanUpdates.department);
+    if (cleanUpdates.sport) cleanUpdates.sport = cleanSport(cleanUpdates.sport);
+    if (cleanUpdates.academicYear) cleanUpdates.academicYear = cleanAcademicYear(cleanUpdates.academicYear);
+
+    await ctx.db.patch(id, cleanUpdates);
   },
 });
 
@@ -60,5 +159,41 @@ export const remove = mutation({
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.sessionToken);
     await ctx.db.delete(args.id);
+  },
+});
+
+export const normalizeAllRecords = mutation({
+  args: { sessionToken },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.sessionToken);
+    const records = await ctx.db.query("jntukPlayers").collect();
+    let updatedCount = 0;
+
+    for (const record of records) {
+      const s = cleanSport(record.sport);
+      const d = cleanDepartment(record.department);
+      const y = cleanAcademicYear(record.academicYear);
+      const r = cleanRollNumber(record.rollNumber);
+      const n = record.studentName ? record.studentName.trim().replace(/\s+/g, ' ') : record.studentName;
+
+      if (
+        s !== record.sport ||
+        d !== record.department ||
+        y !== record.academicYear ||
+        r !== record.rollNumber ||
+        n !== record.studentName
+      ) {
+        await ctx.db.patch(record._id, {
+          sport: s,
+          department: d,
+          academicYear: y,
+          rollNumber: r,
+          studentName: n,
+        });
+        updatedCount++;
+      }
+    }
+
+    return { total: records.length, updated: updatedCount };
   },
 });

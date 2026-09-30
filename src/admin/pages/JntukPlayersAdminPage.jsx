@@ -8,10 +8,17 @@ import JntukPlayerCrestCard from '../../components/JntukPlayerCrestCard';
 import { 
   Award, Plus, Edit, Trash2, X, Search, Calendar, 
   Trophy, Loader2, FileSpreadsheet, RotateCcw,
-  Users, Eye
+  Users, Eye, Sparkles
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { computeJntukPlayerCounts, getPlayerKey } from '../../utils/jntukPlayerUtils';
+import { 
+  computeJntukPlayerCounts, 
+  getPlayerKey,
+  normalizeSportName,
+  normalizeDepartment,
+  normalizeAcademicYear,
+  normalizeRollNumber
+} from '../../utils/jntukPlayerUtils';
 
 const OFFICIAL_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];
 
@@ -21,10 +28,12 @@ export default function JntukPlayersAdminPage() {
     addJntukPlayer, 
     updateJntukPlayer, 
     deleteJntukPlayer, 
+    normalizeAllJntukPlayers,
     isLoading,
     isLoadingJntukPlayers 
   } = useConvexState();
   const { showToast } = useToast();
+  const [isNormalizing, setIsNormalizing] = useState(false);
 
   // Enterprise Filter States
   const [selectedYear, setSelectedYear] = useState('All');
@@ -97,18 +106,25 @@ export default function JntukPlayersAdminPage() {
 
     setIsSubmitting(true);
     try {
+      const cleanData = {
+        ...formData,
+        studentName: formData.studentName.trim(),
+        rollNumber: normalizeRollNumber(formData.rollNumber),
+        department: normalizeDepartment(formData.department),
+        sport: normalizeSportName(formData.sport),
+        academicYear: normalizeAcademicYear(formData.academicYear),
+        tournamentName: formData.tournamentName.trim(),
+        venueHost: formData.venueHost.trim(),
+        photoUrl: formData.photo,
+        achievementDetails: formData.achievementDetails.trim(),
+      };
+
       if (editingPlayer) {
-        await updateJntukPlayer(editingPlayer.id, {
-          ...formData,
-          photoUrl: formData.photo,
-        });
-        showToast(`Updated record for ${formData.studentName}`, 'success');
+        await updateJntukPlayer(editingPlayer.id, cleanData);
+        showToast(`Updated record for ${cleanData.studentName}`, 'success');
       } else {
-        await addJntukPlayer({
-          ...formData,
-          photoUrl: formData.photo,
-        });
-        showToast(`Added ${formData.studentName} to JNTUK Roster`, 'success');
+        await addJntukPlayer(cleanData);
+        showToast(`Added ${cleanData.studentName} to JNTUK Roster`, 'success');
       }
       setShowModal(false);
       setEditingPlayer(null);
@@ -131,9 +147,25 @@ export default function JntukPlayersAdminPage() {
     }
   };
 
-  // Unique Academic Years & Sports dynamically derived from database
-  const availableYears = Array.from(new Set(['2025-2026', '2024-2025', '2023-2024', '2022-2023', ...jntukPlayers.map(p => p.academicYear).filter(Boolean)]));
-  const availableSports = Array.from(new Set(['Cricket', 'Volleyball', 'Basketball', 'Football', 'Athletics', 'Kabaddi', 'Chess', 'Badminton', ...jntukPlayers.map(p => p.sport).filter(Boolean)]));
+  // Unique Academic Years & Sports dynamically derived & normalized
+  const availableYears = useMemo(() => {
+    return Array.from(new Set([
+      '2025-2026', '2024-2025', '2023-2024', '2022-2023',
+      ...jntukPlayers.map(p => normalizeAcademicYear(p.academicYear)).filter(Boolean)
+    ]));
+  }, [jntukPlayers]);
+
+  const availableSports = useMemo(() => {
+    const COMMON_SPORTS = [
+      'Cricket', 'Kho-Kho', 'Netball', 'Volleyball', 'Basketball', 
+      'Football', 'Athletics', 'Kabaddi', 'Chess', 'Badminton', 
+      'Fencing', 'Shooting', 'Ball-Badminton', 'Table Tennis'
+    ];
+    return Array.from(new Set([
+      ...COMMON_SPORTS,
+      ...jntukPlayers.map(p => normalizeSportName(p.sport)).filter(Boolean)
+    ])).sort((a, b) => a.localeCompare(b));
+  }, [jntukPlayers]);
 
   // Compute unique athlete counts and identify athletes with multi-year representation
   const athleteCounts = useMemo(() => {
@@ -163,9 +195,9 @@ export default function JntukPlayersAdminPage() {
       (player.tournamentName && player.tournamentName.toLowerCase().includes(term)) ||
       (player.venueHost && player.venueHost.toLowerCase().includes(term));
 
-    const matchesYear = selectedYear === 'All' || player.academicYear === selectedYear;
-    const matchesDept = selectedDept === 'All' || player.department === selectedDept;
-    const matchesSport = selectedSport === 'All' || player.sport === selectedSport;
+    const matchesYear = selectedYear === 'All' || normalizeAcademicYear(player.academicYear) === normalizeAcademicYear(selectedYear);
+    const matchesDept = selectedDept === 'All' || normalizeDepartment(player.department) === normalizeDepartment(selectedDept);
+    const matchesSport = selectedSport === 'All' || normalizeSportName(player.sport) === normalizeSportName(selectedSport);
 
     return matchesSearch && matchesYear && matchesDept && matchesSport;
   });
@@ -234,7 +266,30 @@ export default function JntukPlayersAdminPage() {
           <p className="text-xs text-[var(--text-muted)]">Enterprise management to add, edit, remove, and export official JNTUK Varsity athletes.</p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          {/* Standardize Database Records */}
+          <button
+            onClick={async () => {
+              if (window.confirm("Standardize all sports and athlete formatting in the database? This fixes duplicates like CRICKET vs Cricket, kho-kho vs KHO KHO.")) {
+                try {
+                  setIsNormalizing(true);
+                  const res = await normalizeAllJntukPlayers();
+                  showToast(`Successfully standardized ${res?.updated || 0} athlete records in database!`, 'success');
+                } catch (err) {
+                  showToast(`Standardization failed: ${err.message}`, 'error');
+                } finally {
+                  setIsNormalizing(false);
+                }
+              }
+            }}
+            disabled={isLoading || isNormalizing || jntukPlayers.length === 0}
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition-all shadow-sm disabled:opacity-50 cursor-pointer whitespace-nowrap"
+            title="Clean and standardize all sport disciplines, departments, and academic years across database records"
+          >
+            {isNormalizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            <span>Standardize Data</span>
+          </button>
+
           {/* Add Athlete Button */}
           <button
             onClick={handleAddNew}
@@ -507,11 +562,23 @@ export default function JntukPlayersAdminPage() {
                     <input 
                       type="text"
                       required
-                      placeholder="e.g. CRICKET, VOLLEYBALL"
+                      list="jntuk-sports-suggestions"
+                      placeholder="e.g. Cricket, Kho-Kho, Netball"
                       value={formData.sport} 
                       onChange={(e) => setFormData({ ...formData, sport: e.target.value })} 
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold uppercase focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none"
+                      onBlur={(e) => {
+                        const clean = normalizeSportName(e.target.value);
+                        if (clean && clean !== e.target.value) {
+                          setFormData(prev => ({ ...prev, sport: clean }));
+                        }
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none"
                     />
+                    <datalist id="jntuk-sports-suggestions">
+                      {availableSports.map(sp => (
+                        <option key={sp} value={sp} />
+                      ))}
+                    </datalist>
                   </div>
                   <div>
                     <label className="block text-slate-700 mb-1 font-bold">Academic Year *</label>

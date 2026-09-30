@@ -6,17 +6,27 @@ import { requireAdmin, sessionToken } from "./auth";
 export const listApprovedPublic = query({
   args: {},
   handler: async (ctx) => {
-    const records = await ctx.db.query("registrations").collect();
-    return records
-      .filter((r) => r.status === "Approved")
-      .map((r) => ({
-        _id: r._id,
-        studentName: r.studentName,
-        rollNumber: r.rollNumber,
-        department: r.department,
-        year: r.year,
-        preferredSports: r.preferredSports,
-      }));
+    try {
+      const records = await ctx.db.query("registrations").collect();
+      if (!records || !Array.isArray(records)) {
+        return [];
+      }
+      return records
+        .filter((r) => r && r.status === "Approved")
+        .map((r) => ({
+          _id: r._id,
+          studentName: r.studentName || "Member",
+          rollNumber: r.rollNumber || "—",
+          department: r.department || "—",
+          year: r.year || "—",
+          preferredSports: Array.isArray(r.preferredSports)
+            ? r.preferredSports
+            : (r.preferredSports ? [r.preferredSports] : []),
+        }));
+    } catch (err) {
+      console.warn("Failed to fetch approved registrations:", err);
+      return [];
+    }
   },
 });
 

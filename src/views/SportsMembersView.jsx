@@ -1,9 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Component } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
-import { useConvexState } from '../context/ConvexStateContext';
-import { Search, Users, ChevronRight } from 'lucide-react';
+import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import { Search, Users, ChevronRight, RefreshCw } from 'lucide-react';
+import { normalizeSportName } from '../utils/jntukPlayerUtils';
 
 const DEFAULT_SPORTS_ORDER = [
   'Cricket',
@@ -17,19 +19,90 @@ const DEFAULT_SPORTS_ORDER = [
   'Athletics',
 ];
 
+class SportsMembersErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.warn('SportsMembersErrorBoundary caught a backend error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <SportsMembersFallback
+          message="No approved sports members are available at this time."
+          onRetry={() => this.setState({ hasError: false, error: null })}
+        />
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function SportsMembersFallback({ message, onRetry }) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col transition-colors duration-300">
+      <Navbar
+        activeSection="sports-members"
+        onOpenMembership={() => navigate('/register')}
+      />
+
+      <main className="flex-1 pt-16 sm:pt-16 lg:pt-16">
+        <div className="pt-12 sm:pt-10 pb-8 sm:pb-10 bg-slate-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="border-b border-slate-200 pb-4">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0b2e5b] tracking-tight">
+                Sports Members
+              </h1>
+            </div>
+
+            <div className="p-12 text-center space-y-4 bg-white rounded-2xl border border-slate-200 shadow-xs max-w-lg mx-auto">
+              <div className="w-12 h-12 rounded-full bg-blue-50 text-[#0b2e5b] flex items-center justify-center mx-auto">
+                <Users className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-slate-800">No Approved Members</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  {message || 'No approved sports members are available at this time.'}
+                </p>
+              </div>
+              {onRetry && (
+                <button
+                  onClick={onRetry}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-[#0b2e5b] text-white hover:bg-[#0d3a73] transition-colors cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Check Again</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer setActiveSection={() => navigate('/')} />
+    </div>
+  );
+}
 
 function SportsMembersPageSkeleton() {
   return (
     <div className="py-8 sm:py-10 bg-slate-50 animate-fadeIn">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        {/* Simple Header Skeleton */}
         <div className="border-b border-slate-200 pb-4">
           <div className="h-8 bg-slate-200 rounded-lg w-48 animate-pulse" />
         </div>
 
-        {/* Master-Detail Layout Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Sidebar Skeleton */}
           <div className="lg:col-span-4 xl:col-span-3 bg-white rounded-2xl border border-slate-200 p-3 space-y-2">
             <div className="h-4 bg-slate-200 rounded w-28 mb-3 animate-pulse" />
             {Array.from({ length: 4 }).map((_, i) => (
@@ -37,7 +110,6 @@ function SportsMembersPageSkeleton() {
             ))}
           </div>
 
-          {/* Right Content Skeleton */}
           <div className="lg:col-span-8 xl:col-span-9 bg-white rounded-2xl border border-slate-200 overflow-hidden p-5 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="h-6 bg-slate-200 rounded w-36 animate-pulse" />
@@ -60,9 +132,25 @@ function SportsMembersPageSkeleton() {
   );
 }
 
-export default function SportsMembersView() {
+function SportsMembersContent() {
   const navigate = useNavigate();
-  const { approvedMembers = [], isLoadingApprovedMembers } = useConvexState();
+  const rawMembers = useQuery(api.registrations.listApprovedPublic);
+  const isLoading = rawMembers === undefined;
+
+  const approvedMembers = useMemo(() => {
+    if (!Array.isArray(rawMembers)) return [];
+    return rawMembers.map(m => ({
+      id: m._id || m.id,
+      studentName: m.studentName || 'Member',
+      rollNumber: m.rollNumber || '—',
+      department: m.department || '—',
+      year: m.year || '—',
+      preferredSports: Array.isArray(m.preferredSports)
+        ? m.preferredSports
+        : (m.preferredSports ? [m.preferredSports] : []),
+    }));
+  }, [rawMembers]);
+
   const [selectedSport, setSelectedSport] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -81,16 +169,17 @@ export default function SportsMembersView() {
 
       list.forEach(s => {
         if (s && typeof s === 'string') {
-          const trimmed = s.trim();
-          if (!map.has(trimmed)) {
-            map.set(trimmed, []);
+          const normSport = normalizeSportName(s);
+          if (normSport) {
+            if (!map.has(normSport)) {
+              map.set(normSport, []);
+            }
+            map.get(normSport).push(member);
           }
-          map.get(trimmed).push(member);
         }
       });
     });
 
-    // Sort sports according to standard club order, then others alphabetically
     const sortedSportNames = Array.from(map.keys()).sort((a, b) => {
       const idxA = DEFAULT_SPORTS_ORDER.indexOf(a);
       const idxB = DEFAULT_SPORTS_ORDER.indexOf(b);
@@ -106,7 +195,7 @@ export default function SportsMembersView() {
         members: map.get(sport) || [],
         count: (map.get(sport) || []).length,
       }))
-      .filter(item => item.count >= 1); // Only sports with at least 1 approved member
+      .filter(item => item.count >= 1);
   }, [approvedMembers]);
 
   // Automatically select the first available sport when data loads
@@ -120,13 +209,11 @@ export default function SportsMembersView() {
     }
   }, [sportsWithMembers, selectedSport]);
 
-  // Current sport's members
   const currentSportData = useMemo(() => {
     if (!selectedSport) return null;
     return sportsWithMembers.find(s => s.sport === selectedSport) || null;
   }, [sportsWithMembers, selectedSport]);
 
-  // Filter members of the selected sport by search query
   const filteredSportMembers = useMemo(() => {
     if (!currentSportData) return [];
     const q = searchQuery.toLowerCase().trim();
@@ -142,21 +229,18 @@ export default function SportsMembersView() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col transition-colors duration-300">
-      {/* Navbar */}
       <Navbar
         activeSection="sports-members"
         onOpenMembership={() => navigate('/register')}
       />
 
-      {/* Main Content */}
       <main className="flex-1 pt-16 sm:pt-16 lg:pt-16">
-        {isLoadingApprovedMembers ? (
+        {isLoading ? (
           <SportsMembersPageSkeleton />
         ) : (
           <div className="pt-12 sm:pt-10 pb-8 sm:pb-10 bg-slate-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
-              {/* Simple Heading */}
               <div className="border-b border-slate-200 pb-4">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0b2e5b] tracking-tight">
                   Sports Members
@@ -164,10 +248,12 @@ export default function SportsMembersView() {
               </div>
 
               {sportsWithMembers.length === 0 ? (
-                <div className="p-12 text-center space-y-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
-                  <Users className="w-12 h-12 text-slate-300 mx-auto" />
-                  <h3 className="text-sm font-bold text-slate-600">No Approved Members</h3>
-                  <p className="text-xs text-slate-400">
+                <div className="p-12 text-center space-y-3 bg-white rounded-2xl border border-slate-200 shadow-xs max-w-lg mx-auto">
+                  <div className="w-12 h-12 rounded-full bg-blue-50 text-[#0b2e5b] flex items-center justify-center mx-auto">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-800">No Approved Members</h3>
+                  <p className="text-xs text-slate-500">
                     No approved sports members are available at this time.
                   </p>
                 </div>
@@ -230,7 +316,6 @@ export default function SportsMembersView() {
                   {/* Right Content: Active Sport Member Table */}
                   <div className="lg:col-span-8 xl:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
 
-                    {/* Table Header & Search */}
                     <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50">
                       <div className="flex items-center gap-2.5">
                         <h2 className="text-lg sm:text-xl font-bold text-[#0b2e5b]">
@@ -241,7 +326,6 @@ export default function SportsMembersView() {
                         </span>
                       </div>
 
-                      {/* Search in Selected Sport */}
                       <div className="relative w-full sm:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
@@ -254,7 +338,6 @@ export default function SportsMembersView() {
                       </div>
                     </div>
 
-                    {/* Member Table */}
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
@@ -277,7 +360,7 @@ export default function SportsMembersView() {
                           ) : (
                             filteredSportMembers.map((member, idx) => (
                               <tr
-                                key={member.id || member._id || idx}
+                                key={member.id || idx}
                                 className={`border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
                                   idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
                                 }`}
@@ -301,7 +384,6 @@ export default function SportsMembersView() {
                       </table>
                     </div>
 
-                    {/* Footer count indicator */}
                     <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
                       <span>Showing {filteredSportMembers.length} of {currentSportData?.count || 0} members</span>
                       <span className="font-semibold text-slate-500">{selectedSport}</span>
@@ -317,8 +399,15 @@ export default function SportsMembersView() {
         )}
       </main>
 
-      {/* Footer */}
       <Footer setActiveSection={() => navigate('/')} />
     </div>
+  );
+}
+
+export default function SportsMembersView() {
+  return (
+    <SportsMembersErrorBoundary>
+      <SportsMembersContent />
+    </SportsMembersErrorBoundary>
   );
 }

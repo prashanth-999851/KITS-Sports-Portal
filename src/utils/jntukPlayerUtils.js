@@ -3,6 +3,114 @@
  * multi-year consolidation, and enterprise filtering.
  */
 
+// Dictionary mapping for canonical sports names to eliminate variations
+const CANONICAL_SPORTS_MAP = {
+  'cricket': 'Cricket',
+  'kho kho': 'Kho-Kho',
+  'kho-kho': 'Kho-Kho',
+  'khokho': 'Kho-Kho',
+  'netball': 'Netball',
+  'fencing': 'Fencing',
+  'shooting': 'Shooting',
+  'volleyball': 'Volleyball',
+  'volley ball': 'Volleyball',
+  'basketball': 'Basketball',
+  'basket ball': 'Basketball',
+  'badminton': 'Badminton',
+  'ball badminton': 'Ball-Badminton',
+  'ball-badminton': 'Ball-Badminton',
+  'ballbadminton': 'Ball-Badminton',
+  'kabaddi': 'Kabaddi',
+  'athletics': 'Athletics',
+  'athletic': 'Athletics',
+  'football': 'Football',
+  'foot ball': 'Football',
+  'soccer': 'Football',
+  'chess': 'Chess',
+  'table tennis': 'Table Tennis',
+  'table-tennis': 'Table Tennis',
+  'tabletennis': 'Table Tennis',
+  'tennis': 'Tennis',
+  'lawn tennis': 'Lawn Tennis',
+  'handball': 'Handball',
+  'hand ball': 'Handball',
+  'softball': 'Softball',
+  'soft ball': 'Softball',
+  'swimming': 'Swimming',
+  'judo': 'Judo',
+  'taekwondo': 'Taekwondo',
+  'yoga': 'Yoga',
+  'weightlifting': 'Weightlifting',
+  'weight lifting': 'Weightlifting',
+  'powerlifting': 'Powerlifting',
+  'power lifting': 'Powerlifting',
+  'archery': 'Archery',
+  'cross country': 'Cross Country',
+  'cross-country': 'Cross Country',
+  'hockey': 'Hockey',
+  'boxing': 'Boxing',
+  'wrestling': 'Wrestling',
+};
+
+/**
+ * Normalizes sport name to canonical form.
+ * e.g. "CRICKET" -> "Cricket", "kHO-KHO" -> "Kho-Kho", "kho-kho" -> "Kho-Kho", "KHO KHO" -> "Kho-Kho"
+ */
+export function normalizeSportName(sport) {
+  if (!sport || typeof sport !== 'string') return '';
+  const trimmed = sport.trim();
+  if (!trimmed) return '';
+
+  const lower = trimmed.toLowerCase();
+  if (CANONICAL_SPORTS_MAP[lower]) {
+    return CANONICAL_SPORTS_MAP[lower];
+  }
+
+  // Handle hyphen/space variations: "kho-kho" / "kho kho"
+  const cleanKey = lower.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (CANONICAL_SPORTS_MAP[cleanKey]) {
+    return CANONICAL_SPORTS_MAP[cleanKey];
+  }
+
+  const cleanDashKey = lower.replace(/\s+/g, '-').trim();
+  if (CANONICAL_SPORTS_MAP[cleanDashKey]) {
+    return CANONICAL_SPORTS_MAP[cleanDashKey];
+  }
+
+  // Fallback: title case while preserving hyphens
+  return trimmed
+    .split(/([ -])/)
+    .map(part => {
+      if (part === ' ' || part === '-') return part;
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase();
+    })
+    .join('');
+}
+
+/**
+ * Normalizes department code.
+ * e.g. " cse " -> "CSE", "ece" -> "ECE"
+ */
+export function normalizeDepartment(dept) {
+  if (!dept || typeof dept !== 'string') return '';
+  return dept.trim().toUpperCase();
+}
+
+/**
+ * Normalizes academic year to canonical "YYYY-YYYY" format.
+ * e.g. "2024-25" -> "2024-2025", " 2024-2025 " -> "2024-2025"
+ */
+export function normalizeAcademicYear(year) {
+  if (!year || typeof year !== 'string') return '';
+  const trimmed = year.trim();
+  const shortMatch = trimmed.match(/^(\d{4})-(\d{2})$/);
+  if (shortMatch) {
+    const century = shortMatch[1].slice(0, 2);
+    return `${shortMatch[1]}-${century}${shortMatch[2]}`;
+  }
+  return trimmed;
+}
+
 /**
  * Normalizes roll number for consistent matching.
  * e.g., " 21jr1a05xx " -> "21JR1A05XX"
@@ -22,8 +130,8 @@ export function getPlayerKey(player) {
   const roll = normalizeRollNumber(player.rollNumber);
   if (roll) return `ROLL:${roll}`;
 
-  const name = (player.studentName || '').trim().toUpperCase();
-  const dept = (player.department || '').trim().toUpperCase();
+  const name = (player.studentName || '').trim().replace(/\s+/g, ' ').toUpperCase();
+  const dept = normalizeDepartment(player.department);
   return `NAME_DEPT:${name}_${dept}`;
 }
 
@@ -90,7 +198,7 @@ export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All') {
     // Check if athlete represented in the requested activeYear
     const isMatchingActiveYear = 
       activeYear === 'All' || 
-      sortedRecords.some(r => r.academicYear === activeYear);
+      sortedRecords.some(r => normalizeAcademicYear(r.academicYear) === activeYear);
 
     if (!isMatchingActiveYear) {
       continue;
@@ -99,7 +207,7 @@ export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All') {
     // Determine the active representation for primary display
     // If a specific year is active, prioritize that year's record; otherwise use the newest record
     const primaryRecord = (activeYear !== 'All'
-      ? sortedRecords.find(r => r.academicYear === activeYear)
+      ? sortedRecords.find(r => normalizeAcademicYear(r.academicYear) === activeYear)
       : sortedRecords[0]) || sortedRecords[0];
 
     // Find the best photo across all years (prefer primary, then any available)
@@ -108,25 +216,29 @@ export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All') {
 
     // Collect distinct academic years
     const distinctYears = Array.from(
-      new Set(sortedRecords.map(r => r.academicYear).filter(Boolean))
+      new Set(sortedRecords.map(r => normalizeAcademicYear(r.academicYear)).filter(Boolean))
     ).sort().reverse();
 
-    // Collect distinct sports played
+    // Collect distinct sports played (NORMALIZED)
     const distinctSports = Array.from(
-      new Set(sortedRecords.map(r => r.sport).filter(Boolean))
+      new Set(sortedRecords.map(r => normalizeSportName(r.sport)).filter(Boolean))
     );
 
-    // Collect distinct departments
+    // Collect distinct departments (NORMALIZED)
     const distinctDepts = Array.from(
-      new Set(sortedRecords.map(r => r.department).filter(Boolean))
+      new Set(sortedRecords.map(r => normalizeDepartment(r.department)).filter(Boolean))
     );
 
     const isMultiYear = distinctYears.length > 1;
     const representationCount = sortedRecords.length;
 
     consolidatedList.push({
-      // Base attributes from primary record
+      // Base attributes from primary record with normalized sport & department
       ...primaryRecord,
+      sport: normalizeSportName(primaryRecord.sport),
+      department: normalizeDepartment(primaryRecord.department),
+      academicYear: normalizeAcademicYear(primaryRecord.academicYear),
+      rollNumber: normalizeRollNumber(primaryRecord.rollNumber),
       id: primaryRecord.id || primaryRecord._id || getPlayerKey(primaryRecord),
       photoUrl: bestPhotoUrl,
 
@@ -141,7 +253,13 @@ export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All') {
       yearsLabel: formatAcademicYears(distinctYears),
       
       // All participation history for modal timeline
-      allRepresentations: sortedRecords,
+      allRepresentations: sortedRecords.map(r => ({
+        ...r,
+        sport: normalizeSportName(r.sport),
+        department: normalizeDepartment(r.department),
+        academicYear: normalizeAcademicYear(r.academicYear),
+        rollNumber: normalizeRollNumber(r.rollNumber),
+      })),
     });
   }
 
@@ -168,8 +286,8 @@ export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All') {
  */
 export function filterConsolidatedAthletes(athletes = [], { searchQuery = '', selectedSport = 'All', selectedDept = 'All' } = {}) {
   const query = searchQuery.toLowerCase().trim();
-  const filterSport = selectedSport.toLowerCase().trim();
-  const filterDept = selectedDept.trim();
+  const filterSport = selectedSport === 'All' ? 'All' : normalizeSportName(selectedSport);
+  const filterDept = selectedDept === 'All' ? 'All' : normalizeDepartment(selectedDept);
 
   return athletes.filter(athlete => {
     // 1. Text Search matching
@@ -182,7 +300,8 @@ export function filterConsolidatedAthletes(athletes = [], { searchQuery = '', se
         (rep.tournamentName && rep.tournamentName.toLowerCase().includes(query)) ||
         (rep.venueHost && rep.venueHost.toLowerCase().includes(query)) ||
         (rep.achievementDetails && rep.achievementDetails.toLowerCase().includes(query)) ||
-        (rep.academicYear && rep.academicYear.toLowerCase().includes(query))
+        (rep.academicYear && rep.academicYear.toLowerCase().includes(query)) ||
+        (rep.sport && rep.sport.toLowerCase().includes(query))
       );
 
       if (!matchesName && !matchesRoll && !matchesDept && !matchesSport && !matchesHistory) {
@@ -191,14 +310,14 @@ export function filterConsolidatedAthletes(athletes = [], { searchQuery = '', se
     }
 
     // 2. Sport Filter matching (matches if athlete participated in this sport in any year)
-    if (filterSport !== 'all') {
-      const hasSport = athlete.sports && athlete.sports.some(s => s.toLowerCase() === filterSport);
+    if (filterSport !== 'All') {
+      const hasSport = athlete.sports && athlete.sports.some(s => normalizeSportName(s) === filterSport);
       if (!hasSport) return false;
     }
 
     // 3. Department Filter matching
     if (filterDept !== 'All') {
-      const hasDept = athlete.departments && athlete.departments.includes(filterDept);
+      const hasDept = athlete.departments && athlete.departments.some(d => normalizeDepartment(d) === filterDept);
       if (!hasDept) return false;
     }
 
@@ -219,7 +338,7 @@ export function computeJntukPlayerCounts(rawPlayers = []) {
   // Counts per academic year
   const yearCounts = {};
   for (const player of rawPlayers) {
-    const yr = player.academicYear;
+    const yr = normalizeAcademicYear(player.academicYear);
     if (yr) {
       if (!yearCounts[yr]) {
         yearCounts[yr] = new Set();

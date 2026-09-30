@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../convex/_generated/api';
+import { 
+  normalizeSportName, 
+  normalizeDepartment, 
+  normalizeAcademicYear, 
+  normalizeRollNumber 
+} from '../utils/jntukPlayerUtils';
 
 const ConvexStateContext = createContext(null);
 
@@ -43,7 +49,6 @@ export function ConvexStateProvider({ children }) {
   const qCoreValues = useQuery(api.coreValues.list);
   const qRules = useQuery(api.rules.list);
   const qJntukPlayers = useQuery(api.jntukPlayers.list);
-  const qApprovedMembers = useQuery(api.registrations.listApprovedPublic);
   const qSessionValidation = useQuery(
     api.users.validateSession,
     adminSessionToken ? { sessionToken: adminSessionToken } : "skip"
@@ -67,7 +72,7 @@ export function ConvexStateProvider({ children }) {
   const isLoadingAchievements = qAchievements === undefined;
   const isLoadingExecutive = qExecutiveBody === undefined;
   const isLoadingJntukPlayers = qJntukPlayers === undefined;
-  const isLoadingApprovedMembers = qApprovedMembers === undefined;
+  const isLoadingApprovedMembers = false;
   const isLoadingGallery = qGallery === undefined;
   const isLoadingNotifications = qNotifications === undefined;
   const isLoadingUsers = adminSessionToken && currentUser?.role === 'Super Admin' ? qUsers === undefined : false;
@@ -92,7 +97,7 @@ export function ConvexStateProvider({ children }) {
   const rawCoreValues = qCoreValues ?? [];
   const rawRules = qRules ?? [];
   const rawJntukPlayers = qJntukPlayers ?? [];
-  const rawApprovedMembers = qApprovedMembers ?? [];
+  const rawApprovedMembers = [];
 
   // ========== TRANSFORM DATA to match component expectations ==========
 
@@ -257,18 +262,18 @@ export function ConvexStateProvider({ children }) {
       content: r.content,
     }));
 
-  // JNTUK Represented Players
+  // JNTUK Represented Players (Normalized)
   const jntukPlayers = rawJntukPlayers.map(p => ({
     id: p._id,
-    studentName: p.studentName,
-    rollNumber: p.rollNumber,
-    department: p.department,
-    sport: p.sport,
-    academicYear: p.academicYear,
-    tournamentName: p.tournamentName,
-    venueHost: p.venueHost || '',
+    studentName: (p.studentName || '').trim(),
+    rollNumber: normalizeRollNumber(p.rollNumber),
+    department: normalizeDepartment(p.department),
+    sport: normalizeSportName(p.sport),
+    academicYear: normalizeAcademicYear(p.academicYear),
+    tournamentName: (p.tournamentName || '').trim(),
+    venueHost: (p.venueHost || '').trim(),
     photoUrl: p.photoUrl || '',
-    achievementDetails: p.achievementDetails || '',
+    achievementDetails: (p.achievementDetails || '').trim(),
     createdAt: p.createdAt,
   }));
 
@@ -312,6 +317,7 @@ export function ConvexStateProvider({ children }) {
   const createJntukPlayerMut = useMutation(api.jntukPlayers.create);
   const updateJntukPlayerMut = useMutation(api.jntukPlayers.update);
   const removeJntukPlayerMut = useMutation(api.jntukPlayers.remove);
+  const normalizeAllJntukRecordsMut = useMutation(api.jntukPlayers.normalizeAllRecords);
   const updateSettingsBatch = useMutation(api.settings.updateBatch);
   const createAuditLog = useMutation(api.auditLogs.create);
 
@@ -674,15 +680,15 @@ export function ConvexStateProvider({ children }) {
   // JNTUK Represented Players Management
   const addJntukPlayer = async (playerData) => {
     await createJntukPlayerMut(withSession({
-      studentName: playerData.studentName,
-      rollNumber: playerData.rollNumber,
-      department: playerData.department,
-      sport: playerData.sport,
-      academicYear: playerData.academicYear,
-      tournamentName: playerData.tournamentName,
-      venueHost: playerData.venueHost || '',
+      studentName: (playerData.studentName || '').trim(),
+      rollNumber: normalizeRollNumber(playerData.rollNumber),
+      department: normalizeDepartment(playerData.department),
+      sport: normalizeSportName(playerData.sport),
+      academicYear: normalizeAcademicYear(playerData.academicYear),
+      tournamentName: (playerData.tournamentName || '').trim(),
+      venueHost: (playerData.venueHost || '').trim(),
       photoUrl: playerData.photo || playerData.photoUrl,
-      achievementDetails: playerData.achievementDetails || '',
+      achievementDetails: (playerData.achievementDetails || '').trim(),
     }));
     await logAction('ADD_JNTUK_PLAYER', `Added JNTUK Athlete: ${playerData.studentName} (${playerData.academicYear})`);
   };
@@ -690,15 +696,15 @@ export function ConvexStateProvider({ children }) {
   const updateJntukPlayer = async (id, playerData) => {
     await updateJntukPlayerMut(withSession({
       id,
-      studentName: playerData.studentName,
-      rollNumber: playerData.rollNumber,
-      department: playerData.department,
-      sport: playerData.sport,
-      academicYear: playerData.academicYear,
-      tournamentName: playerData.tournamentName,
-      venueHost: playerData.venueHost,
+      studentName: (playerData.studentName || '').trim(),
+      rollNumber: normalizeRollNumber(playerData.rollNumber),
+      department: normalizeDepartment(playerData.department),
+      sport: normalizeSportName(playerData.sport),
+      academicYear: normalizeAcademicYear(playerData.academicYear),
+      tournamentName: (playerData.tournamentName || '').trim(),
+      venueHost: (playerData.venueHost || '').trim(),
       photoUrl: playerData.photo || playerData.photoUrl,
-      achievementDetails: playerData.achievementDetails,
+      achievementDetails: (playerData.achievementDetails || '').trim(),
     }));
     await logAction('UPDATE_JNTUK_PLAYER', `Updated JNTUK Athlete ID: ${id}`);
   };
@@ -706,6 +712,12 @@ export function ConvexStateProvider({ children }) {
   const deleteJntukPlayer = async (id) => {
     await removeJntukPlayerMut(withSession({ id }));
     await logAction('DELETE_JNTUK_PLAYER', `Deleted JNTUK Athlete ID: ${id}`);
+  };
+
+  const normalizeAllJntukPlayers = async () => {
+    const res = await normalizeAllJntukRecordsMut(withSession({}));
+    await logAction('NORMALIZE_JNTUK_PLAYERS', `Standardized ${res?.updated || 0} JNTUK player records`);
+    return res;
   };
 
   // Admin & RBAC Management
@@ -792,6 +804,7 @@ export function ConvexStateProvider({ children }) {
       addJntukPlayer,
       updateJntukPlayer,
       deleteJntukPlayer,
+      normalizeAllJntukPlayers,
       addUser,
       toggleUserActive,
       updateSettings
