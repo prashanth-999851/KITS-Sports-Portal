@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useConvexState } from '../context/ConvexStateContext';
-import { Trophy, Medal, Award, Crown } from 'lucide-react';
+import { Trophy, Medal, Award, Crown, ExternalLink } from 'lucide-react';
+import AchievementRecordsModal from './AchievementRecordsModal';
 
 function MedalTallySkeleton() {
   return (
@@ -17,7 +19,8 @@ function MedalTallySkeleton() {
 
 export default function Achievements() {
   const { achievements, isLoading } = useConvexState();
-  const { tallies, awards } = achievements;
+  const { tallies, awards, records = [] } = achievements;
+  const [activeModalType, setActiveModalType] = useState(null);
 
   const isTallyLoading = isLoading || !tallies?.isLoaded;
 
@@ -29,28 +32,36 @@ export default function Achievements() {
 
   const medalData = tallies ? [
     { 
+      type: 'trophy',
       icon: Trophy, 
       value: (tallies.trophies !== undefined && tallies.trophies !== null) ? tallies.trophies : 75, 
       label: 'Trophies Won',
-      iconColor: 'text-amber-500'
+      iconColor: 'text-amber-500',
+      badgeColor: 'text-amber-700 bg-amber-50 group-hover:bg-amber-100',
     },
     { 
+      type: 'gold',
       icon: Crown, 
       value: (tallies.gold !== undefined && tallies.gold !== null) ? tallies.gold : 18, 
       label: 'Gold Medals',
-      iconColor: 'text-amber-500'
+      iconColor: 'text-amber-500',
+      badgeColor: 'text-yellow-800 bg-yellow-50 group-hover:bg-yellow-100',
     },
     { 
+      type: 'silver',
       icon: Award, 
       value: (tallies.silver !== undefined && tallies.silver !== null) ? tallies.silver : 14, 
       label: 'Silver Medals',
-      iconColor: 'text-slate-400'
+      iconColor: 'text-slate-400',
+      badgeColor: 'text-slate-700 bg-slate-100 group-hover:bg-slate-200',
     },
     { 
+      type: 'bronze',
       icon: Medal, 
       value: (tallies.bronze !== undefined && tallies.bronze !== null) ? tallies.bronze : 22, 
       label: 'Bronze Medals',
-      iconColor: 'text-amber-700'
+      iconColor: 'text-amber-700',
+      badgeColor: 'text-orange-800 bg-orange-50 group-hover:bg-orange-100',
     },
   ] : [];
 
@@ -72,7 +83,7 @@ export default function Achievements() {
           </p>
         </div>
 
-        {/* Medal Tally - Clean Icons Without Borders & Values with + */}
+        {/* Medal Tally - Clickable Cards Opening Modal with Records */}
         {isTallyLoading ? (
           <MedalTallySkeleton />
         ) : (
@@ -82,21 +93,48 @@ export default function Achievements() {
               return (
                 <div 
                   key={idx} 
-                  className="p-6 rounded-xl bg-white border border-slate-200 hover:border-[#0b2e5b] text-center space-y-2.5 card-hover shadow-sm animate-slideUp transition-all duration-200"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View all ${medal.label} records (${medal.value})`}
+                  onClick={() => setActiveModalType(medal.type)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setActiveModalType(medal.type);
+                    }
+                  }}
+                  className="group relative p-6 rounded-xl bg-white border border-slate-200 hover:border-[#0b2e5b] text-center space-y-2.5 card-hover shadow-sm animate-slideUp transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] focus:ring-offset-2 hover:shadow-md"
                 >
-                  <div className="flex items-center justify-center mx-auto py-1">
+                  <div className="flex items-center justify-center mx-auto py-1 group-hover:scale-110 transition-transform duration-200">
                     <Icon className={`w-8 h-8 ${medal.iconColor}`} />
                   </div>
-                  <h3 className="text-3xl sm:text-4xl font-extrabold text-[#0b2e5b] tracking-tight">
+                  <h3 className="text-3xl sm:text-4xl font-extrabold text-[#0b2e5b] tracking-tight group-hover:text-blue-700 transition-colors">
                     {formatValue(medal.value)}
                   </h3>
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     {medal.label}
                   </p>
+
+                  {/* Interactive hint badge */}
+                  <div className="pt-1 flex items-center justify-center gap-1 text-[11px] font-semibold text-blue-600 opacity-90 group-hover:opacity-100 transition-opacity">
+                    <span className="underline-offset-2 group-hover:underline">View Roster</span>
+                    <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
                 </div>
               );
             })}
           </div>
+        )}
+
+        {/* Modal for Detailed Records */}
+        {activeModalType && (
+          <AchievementRecordsModal
+            isOpen={!!activeModalType}
+            type={activeModalType}
+            records={records}
+            isLoading={isLoading}
+            onClose={() => setActiveModalType(null)}
+          />
         )}
 
         {/* Awards - Only displayed if awards exist */}

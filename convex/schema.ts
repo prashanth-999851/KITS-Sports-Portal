@@ -83,15 +83,29 @@ export default defineSchema({
   }),
 
   achievements: defineTable({
-    title: v.string(),
-    recipient: v.string(),
-    category: v.string(),
-    achievement: v.string(),
+    // Enterprise tournament achievement fields
+    tournament: v.optional(v.string()),
+    sport: v.optional(v.string()),
+    year: v.optional(v.string()),
+    achievementType: v.optional(v.string()), // "Trophy" | "Gold" | "Silver" | "Bronze"
+    winner: v.optional(v.string()),
+    runnerUp: v.optional(v.string()),
+    details: v.optional(v.string()),
+    createdAt: v.optional(v.string()),
+    updatedAt: v.optional(v.string()),
+
+    // Legacy Wall of Fame award fields (backward compatibility)
+    title: v.optional(v.string()),
+    recipient: v.optional(v.string()),
+    category: v.optional(v.string()),
+    achievement: v.optional(v.string()),
     imageStorageId: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
-    year: v.optional(v.string()),
     medalType: v.optional(v.string()),
-  }),
+  })
+    .index("by_type", ["achievementType"])
+    .index("by_year", ["year"])
+    .index("by_sport", ["sport"]),
 
   executiveMembers: defineTable({
     name: v.string(),

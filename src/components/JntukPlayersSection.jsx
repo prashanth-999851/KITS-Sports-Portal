@@ -122,8 +122,8 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
 
             <p className="text-slate-600 text-sm leading-relaxed max-w-2xl mx-auto">
               {activeCategory === 'District'
-                ? 'Celebrating our student-athletes representing Guntur and regional districts at Andhra Pradesh State & Inter-District Championships.'
-                : 'Honoring our varsity student-athletes representing Jawaharlal Nehru Technological University Kakinada (JNTUK) at South Zone & All-India Inter-University Championships.'}
+                ? 'Celebrating our student-athletes representing regional districts at Andhra Pradesh State & Inter-District Championships.'
+                : 'Discover our elite student-athletes representing our college  competitions to JNTUK, South-Zone Inter- University & All-India Inter-University Championships.'}
             </p>
           </div>
         )}

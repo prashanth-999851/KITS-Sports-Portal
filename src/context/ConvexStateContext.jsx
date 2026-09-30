@@ -118,26 +118,66 @@ export function ConvexStateProvider({ children }) {
     },
   }));
 
-  // Achievements: components expect { tallies: { gold, silver, bronze, trophies }, awards: [...] }
-  const achievementAwards = rawAchievements.map(a => ({
+  // Achievements: enterprise records & dynamic tallies
+  const achievementRecords = rawAchievements.map(a => ({
     id: a._id,
+    tournament: a.tournament || a.title || 'Institutional Sports Tournament',
+    sport: a.sport || a.category || 'General Sports',
+    year: a.year || '',
+    achievementType: a.achievementType || a.medalType || 'Trophy',
+    winner: a.winner !== undefined && a.winner !== null ? a.winner : (a.recipient || ''),
+    runnerUp: a.runnerUp || '',
+    details: a.details || a.achievement || '',
+    createdAt: a.createdAt || '',
+    updatedAt: a.updatedAt || '',
+    // backward compatibility fields for Wall of Fame Awards
     title: a.title,
     recipient: a.recipient,
     category: a.category,
     achievement: a.achievement,
     image: a.imageUrl || "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600",
-    year: a.year,
     medalType: a.medalType,
   }));
 
+  const achievementAwards = rawAchievements
+    .filter(a => a.title && a.recipient)
+    .map(a => ({
+      id: a._id,
+      title: a.title,
+      recipient: a.recipient,
+      category: a.category,
+      achievement: a.achievement,
+      image: a.imageUrl || "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600",
+      year: a.year,
+      medalType: a.medalType,
+    }));
+
+  // Derive dynamic tallies directly from stored records
+  let dynamicTrophies = 0;
+  let dynamicGold = 0;
+  let dynamicSilver = 0;
+  let dynamicBronze = 0;
+
+  for (const rec of achievementRecords) {
+    const t = (rec.achievementType || '').trim().toLowerCase();
+    if (t === 'trophy') dynamicTrophies++;
+    else if (t === 'gold') dynamicGold++;
+    else if (t === 'silver') dynamicSilver++;
+    else if (t === 'bronze') dynamicBronze++;
+  }
+
+  const hasDbAchievements = achievementRecords.length > 0;
+
   const achievements = {
     tallies: {
-      gold: rawSettings.tally_gold !== undefined ? Number(rawSettings.tally_gold) : 0,
-      silver: rawSettings.tally_silver !== undefined ? Number(rawSettings.tally_silver) : 0,
-      bronze: rawSettings.tally_bronze !== undefined ? Number(rawSettings.tally_bronze) : 0,
-      trophies: rawSettings.tally_trophies !== undefined ? Number(rawSettings.tally_trophies) : 0,
-      isLoaded: qSettings !== undefined,
+      trophies: hasDbAchievements ? dynamicTrophies : (rawSettings.tally_trophies !== undefined ? Number(rawSettings.tally_trophies) : 0),
+      gold: hasDbAchievements ? dynamicGold : (rawSettings.tally_gold !== undefined ? Number(rawSettings.tally_gold) : 0),
+      silver: hasDbAchievements ? dynamicSilver : (rawSettings.tally_silver !== undefined ? Number(rawSettings.tally_silver) : 0),
+      bronze: hasDbAchievements ? dynamicBronze : (rawSettings.tally_bronze !== undefined ? Number(rawSettings.tally_bronze) : 0),
+      isLoaded: qAchievements !== undefined && qSettings !== undefined,
+      isDynamic: hasDbAchievements,
     },
+    records: achievementRecords,
     awards: achievementAwards,
   };
 
@@ -304,7 +344,10 @@ export function ConvexStateProvider({ children }) {
   const updateSportMut = useMutation(api.sports.update);
   const removeSport = useMutation(api.sports.remove);
   const createAchievement = useMutation(api.achievements.create);
+  const updateAchievementMut = useMutation(api.achievements.update);
   const removeAchievementMut = useMutation(api.achievements.remove);
+  const batchImportAchievementsMut = useMutation(api.achievements.batchImport);
+  const clearAllAchievementsMut = useMutation(api.achievements.clearAll);
   const broadcastNotif = useMutation(api.notifications.broadcast);
   const removeNotificationMut = useMutation(api.notifications.remove);
   const clearNotifAll = useMutation(api.notifications.clearAll);
@@ -579,22 +622,64 @@ export function ConvexStateProvider({ children }) {
   };
 
   // Achievements
-  const addAchievement = async (awardData) => {
-    await createAchievement(withSession({
-      title: awardData.title,
-      recipient: awardData.recipient,
-      category: awardData.category,
-      achievement: awardData.achievement,
-      imageUrl: awardData.image || awardData.imageUrl,
-      year: awardData.year,
-      medalType: awardData.medalType,
+  const addAchievement = async (data) => {
+    const id = await createAchievement(withSession({
+      tournament: data.tournament || data.title,
+      sport: data.sport || data.category,
+      year: data.year,
+      achievementType: data.achievementType || data.medalType || 'Trophy',
+      winner: data.winner || data.recipient,
+      runnerUp: data.runnerUp,
+      details: data.details || data.achievement,
+      title: data.title,
+      recipient: data.recipient,
+      category: data.category,
+      achievement: data.achievement,
+      imageUrl: data.image || data.imageUrl,
+      medalType: data.medalType,
     }));
-    await logAction('ADD_ACHIEVEMENT', `Added achievement: ${awardData.title}`);
+    await logAction('ADD_ACHIEVEMENT', `Added achievement: ${data.tournament || data.title} (${data.achievementType || 'Trophy'})`);
+    return id;
+  };
+
+  const updateAchievement = async (id, data) => {
+    await updateAchievementMut(withSession({
+      id,
+      tournament: data.tournament,
+      sport: data.sport,
+      year: data.year,
+      achievementType: data.achievementType,
+      winner: data.winner,
+      runnerUp: data.runnerUp,
+      details: data.details,
+      title: data.title,
+      recipient: data.recipient,
+      category: data.category,
+      achievement: data.achievement,
+      imageUrl: data.image || data.imageUrl,
+      medalType: data.medalType,
+    }));
+    await logAction('UPDATE_ACHIEVEMENT', `Updated achievement ID: ${id}`);
   };
 
   const deleteAchievement = async (id) => {
     await removeAchievementMut(withSession({ id }));
     await logAction('DELETE_ACHIEVEMENT', `Deleted achievement ID: ${id}`);
+  };
+
+  const importAchievements = async (records, updateExisting = false) => {
+    const result = await batchImportAchievementsMut(withSession({
+      records,
+      updateExisting,
+    }));
+    await logAction('IMPORT_ACHIEVEMENTS', `Imported ${result.imported} achievements, updated ${result.updated}, skipped ${result.skipped}`);
+    return result;
+  };
+
+  const clearAllAchievements = async () => {
+    const result = await clearAllAchievementsMut(withSession({}));
+    await logAction('CLEAR_ALL_ACHIEVEMENTS', `Cleared all achievement records`);
+    return result;
   };
 
   // Notifications
@@ -816,8 +901,12 @@ export function ConvexStateProvider({ children }) {
       addSport,
       updateSport,
       deleteSport,
+      achievementRecords,
       addAchievement,
+      updateAchievement,
       deleteAchievement,
+      importAchievements,
+      clearAllAchievements,
       broadcastNotification,
       deleteNotification,
       clearNotifications,
