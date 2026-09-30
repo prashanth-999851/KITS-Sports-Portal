@@ -275,6 +275,7 @@ export function ConvexStateProvider({ children }) {
     photoUrl: p.photoUrl || '',
     achievementDetails: (p.achievementDetails || '').trim(),
     level: p.level === 'District' ? 'District' : 'JNTUK',
+    displayOrder: typeof p.displayOrder === 'number' ? p.displayOrder : null,
     createdAt: p.createdAt,
   }));
 
@@ -318,6 +319,8 @@ export function ConvexStateProvider({ children }) {
   const createJntukPlayerMut = useMutation(api.jntukPlayers.create);
   const updateJntukPlayerMut = useMutation(api.jntukPlayers.update);
   const removeJntukPlayerMut = useMutation(api.jntukPlayers.remove);
+  const reorderJntukPlayerMut = useMutation(api.jntukPlayers.reorder);
+  const migrateJntukOrdersMut = useMutation(api.jntukPlayers.migrateDisplayOrders);
   const normalizeAllJntukRecordsMut = useMutation(api.jntukPlayers.normalizeAllRecords);
   const updateSettingsBatch = useMutation(api.settings.updateBatch);
   const createAuditLog = useMutation(api.auditLogs.create);
@@ -691,6 +694,9 @@ export function ConvexStateProvider({ children }) {
       photoUrl: playerData.photo || playerData.photoUrl,
       achievementDetails: (playerData.achievementDetails || '').trim(),
       level: playerData.level === 'District' ? 'District' : 'JNTUK',
+      displayOrder: playerData.displayOrder !== undefined && playerData.displayOrder !== '' && !isNaN(Number(playerData.displayOrder))
+        ? Math.max(1, Math.floor(Number(playerData.displayOrder)))
+        : undefined,
     }));
     await logAction('ADD_JNTUK_PLAYER', `Added ${playerData.level || 'JNTUK'} Athlete: ${playerData.studentName} (${playerData.academicYear})`);
   };
@@ -708,6 +714,9 @@ export function ConvexStateProvider({ children }) {
       photoUrl: playerData.photo || playerData.photoUrl,
       achievementDetails: (playerData.achievementDetails || '').trim(),
       level: playerData.level ? (playerData.level === 'District' ? 'District' : 'JNTUK') : undefined,
+      displayOrder: playerData.displayOrder !== undefined && playerData.displayOrder !== '' && !isNaN(Number(playerData.displayOrder))
+        ? Math.max(1, Math.floor(Number(playerData.displayOrder)))
+        : undefined,
     }));
     await logAction('UPDATE_JNTUK_PLAYER', `Updated Athlete ID: ${id}`);
   };
@@ -715,6 +724,20 @@ export function ConvexStateProvider({ children }) {
   const deleteJntukPlayer = async (id) => {
     await removeJntukPlayerMut(withSession({ id }));
     await logAction('DELETE_JNTUK_PLAYER', `Deleted JNTUK Athlete ID: ${id}`);
+  };
+
+  const reorderJntukPlayer = async (id, newOrder) => {
+    await reorderJntukPlayerMut(withSession({
+      id,
+      newOrder: Math.max(1, Math.floor(Number(newOrder))),
+    }));
+    await logAction('REORDER_JNTUK_PLAYER', `Reordered Athlete ID: ${id} to position ${newOrder}`);
+  };
+
+  const migrateJntukOrders = async () => {
+    const res = await migrateJntukOrdersMut(withSession({}));
+    await logAction('MIGRATE_JNTUK_ORDERS', `Backfilled display orders for ${res?.updated || 0} players`);
+    return res;
   };
 
   const normalizeAllJntukPlayers = async () => {
@@ -807,12 +830,16 @@ export function ConvexStateProvider({ children }) {
       addJntukPlayer,
       updateJntukPlayer,
       deleteJntukPlayer,
+      reorderJntukPlayer,
+      migrateJntukOrders,
       normalizeAllJntukPlayers,
       // Elite Players aliases
       elitePlayers: jntukPlayers,
       addElitePlayer: addJntukPlayer,
       updateElitePlayer: updateJntukPlayer,
       deleteElitePlayer: deleteJntukPlayer,
+      reorderElitePlayer: reorderJntukPlayer,
+      migrateEliteOrders: migrateJntukOrders,
       isLoadingElitePlayers: isLoadingJntukPlayers,
       addUser,
       toggleUserActive,

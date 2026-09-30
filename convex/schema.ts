@@ -163,6 +163,7 @@ export default defineSchema({
     photoUrl: v.optional(v.string()),
     achievementDetails: v.optional(v.string()),
     level: v.optional(v.string()), // "JNTUK" | "District" (defaults to "JNTUK")
+    displayOrder: v.optional(v.number()),
     createdAt: v.optional(v.string()),
   }),
 });

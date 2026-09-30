@@ -8,7 +8,7 @@ import JntukPlayerCrestCard from '../../components/JntukPlayerCrestCard';
 import { 
   Award, Plus, Edit, Trash2, X, Search, Calendar, 
   Trophy, Loader2, FileSpreadsheet, RotateCcw,
-  Users, Eye, Sparkles, ShieldCheck
+  Users, Eye, Sparkles, ShieldCheck, ChevronUp, ChevronDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { 
@@ -22,17 +22,18 @@ import {
 
 const OFFICIAL_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];
 
-const getInitialFormData = (targetLevel = 'JNTUK') => ({
+const getInitialFormData = (targetLevel = 'JNTUK', targetYear = '', defaultOrder = '') => ({
   studentName: '',
   rollNumber: '',
   department: '',
   sport: '',
-  academicYear: '',
+  academicYear: targetYear || '',
   tournamentName: '',
   venueHost: '',
   photo: '',
   achievementDetails: '',
   level: targetLevel || 'JNTUK',
+  displayOrder: defaultOrder || '',
 });
 
 export default function JntukPlayersAdminPage() {
@@ -41,6 +42,8 @@ export default function JntukPlayersAdminPage() {
     addJntukPlayer, 
     updateJntukPlayer, 
     deleteJntukPlayer, 
+    reorderJntukPlayer,
+    migrateJntukOrders,
     normalizeAllJntukPlayers,
     isLoading,
     isLoadingJntukPlayers 
@@ -73,6 +76,49 @@ export default function JntukPlayersAdminPage() {
     }
   }, [showModal]);
 
+  // Safe one-time backfill migration for existing records without displayOrder
+  useEffect(() => {
+    if (isLoading || isLoadingJntukPlayers || jntukPlayers.length === 0) return;
+    const hasUnordered = jntukPlayers.some(p => p.displayOrder === null || p.displayOrder === undefined);
+    if (hasUnordered && migrateJntukOrders) {
+      migrateJntukOrders().then(res => {
+        if (res?.updated > 0) {
+          console.log(`Auto-backfilled display orders for ${res.updated} athletes.`);
+        }
+      }).catch(err => {
+        console.error('Error auto-backfilling display orders:', err);
+      });
+    }
+  }, [isLoading, isLoadingJntukPlayers, jntukPlayers, migrateJntukOrders]);
+
+  // Compute maximum display order per (level, academicYear) group for quick reorder boundaries
+  const groupMaxOrders = useMemo(() => {
+    const map = new Map();
+    for (const p of jntukPlayers) {
+      const key = `${p.level === 'District' ? 'District' : 'JNTUK'}___${normalizeAcademicYear(p.academicYear)}`;
+      const currentMax = map.get(key) || 0;
+      const pOrder = typeof p.displayOrder === 'number' ? p.displayOrder : 0;
+      if (pOrder > currentMax) {
+        map.set(key, pOrder);
+      }
+    }
+    return map;
+  }, [jntukPlayers]);
+
+  const handleQuickReorder = async (player, direction) => {
+    const currentOrder = typeof player.displayOrder === 'number' ? player.displayOrder : 1;
+    const newOrder = direction === 'up' ? currentOrder - 1 : currentOrder + 1;
+    if (newOrder < 1) return;
+
+    try {
+      await reorderJntukPlayer(player.id, newOrder);
+      showToast('Display order updated successfully.', 'success');
+    } catch (err) {
+      console.error(err);
+      showToast('Unable to update display order. Please try again.', 'error');
+    }
+  };
+
   const handleResetFilters = () => {
     setSearchTerm('');
     setSelectedCategory('All');
@@ -94,6 +140,7 @@ export default function JntukPlayersAdminPage() {
       photo: player.photoUrl || '',
       achievementDetails: player.achievementDetails || '',
       level: player.level === 'District' ? 'District' : 'JNTUK',
+      displayOrder: typeof player.displayOrder === 'number' ? String(player.displayOrder) : '',
     });
     setShowModal(true);
   };
@@ -103,8 +150,15 @@ export default function JntukPlayersAdminPage() {
     const targetLevel = (typeof defaultCategory === 'string' && defaultCategory !== 'All') 
       ? defaultCategory 
       : (selectedCategory !== 'All' ? selectedCategory : 'JNTUK');
+    const targetYear = selectedYear !== 'All' ? selectedYear : '';
 
-    setFormData(getInitialFormData(targetLevel));
+    // Calculate next display order for this group
+    const groupCount = jntukPlayers.filter(
+      p => (p.level === 'District' ? 'District' : 'JNTUK') === targetLevel &&
+           (!targetYear || normalizeAcademicYear(p.academicYear) === normalizeAcademicYear(targetYear))
+    ).length;
+
+    setFormData(getInitialFormData(targetLevel, targetYear, String(groupCount + 1)));
     setShowModal(true);
   };
 
@@ -112,6 +166,11 @@ export default function JntukPlayersAdminPage() {
     e.preventDefault();
     if (!formData.studentName.trim() || !formData.rollNumber.trim() || !formData.academicYear.trim()) {
       showToast('Please fill out student name, roll number, and academic year.', 'warning');
+      return;
+    }
+
+    if (formData.displayOrder !== '' && (!Number.isInteger(Number(formData.displayOrder)) || Number(formData.displayOrder) < 1)) {
+      showToast('Display Order must be a positive whole number (minimum 1).', 'warning');
       return;
     }
 
@@ -129,11 +188,14 @@ export default function JntukPlayersAdminPage() {
         photoUrl: formData.photo,
         achievementDetails: formData.achievementDetails.trim(),
         level: formData.level === 'District' ? 'District' : 'JNTUK',
+        displayOrder: formData.displayOrder !== '' && !isNaN(Number(formData.displayOrder))
+          ? Math.max(1, Math.floor(Number(formData.displayOrder)))
+          : undefined,
       };
 
       if (editingPlayer) {
         await updateJntukPlayer(editingPlayer.id, cleanData);
-        showToast(`Updated record for ${cleanData.studentName}`, 'success');
+        showToast(`Display order updated successfully. Updated record for ${cleanData.studentName}`, 'success');
       } else {
         await addJntukPlayer(cleanData);
         showToast(`Added ${cleanData.studentName} to ${cleanData.level} Roster`, 'success');
@@ -142,7 +204,7 @@ export default function JntukPlayersAdminPage() {
       setEditingPlayer(null);
     } catch (err) {
       console.error(err);
-      showToast('Failed to save record: ' + (err.message || 'Unknown error'), 'error');
+      showToast('Unable to update record: ' + (err.message || 'Unknown error'), 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -152,7 +214,7 @@ export default function JntukPlayersAdminPage() {
     if (window.confirm(`Are you sure you want to remove ${name} from Elite Players roster?`)) {
       try {
         await deleteJntukPlayer(id);
-        showToast(`Removed ${name} from roster`, 'info');
+        showToast(`Removed ${name} from roster. Remaining positions normalized.`, 'info');
       } catch (err) {
         showToast('Failed to remove player: ' + err.message, 'error');
       }
@@ -197,23 +259,44 @@ export default function JntukPlayersAdminPage() {
     return multiKeys;
   }, [jntukPlayers]);
 
-  const filteredPlayers = jntukPlayers.filter(player => {
-    const term = searchTerm.toLowerCase().trim();
-    const matchesSearch = !term || 
-      (player.studentName && player.studentName.toLowerCase().includes(term)) ||
-      (player.rollNumber && player.rollNumber.toLowerCase().includes(term)) ||
-      (player.sport && player.sport.toLowerCase().includes(term)) ||
-      (player.department && player.department.toLowerCase().includes(term)) ||
-      (player.tournamentName && player.tournamentName.toLowerCase().includes(term)) ||
-      (player.venueHost && player.venueHost.toLowerCase().includes(term));
+  const filteredPlayers = useMemo(() => {
+    const list = jntukPlayers.filter(player => {
+      const term = searchTerm.toLowerCase().trim();
+      const matchesSearch = !term || 
+        (player.studentName && player.studentName.toLowerCase().includes(term)) ||
+        (player.rollNumber && player.rollNumber.toLowerCase().includes(term)) ||
+        (player.sport && player.sport.toLowerCase().includes(term)) ||
+        (player.department && player.department.toLowerCase().includes(term)) ||
+        (player.tournamentName && player.tournamentName.toLowerCase().includes(term)) ||
+        (player.venueHost && player.venueHost.toLowerCase().includes(term));
 
-    const matchesCategory = selectedCategory === 'All' || (player.level === 'District' ? 'District' : 'JNTUK') === selectedCategory;
-    const matchesYear = selectedYear === 'All' || normalizeAcademicYear(player.academicYear) === normalizeAcademicYear(selectedYear);
-    const matchesDept = selectedDept === 'All' || normalizeDepartment(player.department) === normalizeDepartment(selectedDept);
-    const matchesSport = selectedSport === 'All' || normalizeSportName(player.sport) === normalizeSportName(selectedSport);
+      const matchesCategory = selectedCategory === 'All' || (player.level === 'District' ? 'District' : 'JNTUK') === selectedCategory;
+      const matchesYear = selectedYear === 'All' || normalizeAcademicYear(player.academicYear) === normalizeAcademicYear(selectedYear);
+      const matchesDept = selectedDept === 'All' || normalizeDepartment(player.department) === normalizeDepartment(selectedDept);
+      const matchesSport = selectedSport === 'All' || normalizeSportName(player.sport) === normalizeSportName(selectedSport);
 
-    return matchesSearch && matchesCategory && matchesYear && matchesDept && matchesSport;
-  });
+      return matchesSearch && matchesCategory && matchesYear && matchesDept && matchesSport;
+    });
+
+    // Sort strictly by Academic Year desc, Category, Display Order ASC (nulls last), Fallback Name
+    return list.sort((a, b) => {
+      const yrA = normalizeAcademicYear(a.academicYear);
+      const yrB = normalizeAcademicYear(b.academicYear);
+      const yrDiff = yrB.localeCompare(yrA);
+      if (yrDiff !== 0) return yrDiff;
+
+      const lvlA = a.level === 'District' ? 'District' : 'JNTUK';
+      const lvlB = b.level === 'District' ? 'District' : 'JNTUK';
+      const lvlDiff = lvlA.localeCompare(lvlB);
+      if (lvlDiff !== 0) return lvlDiff;
+
+      const ordA = typeof a.displayOrder === 'number' ? a.displayOrder : 999999;
+      const ordB = typeof b.displayOrder === 'number' ? b.displayOrder : 999999;
+      if (ordA !== ordB) return ordA - ordB;
+
+      return (a.studentName || '').localeCompare(b.studentName || '');
+    });
+  }, [jntukPlayers, searchTerm, selectedCategory, selectedYear, selectedDept, selectedSport]);
 
   const activeFilterCount = (selectedCategory !== 'All' ? 1 : 0) +
                             (selectedYear !== 'All' ? 1 : 0) + 
@@ -522,55 +605,102 @@ export default function JntukPlayersAdminPage() {
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPlayers.map((player) => (
-            <div key={player.id} className="relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 flex flex-col justify-between shadow-sm card-hover">
-              
-              {/* Card Action Header */}
-              <div className="flex items-center justify-between pb-2 border-b border-[var(--border-color)] mb-2">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded border ${
-                    player.level === 'District'
-                      ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800'
-                      : 'bg-blue-50 text-[#0b2e5b] border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
-                  }`}>
-                    {player.level === 'District' ? 'District' : 'JNTUK'}
-                  </span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                    AY {player.academicYear}
-                  </span>
-                  {multiYearPlayerKeys.has(getPlayerKey(player)) && (
-                    <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                      Multi-Year
+          {filteredPlayers.map((player) => {
+            const groupKey = `${player.level === 'District' ? 'District' : 'JNTUK'}___${normalizeAcademicYear(player.academicYear)}`;
+            const maxOrder = groupMaxOrders.get(groupKey) || 1;
+            const currentOrder = typeof player.displayOrder === 'number' ? player.displayOrder : 1;
+            const canMoveUp = currentOrder > 1;
+            const canMoveDown = currentOrder < maxOrder;
+
+            return (
+              <div key={player.id} className="relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 flex flex-col justify-between shadow-sm card-hover">
+                
+                {/* Card Action Header */}
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--border-color)] mb-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {/* Display Order Badge */}
+                    <div 
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700 font-extrabold text-[11px] shadow-2xs"
+                      title={`Public Display Order #${currentOrder} within ${player.level} ${player.academicYear}`}
+                    >
+                      <span className="text-[9px] uppercase tracking-wider text-amber-700 dark:text-amber-400 font-bold">Order</span>
+                      <span>#{currentOrder}</span>
+                    </div>
+
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded border ${
+                      player.level === 'District'
+                        ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800'
+                        : 'bg-blue-50 text-[#0b2e5b] border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+                    }`}>
+                      {player.level === 'District' ? 'District' : 'JNTUK'}
                     </span>
-                  )}
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                      AY {player.academicYear}
+                    </span>
+                    {multiYearPlayerKeys.has(getPlayerKey(player)) && (
+                      <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                        Multi-Year
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {/* Quick Reorder Up / Down Controls */}
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+                      <button
+                        type="button"
+                        onClick={() => handleQuickReorder(player, 'up')}
+                        disabled={!canMoveUp}
+                        className={`p-1 rounded text-slate-700 dark:text-slate-300 transition-colors ${
+                          canMoveUp 
+                            ? 'hover:bg-white dark:hover:bg-slate-700 hover:text-[#0b2e5b] cursor-pointer' 
+                            : 'opacity-25 cursor-not-allowed'
+                        }`}
+                        title={canMoveUp ? `Move Up to position #${currentOrder - 1}` : 'Already at top position (#1)'}
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleQuickReorder(player, 'down')}
+                        disabled={!canMoveDown}
+                        className={`p-1 rounded text-slate-700 dark:text-slate-300 transition-colors ${
+                          canMoveDown 
+                            ? 'hover:bg-white dark:hover:bg-slate-700 hover:text-[#0b2e5b] cursor-pointer' 
+                            : 'opacity-25 cursor-not-allowed'
+                        }`}
+                        title={canMoveDown ? `Move Down to position #${currentOrder + 1}` : 'Already at bottom position'}
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => handleEdit(player)}
+                      className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                      title="Edit Athlete Record"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(player.id, player.studentName)}
+                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                      title="Delete Athlete Record"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleEdit(player)}
-                    className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
-                    title="Edit Athlete Record"
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(player.id, player.studentName)}
-                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
-                    title="Delete Athlete Record"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                {/* Exact Crest Card Component Render */}
+                <JntukPlayerCrestCard 
+                  player={player}
+                  showBadge={false}
+                />
+
               </div>
-
-              {/* Exact Crest Card Component Render */}
-              <JntukPlayerCrestCard 
-                player={player}
-                showBadge={false}
-              />
-
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -721,6 +851,37 @@ export default function JntukPlayersAdminPage() {
                     </div>
                   </div>
 
+                  {/* Display Order Management Field */}
+                  <div className="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200 shadow-2xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-[#0b2e5b] font-extrabold text-xs">
+                        Display Order
+                      </label>
+                      <span className="text-[10px] font-bold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full">
+                        Scope: {formData.level || 'JNTUK'} • {formData.academicYear || 'Academic Year'}
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <input 
+                        type="number" 
+                        min="1"
+                        step="1"
+                        placeholder="Enter display order (e.g. 1)" 
+                        value={formData.displayOrder} 
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === '' || (/^\d+$/.test(val) && Number(val) >= 1)) {
+                            setFormData({ ...formData, displayOrder: val });
+                          }
+                        }} 
+                        className="w-full px-3 py-2 rounded-xl bg-white border border-amber-300 text-slate-900 text-xs font-mono font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none placeholder:text-slate-400 shadow-2xs" 
+                      />
+                    </div>
+                    <p className="text-[10.5px] text-amber-900/80 leading-normal">
+                      Controls the player's position in the public player list for the selected category and academic year.
+                    </p>
+                  </div>
+
                   <div>
                     <label className="block text-slate-700 mb-1 font-bold">Tournament / Championship Name</label>
                     <input 
@@ -772,7 +933,9 @@ export default function JntukPlayersAdminPage() {
                       <Eye className="w-3.5 h-3.5 text-[#0b2e5b]" />
                       Live Card Preview
                     </span>
-                    <span className="text-[10px] text-emerald-600 font-semibold">Dynamic</span>
+                    <span className="text-[10px] text-amber-700 bg-amber-100 font-bold px-2 py-0.5 rounded-full">
+                      Position #{formData.displayOrder || 'Auto'}
+                    </span>
                   </div>
 
                   <div className="w-full max-w-[240px]">

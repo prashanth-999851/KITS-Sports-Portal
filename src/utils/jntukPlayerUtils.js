@@ -253,6 +253,7 @@ export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All', act
       rollNumber: normalizeRollNumber(primaryRecord.rollNumber),
       id: primaryRecord.id || primaryRecord._id || getPlayerKey(primaryRecord),
       photoUrl: bestPhotoUrl,
+      displayOrder: typeof primaryRecord.displayOrder === 'number' ? primaryRecord.displayOrder : null,
 
       // Consolidated multi-year attributes
       athleteKey: getPlayerKey(primaryRecord),
@@ -272,20 +273,30 @@ export function consolidateJntukPlayers(rawPlayers = [], activeYear = 'All', act
         department: normalizeDepartment(r.department),
         academicYear: normalizeAcademicYear(r.academicYear),
         rollNumber: normalizeRollNumber(r.rollNumber),
+        displayOrder: typeof r.displayOrder === 'number' ? r.displayOrder : null,
       })),
     });
   }
 
-  // Sort overall list: multi-year athletes first, then alphabetically by name
+  // Sort overall list: academic year (if 'All'), then displayOrder ASC, then multi-year count, then name
   return consolidatedList.sort((a, b) => {
-    // Primary: newest academic year
-    const yrA = a.academicYears[0] || '';
-    const yrB = b.academicYears[0] || '';
-    const yrDiff = yrB.localeCompare(yrA);
-    if (yrDiff !== 0) return yrDiff;
+    // Primary: newest academic year if 'All' years
+    if (activeYear === 'All') {
+      const yrA = a.academicYears?.[0] || a.academicYear || '';
+      const yrB = b.academicYears?.[0] || b.academicYear || '';
+      const yrDiff = yrB.localeCompare(yrA);
+      if (yrDiff !== 0) return yrDiff;
+    }
 
-    // Secondary: multi-year representation count descending
-    if (b.representationCount !== a.representationCount) {
+    // Display order check (1, 2, 3... nulls last)
+    const orderA = typeof a.displayOrder === 'number' ? a.displayOrder : 999999;
+    const orderB = typeof b.displayOrder === 'number' ? b.displayOrder : 999999;
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+
+    // Secondary: multi-year representation count descending if All years
+    if (activeYear === 'All' && b.representationCount !== a.representationCount) {
       return b.representationCount - a.representationCount;
     }
 
