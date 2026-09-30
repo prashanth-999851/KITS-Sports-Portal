@@ -49,7 +49,7 @@ export default function SportsSection({ onRegisterSport }) {
     <section id="sports" className="py-12 sm:py-16 bg-[var(--bg-main)] transition-colors">
       <div className="section-divider" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-9">
-        
+
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-2.5">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0b2e5b]">
@@ -59,7 +59,7 @@ export default function SportsSection({ onRegisterSport }) {
             Sports <span className="accent-text">Disciplines</span>
           </h2>
           <p className="text-slate-600 text-xs sm:text-sm font-medium leading-relaxed max-w-2xl mx-auto">
-            From turf cricket grounds to indoor BWF wooden courts, discover our active sports disciplines, professional coaches, and captains.
+            Discover our active sports disciplines, dedicated Physical Directors and passionate student captains.
           </p>
 
           {/* Filters */}
@@ -68,11 +68,10 @@ export default function SportsSection({ onRegisterSport }) {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${
-                  selectedCategory === cat
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${selectedCategory === cat
                     ? 'bg-[#0b2e5b] text-white shadow-sm'
                     : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300 hover:text-[#0b2e5b] hover:shadow-sm'
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -97,18 +96,18 @@ export default function SportsSection({ onRegisterSport }) {
                 className="group rounded-xl bg-white border border-slate-200 overflow-hidden flex flex-col justify-between card-hover shadow-sm animate-slideUp transition-all duration-200 hover:shadow-md hover:border-slate-300 h-full"
               >
                 {/* 1st Half: Sports Image Banner */}
-                <div className="relative h-56 sm:h-52 md:h-48 lg:h-44 overflow-hidden bg-slate-100 img-zoom shrink-0">
+                <div className="relative h-56 sm:h-52 md:h-48 lg:h-44 overflow-hidden bg-slate-100 shrink-0">
                   <img
                     src={sport.image}
                     alt={sport.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
                       e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800";
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
-                  
+
                   {/* Category Badge */}
                   <span className="absolute top-2.5 left-2.5 text-[9.5px] font-bold px-2.5 py-0.5 rounded-full bg-[#0b2e5b]/90 backdrop-blur-sm text-white shadow-sm tracking-wide uppercase">
                     {sport.category}
@@ -124,21 +123,21 @@ export default function SportsSection({ onRegisterSport }) {
 
                 {/* 2nd Half: Content Area */}
                 <div className="p-3.5 flex flex-col flex-1 justify-between gap-3">
-                  
+
                   {/* Details Area */}
                   <div className="space-y-1.5 text-[11.5px] sm:text-xs min-h-[84px] flex flex-col justify-center">
                     <div className="flex items-center justify-between text-slate-700 gap-1">
                       <span className="text-slate-400 font-medium">Coordinator:</span>
                       <span className="font-bold text-[#0b2e5b] truncate text-right">{sport.coordinator}</span>
                     </div>
-                    
+
                     {sport.asstFacultyCoordinator && (
                       <div className="flex items-center justify-between text-slate-700 gap-1">
                         <span className="text-slate-400 font-medium">Asst. Coord:</span>
                         <span className="font-semibold text-slate-700 truncate text-right">{sport.asstFacultyCoordinator}</span>
                       </div>
                     )}
-                    
+
                     {sport.teamDetails?.menCaptain && (
                       <div className="flex items-center justify-between text-slate-700 gap-1">
                         <span className="text-slate-400 font-medium">
@@ -147,7 +146,7 @@ export default function SportsSection({ onRegisterSport }) {
                         <span className="font-semibold text-slate-800 truncate text-right">{sport.teamDetails.menCaptain}</span>
                       </div>
                     )}
-                    
+
                     {sport.teamDetails?.womenCaptain && (
                       <div className="flex items-center justify-between text-slate-700 gap-1">
                         <span className="text-slate-400 font-medium">

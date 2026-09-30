@@ -3,13 +3,13 @@ import { useConvexState } from '../context/ConvexStateContext';
 import { CardSkeleton } from './LoadingSkeleton';
 import EmptyState from './EmptyState';
 import JntukPlayerCrestCard from './JntukPlayerCrestCard';
-import { 
-  Award, Trophy, Calendar, Search, MapPin, ShieldCheck, 
+import {
+  Award, Trophy, Calendar, Search, MapPin, ShieldCheck,
   X, Sparkles
 } from 'lucide-react';
-import { 
-  consolidateJntukPlayers, 
-  filterConsolidatedAthletes, 
+import {
+  consolidateJntukPlayers,
+  filterConsolidatedAthletes,
   computeJntukPlayerCounts,
   normalizeSportName,
   normalizeDepartment,
@@ -107,7 +107,7 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
   return (
     <section id="elite-players" className={`${isEmbedded ? 'py-6' : 'pt-12 sm:pt-14 lg:pt-16 pb-12 sm:pb-16'} bg-slate-50 transition-colors`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
-        
+
         {/* Section Header */}
         {!isEmbedded && (
           <div className="text-center max-w-3xl mx-auto space-y-3">
@@ -115,11 +115,11 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
               <ShieldCheck className="w-4 h-4 text-[#0b2e5b]" />
               <span>Elite Athletic Honors</span>
             </div>
-            
+
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0b2e5b] tracking-tight">
               Elite <span className="text-amber-500">Players</span>
             </h2>
-            
+
             <p className="text-slate-600 text-sm leading-relaxed max-w-2xl mx-auto">
               {activeCategory === 'District'
                 ? 'Celebrating our student-athletes representing Guntur and regional districts at Andhra Pradesh State & Inter-District Championships.'
@@ -132,10 +132,9 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
         <div className="flex justify-center w-full px-2 sm:px-4">
           <div className="relative grid grid-cols-2 p-1.5 rounded-2xl bg-slate-100 border border-slate-200 shadow-sm w-full max-w-md sm:max-w-lg select-none">
             {/* Smooth Sliding Pill Indicator */}
-            <div 
-              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#0b2e5b] rounded-xl shadow-md transition-all duration-300 ease-out pointer-events-none ${
-                activeCategory === 'JNTUK' ? 'left-1.5' : 'left-[calc(50%+3px)]'
-              }`} 
+            <div
+              className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#0b2e5b] rounded-xl shadow-md transition-all duration-300 ease-out pointer-events-none ${activeCategory === 'JNTUK' ? 'left-1.5' : 'left-[calc(50%+3px)]'
+                }`}
             />
 
             <button
@@ -145,17 +144,15 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
                 setSelectedSport('All');
                 setActiveYear('All');
               }}
-              className={`relative z-10 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
-                activeCategory === 'JNTUK'
+              className={`relative z-10 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${activeCategory === 'JNTUK'
                   ? 'text-white'
                   : 'text-slate-600 hover:text-[#0b2e5b]'
-              }`}
+                }`}
             >
               <ShieldCheck className={`w-4 h-4 shrink-0 ${activeCategory === 'JNTUK' ? 'text-blue-300' : 'text-slate-400'}`} />
               <span className="truncate">JNTUK Represented</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold transition-colors shrink-0 ${
-                activeCategory === 'JNTUK' ? 'bg-amber-400 text-slate-950' : 'bg-white text-slate-600 border border-slate-200'
-              }`}>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold transition-colors shrink-0 ${activeCategory === 'JNTUK' ? 'bg-amber-400 text-slate-950' : 'bg-white text-slate-600 border border-slate-200'
+                }`}>
                 {counts.jntukCount}
               </span>
             </button>
@@ -167,17 +164,15 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
                 setSelectedSport('All');
                 setActiveYear('All');
               }}
-              className={`relative z-10 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
-                activeCategory === 'District'
+              className={`relative z-10 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${activeCategory === 'District'
                   ? 'text-white'
                   : 'text-slate-600 hover:text-[#0b2e5b]'
-              }`}
+                }`}
             >
               <Trophy className={`w-4 h-4 shrink-0 ${activeCategory === 'District' ? 'text-amber-400' : 'text-slate-400'}`} />
               <span className="truncate">District Represented</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold transition-colors shrink-0 ${
-                activeCategory === 'District' ? 'bg-amber-400 text-slate-950' : 'bg-white text-slate-600 border border-slate-200'
-              }`}>
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-extrabold transition-colors shrink-0 ${activeCategory === 'District' ? 'bg-amber-400 text-slate-950' : 'bg-white text-slate-600 border border-slate-200'
+                }`}>
                 {counts.districtCount}
               </span>
             </button>
@@ -187,7 +182,7 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
         {/* Filters & Search Toolbar (shown if records exist or loading) */}
         {(categoryPlayers.length > 0 || isLoading) && (
           <div className="w-full flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
-            
+
             {/* Sport Discipline Filter Pills */}
             <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto max-w-full pb-1 md:pb-0">
               {availableSports.map((sp) => {
@@ -196,11 +191,10 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
                   <button
                     key={sp}
                     onClick={() => setSelectedSport(sp)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
-                      isSelected
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${isSelected
                         ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
                         : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
-                    }`}
+                      }`}
                   >
                     {sp}
                   </button>
@@ -210,7 +204,7 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
 
             {/* Right Controls: Academic Year, Department & Search */}
             <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto shrink-0">
-              
+
               {/* Academic Year Dropdown */}
               {availableYears.length > 1 && (
                 <div className="relative">
@@ -220,8 +214,8 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
                     className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] cursor-pointer"
                   >
                     {availableYears.map((yr) => {
-                      const count = yr === 'All' 
-                        ? counts.uniqueAthletesCount 
+                      const count = yr === 'All'
+                        ? counts.uniqueAthletesCount
                         : (counts.yearUniqueCounts[yr] || 0);
                       return (
                         <option key={yr} value={yr}>
@@ -295,12 +289,12 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
 
         {/* Enterprise Modal for Athlete Information & Representation Timeline */}
         {selectedPlayerModal && (
-          <div 
+          <div
             className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs overflow-hidden animate-fadeIn"
             onClick={() => setSelectedPlayerModal(null)}
           >
             {/* Modal Dialog: Pinned Header, Scrollable Content, Pinned Footer */}
-            <div 
+            <div
               className="relative w-full max-w-2xl bg-white rounded-3xl border border-gray-200 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
@@ -312,7 +306,7 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
                     {selectedPlayerModal.level === 'District' ? 'District Athlete Profile' : 'JNTUK Varsity Athlete Profile'}
                   </h3>
                 </div>
-                <button 
+                <button
                   onClick={() => setSelectedPlayerModal(null)}
                   className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
                   title="Close"
@@ -323,14 +317,14 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
 
               {/* 2. Scrollable Content Body */}
               <div className="flex-1 overflow-y-auto overflow-x-hidden p-6 sm:p-7 space-y-5">
-                
+
                 {/* Modal Header Profile */}
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 border-b border-slate-100 pb-5">
-                  
+
                   {/* Left: Diamond Avatar */}
                   <div className="shrink-0">
-                    <JntukPlayerCrestCard 
-                      player={selectedPlayerModal} 
+                    <JntukPlayerCrestCard
+                      player={selectedPlayerModal}
                       showBadge={false}
                     />
                   </div>
@@ -343,11 +337,10 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
                           {selectedPlayerModal.studentName}
                         </h3>
                         {selectedPlayerModal.isMultiYear && (
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                            selectedPlayerModal.level === 'District' 
-                              ? 'bg-purple-100 text-purple-900 border border-purple-300' 
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${selectedPlayerModal.level === 'District'
+                              ? 'bg-purple-100 text-purple-900 border border-purple-300'
                               : 'bg-amber-100 text-amber-900 border border-amber-300'
-                          }`}>
+                            }`}>
                             <Trophy className={`w-3 h-3 ${selectedPlayerModal.level === 'District' ? 'text-purple-600' : 'text-amber-600'}`} />
                             {selectedPlayerModal.representationCount}x {selectedPlayerModal.level === 'District' ? 'District Athlete' : 'Varsity Athlete'}
                           </span>
@@ -389,15 +382,15 @@ export default function JntukPlayersSection({ isEmbedded = false, maxDisplay = n
                   <div className="flex items-center gap-2">
                     <Award className="w-4 h-4 text-amber-500" />
                     <h4 className="text-xs font-extrabold text-[#0b2e5b] uppercase tracking-wider">
-                      {selectedPlayerModal.level === 'District' 
-                        ? 'District Championship Representation History' 
+                      {selectedPlayerModal.level === 'District'
+                        ? 'District Level Representation History'
                         : 'Inter-University Representation History'}
                     </h4>
                   </div>
 
                   <div className="space-y-2.5">
                     {(selectedPlayerModal.allRepresentations || [selectedPlayerModal]).map((rep, idx) => (
-                      <div 
+                      <div
                         key={rep.id || rep._id || idx}
                         className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-blue-300 transition-colors space-y-1.5"
                       >
