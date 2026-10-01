@@ -70,7 +70,10 @@ function cleanSport(sport?: string): string {
 
 function cleanDepartment(dept?: string): string {
   if (!dept) return "";
-  return dept.trim().toUpperCase();
+  const clean = dept.trim().toUpperCase();
+  if (clean === "CIVIL" || clean === "CIVIL ENGINEERING" || clean === "CE") return "CIVIL";
+  if (clean === "MECH" || clean === "MECHANICAL" || clean === "MECHANICAL ENGINEERING" || clean === "ME") return "MECH";
+  return clean;
 }
 
 function cleanAcademicYear(yr?: string): string {
@@ -80,6 +83,11 @@ function cleanAcademicYear(yr?: string): string {
   if (shortMatch) {
     const century = shortMatch[1].slice(0, 2);
     return `${shortMatch[1]}-${century}${shortMatch[2]}`;
+  }
+  const singleMatch = trimmed.match(/^(\d{4})$/);
+  if (singleMatch) {
+    const startY = parseInt(singleMatch[1], 10);
+    return `${startY}-${startY + 1}`;
   }
   return trimmed;
 }

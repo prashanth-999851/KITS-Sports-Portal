@@ -17,10 +17,10 @@ import {
   normalizeSportName,
   normalizeDepartment,
   normalizeAcademicYear,
-  normalizeRollNumber
+  normalizeRollNumber,
+  getJntukAcademicYears,
+  OFFICIAL_DEPARTMENTS
 } from '../../utils/jntukPlayerUtils';
-
-const OFFICIAL_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];
 
 const getInitialFormData = (targetLevel = 'JNTUK', targetYear = '', defaultOrder = '') => ({
   studentName: '',
@@ -221,12 +221,11 @@ export default function JntukPlayersAdminPage() {
     }
   };
 
-  // Unique Academic Years & Sports dynamically derived & normalized
+  // Unique Academic Years from 2008 to current year (automatically updated every Jan 1) & existing database records
   const availableYears = useMemo(() => {
-    return Array.from(new Set([
-      '2025-2026', '2024-2025', '2023-2024', '2022-2023',
-      ...jntukPlayers.map(p => normalizeAcademicYear(p.academicYear)).filter(Boolean)
-    ]));
+    const dynamicYears = getJntukAcademicYears(2008);
+    const fromRecords = jntukPlayers.map(p => normalizeAcademicYear(p.academicYear)).filter(Boolean);
+    return Array.from(new Set([...dynamicYears, ...fromRecords]));
   }, [jntukPlayers]);
 
   const availableSports = useMemo(() => {
@@ -846,11 +845,9 @@ export default function JntukPlayersAdminPage() {
                         className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:bg-white focus:border-[#0b2e5b] focus:outline-none transition-colors" 
                       >
                         <option value="">Select academic year</option>
-                        <option value="2025-2026">2025-2026</option>
-                        <option value="2024-2025">2024-2025</option>
-                        <option value="2023-2024">2023-2024</option>
-                        <option value="2022-2023">2022-2023</option>
-                        <option value="2021-2022">2021-2022</option>
+                        {availableYears.map(yr => (
+                          <option key={yr} value={yr}>{yr}</option>
+                        ))}
                       </select>
                     </div>
                   </div>

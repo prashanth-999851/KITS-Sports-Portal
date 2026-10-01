@@ -87,18 +87,42 @@ export function normalizeSportName(sport) {
     .join('');
 }
 
+export const OFFICIAL_DEPARTMENTS = [
+  'CSE', 'IT', 'ECE', 'EEE', 'CIVIL', 'MECH', 'CAI', 'CSM', 'CSD'
+];
+
+/**
+ * Generates canonical academic years from the founding year (2008) up to the current year.
+ * On every January 1st, a new academic year for that calendar year is automatically prepended.
+ * e.g., in 2026 -> ['2026-2027', '2025-2026', ..., '2008-2009']
+ *
+ * @param {number} startYear - Base year (defaults to 2008)
+ * @returns {string[]} Array of academic year strings sorted newest first
+ */
+export function getJntukAcademicYears(startYear = 2008) {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let y = currentYear; y >= startYear; y--) {
+    years.push(`${y}-${y + 1}`);
+  }
+  return years;
+}
+
 /**
  * Normalizes department code.
- * e.g. " cse " -> "CSE", "ece" -> "ECE"
+ * e.g. " cse " -> "CSE", "civil" -> "CIVIL", "mechanical" -> "MECH"
  */
 export function normalizeDepartment(dept) {
   if (!dept || typeof dept !== 'string') return '';
-  return dept.trim().toUpperCase();
+  const clean = dept.trim().toUpperCase();
+  if (clean === 'CIVIL' || clean === 'CIVIL ENGINEERING' || clean === 'CE') return 'CIVIL';
+  if (clean === 'MECH' || clean === 'MECHANICAL' || clean === 'MECHANICAL ENGINEERING' || clean === 'ME') return 'MECH';
+  return clean;
 }
 
 /**
  * Normalizes academic year to canonical "YYYY-YYYY" format.
- * e.g. "2024-25" -> "2024-2025", " 2024-2025 " -> "2024-2025"
+ * e.g. "2024-25" -> "2024-2025", " 2024-2025 " -> "2024-2025", "2008" -> "2008-2009"
  */
 export function normalizeAcademicYear(year) {
   if (!year || typeof year !== 'string') return '';
@@ -107,6 +131,11 @@ export function normalizeAcademicYear(year) {
   if (shortMatch) {
     const century = shortMatch[1].slice(0, 2);
     return `${shortMatch[1]}-${century}${shortMatch[2]}`;
+  }
+  const singleMatch = trimmed.match(/^(\d{4})$/);
+  if (singleMatch) {
+    const startY = parseInt(singleMatch[1], 10);
+    return `${startY}-${startY + 1}`;
   }
   return trimmed;
 }
