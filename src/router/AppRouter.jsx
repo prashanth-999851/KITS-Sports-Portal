@@ -79,14 +79,14 @@ function SportsMembersViewWrapper() {
 
 function PageLoader() {
   return (
-    <div className="min-h-screen bg-[#0b1e38] text-white flex flex-col items-center justify-center space-y-4 animate-fadeIn">
-      <div className="relative w-16 h-16 flex items-center justify-center">
-        <div className="absolute inset-0 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
-        <img src="/kits_logo.png?v=2" alt="KITS" className="w-10 h-10 object-contain bg-white rounded-full p-1 drop-shadow-md" />
-      </div>
-      <div className="text-center space-y-1">
-        <p className="text-sm font-bold text-white tracking-wide">KiTS Sports Directorate</p>
-        <p className="text-xs text-slate-400 animate-pulse">Loading Sports Management Portal...</p>
+    <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-6 animate-fadeIn">
+      <div className="flex flex-col items-center justify-center gap-5">
+        <img 
+          src="/kits_logo.png?v=2" 
+          alt="KiTS Sports Club" 
+          className="w-[76px] h-[76px] object-contain" 
+        />
+        <div className="w-8 h-8 rounded-full border-[3px] border-slate-200 border-t-[#0b2e5b] animate-spin" />
       </div>
     </div>
   );

@@ -188,7 +188,10 @@ export const create = mutation({
 export const toggleActive = mutation({
   args: { sessionToken, id: v.id("users") },
   handler: async (ctx, args) => {
-    await requireAdmin(ctx, args.sessionToken, ["Super Admin"]);
+    const admin = await requireAdmin(ctx, args.sessionToken, ["Super Admin"]);
+    if (admin._id === args.id) {
+      throw new Error("You cannot suspend your own administrative account.");
+    }
     const user = await ctx.db.get(args.id);
     if (!user) throw new Error("Admin not found.");
     await ctx.db.patch(args.id, { isActive: !user.isActive });

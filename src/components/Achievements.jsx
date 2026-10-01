@@ -38,6 +38,7 @@ export default function Achievements() {
       label: 'Trophies Won',
       iconColor: 'text-amber-500',
       badgeColor: 'text-amber-700 bg-amber-50 group-hover:bg-amber-100',
+      canView: true,
     },
     { 
       type: 'gold',
@@ -46,6 +47,7 @@ export default function Achievements() {
       label: 'Gold Medals',
       iconColor: 'text-amber-500',
       badgeColor: 'text-yellow-800 bg-yellow-50 group-hover:bg-yellow-100',
+      canView: false,
     },
     { 
       type: 'silver',
@@ -54,6 +56,7 @@ export default function Achievements() {
       label: 'Silver Medals',
       iconColor: 'text-slate-400',
       badgeColor: 'text-slate-700 bg-slate-100 group-hover:bg-slate-200',
+      canView: false,
     },
     { 
       type: 'bronze',
@@ -62,6 +65,7 @@ export default function Achievements() {
       label: 'Bronze Medals',
       iconColor: 'text-amber-700',
       badgeColor: 'text-orange-800 bg-orange-50 group-hover:bg-orange-100',
+      canView: false,
     },
   ] : [];
 
@@ -83,43 +87,50 @@ export default function Achievements() {
           </p>
         </div>
 
-        {/* Medal Tally - Clickable Cards Opening Modal with Records */}
+        {/* Medal Tally Cards */}
         {isTallyLoading ? (
           <MedalTallySkeleton />
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5 stagger-children">
             {medalData.map((medal, idx) => {
               const Icon = medal.icon;
+              const hasView = medal.canView;
               return (
                 <div 
                   key={idx} 
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`View all ${medal.label} records (${medal.value})`}
-                  onClick={() => setActiveModalType(medal.type)}
-                  onKeyDown={(e) => {
+                  role={hasView ? "button" : undefined}
+                  tabIndex={hasView ? 0 : undefined}
+                  aria-label={hasView ? `View all ${medal.label} records (${medal.value})` : undefined}
+                  onClick={hasView ? () => setActiveModalType(medal.type) : undefined}
+                  onKeyDown={hasView ? (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       setActiveModalType(medal.type);
                     }
-                  }}
-                  className="group relative p-6 rounded-xl bg-white border border-slate-200 hover:border-[#0b2e5b] text-center space-y-2.5 card-hover shadow-sm animate-slideUp transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] focus:ring-offset-2 hover:shadow-md"
+                  } : undefined}
+                  className={`group relative p-6 rounded-xl bg-white border border-slate-200 text-center space-y-2.5 shadow-sm animate-slideUp transition-all duration-200 ${
+                    hasView 
+                      ? 'hover:border-[#0b2e5b] card-hover cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] focus:ring-offset-2 hover:shadow-md' 
+                      : ''
+                  }`}
                 >
-                  <div className="flex items-center justify-center mx-auto py-1 group-hover:scale-110 transition-transform duration-200">
+                  <div className={`flex items-center justify-center mx-auto py-1 transition-transform duration-200 ${hasView ? 'group-hover:scale-110' : ''}`}>
                     <Icon className={`w-8 h-8 ${medal.iconColor}`} />
                   </div>
-                  <h3 className="text-3xl sm:text-4xl font-extrabold text-[#0b2e5b] tracking-tight group-hover:text-blue-700 transition-colors">
+                  <h3 className={`text-3xl sm:text-4xl font-extrabold text-[#0b2e5b] tracking-tight transition-colors ${hasView ? 'group-hover:text-blue-700' : ''}`}>
                     {formatValue(medal.value)}
                   </h3>
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     {medal.label}
                   </p>
 
-                  {/* Interactive hint badge */}
-                  <div className="pt-1 flex items-center justify-center gap-1 text-[11px] font-semibold text-blue-600 opacity-90 group-hover:opacity-100 transition-opacity">
-                    <span className="underline-offset-2 group-hover:underline">View Roster</span>
-                    <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
+                  {/* Interactive hint badge - Only for Trophies */}
+                  {hasView && (
+                    <div className="pt-1 flex items-center justify-center gap-1 text-[11px] font-semibold text-black group-hover:text-black opacity-90 group-hover:opacity-100 transition-opacity">
+                      <span className="underline-offset-2 group-hover:underline text-black">View</span>
+                      <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform text-black" />
+                    </div>
+                  )}
                 </div>
               );
             })}

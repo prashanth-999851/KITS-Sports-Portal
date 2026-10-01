@@ -359,10 +359,10 @@ export default function JntukPlayersAdminPage() {
     <div className="space-y-6">
       
       {/* Header & Action Toolbar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[var(--border-color)] pb-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">Elite Players Roster</h2>
-          <p className="text-xs text-[var(--text-muted)]">Enterprise management to add, edit, remove, and export official JNTUK Varsity and District represented athletes.</p>
+          <h2 className="text-xl font-bold text-slate-900">Elite Players Roster</h2>
+          <p className="text-xs text-slate-500">Enterprise management to add, edit, remove, and export official JNTUK Varsity and District represented athletes.</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
@@ -382,17 +382,27 @@ export default function JntukPlayersAdminPage() {
               }
             }}
             disabled={isLoading || isNormalizing || jntukPlayers.length === 0}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white transition-all shadow-sm disabled:opacity-50 cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-2xs disabled:opacity-50 cursor-pointer whitespace-nowrap"
             title="Clean and standardize all sport disciplines, departments, and academic years across database records"
           >
-            {isNormalizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {isNormalizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-[#0b2e5b]" />}
             <span>Standardize Data</span>
+          </button>
+
+          {/* Export to Excel */}
+          <button
+            onClick={handleExportToExcel}
+            disabled={isLoading || filteredPlayers.length === 0}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs disabled:opacity-50 cursor-pointer whitespace-nowrap"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Export ({filteredPlayers.length}) to Excel</span>
           </button>
 
           {/* Add Athlete Button */}
           <button
             onClick={() => handleAddNew()}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-[#0d3a73] hover:bg-[#104a8e] text-white transition-all shadow-sm cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all shadow-xs cursor-pointer whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>
@@ -403,28 +413,18 @@ export default function JntukPlayersAdminPage() {
                 : 'Add Elite Athlete'}
             </span>
           </button>
-
-          {/* Export to Excel */}
-          <button
-            onClick={handleExportToExcel}
-            disabled={isLoading || filteredPlayers.length === 0}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm disabled:opacity-50 cursor-pointer whitespace-nowrap"
-          >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>Export ({filteredPlayers.length}) to Excel</span>
-          </button>
         </div>
       </div>
 
       {/* Category Segmented Selector: All / JNTUK / District */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-card)] p-2 rounded-2xl border border-[var(--border-color)] shadow-xs">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
           <button
             onClick={() => setSelectedCategory('All')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               selectedCategory === 'All'
-                ? 'bg-white dark:bg-slate-700 text-[#0b2e5b] dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ? 'bg-[#0b2e5b] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             All Elite Athletes ({jntukPlayers.length})
@@ -434,95 +434,103 @@ export default function JntukPlayersAdminPage() {
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedCategory === 'JNTUK'
                 ? 'bg-[#0b2e5b] text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-blue-300" />
+            <ShieldCheck className="w-3.5 h-3.5 text-blue-200" />
             <span>JNTUK Varsity ({athleteCounts.jntukTotalRecords || 0})</span>
           </button>
           <button
             onClick={() => setSelectedCategory('District')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
               selectedCategory === 'District'
-                ? 'bg-purple-600 text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ? 'bg-[#0b2e5b] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <Trophy className="w-3.5 h-3.5 text-blue-200" />
             <span>District Level ({athleteCounts.districtTotalRecords || 0})</span>
           </button>
         </div>
 
-        <div className="text-xs text-[var(--text-muted)] px-2">
-          Showing <span className="font-bold text-[var(--text-primary)]">{filteredPlayers.length}</span> of {jntukPlayers.length} athletes
+        <div className="text-xs text-slate-500 px-2 font-medium">
+          Showing <span className="font-bold text-slate-800">{filteredPlayers.length}</span> of {jntukPlayers.length} athletes
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards — Consistent White and Blue Institutional Theme */}
       {isLoading ? (
         <MetricCardSkeleton count={3} />
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-            <div className="flex items-center justify-between text-[var(--text-muted)]">
-              <span className="text-xs font-semibold">Total Entries</span>
-              <Award className="w-4 h-4 text-amber-500" />
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-200 transition-all text-center space-y-2 group">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0b2e5b] mx-auto group-hover:scale-105 transition-transform">
+              <Award className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-extrabold text-[var(--text-primary)]">{jntukPlayers.length}</p>
+            <p className="text-3xl font-extrabold text-[#0b2e5b] tracking-tight">{jntukPlayers.length}</p>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Entries</span>
           </div>
 
-          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-            <div className="flex items-center justify-between text-[var(--text-muted)]">
-              <span className="text-xs font-semibold">Unique Athletes</span>
-              <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-200 transition-all text-center space-y-2 group">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0b2e5b] mx-auto group-hover:scale-105 transition-transform">
+              <Users className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{athleteCounts.uniqueAthletesCount}</p>
+            <p className="text-3xl font-extrabold text-[#0b2e5b] tracking-tight">{athleteCounts.uniqueAthletesCount}</p>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Unique Athletes</span>
           </div>
 
-          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-            <div className="flex items-center justify-between text-[var(--text-muted)]">
-              <span className="text-xs font-semibold">Academic Years</span>
-              <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-200 transition-all text-center space-y-2 group">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0b2e5b] mx-auto group-hover:scale-105 transition-transform">
+              <Calendar className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">{availableYears.length}</p>
+            <p className="text-3xl font-extrabold text-[#0b2e5b] tracking-tight">{availableYears.length}</p>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Academic Years</span>
           </div>
 
-          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] space-y-1">
-            <div className="flex items-center justify-between text-[var(--text-muted)]">
-              <span className="text-xs font-semibold">Active Filtered</span>
-              <Trophy className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-200 transition-all text-center space-y-2 group">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0b2e5b] mx-auto group-hover:scale-105 transition-transform">
+              <Trophy className="w-5 h-5" />
             </div>
-            <p className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">{filteredPlayers.length} <span className="text-xs text-[var(--text-muted)] font-normal">/ {jntukPlayers.length}</span></p>
+            <p className="text-3xl font-extrabold text-[#0b2e5b] tracking-tight">{filteredPlayers.length}</p>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Active Filtered</span>
           </div>
         </div>
       )}
 
       {/* Multi-Filter Toolbar */}
-      <div className="bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border-color)] space-y-3">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
         
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-muted)]" />
+            <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
             <input
               type="text"
               placeholder="Search athlete name, roll number, department, sport, tournament, venue..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] focus:border-blue-500 focus:outline-none"
+              className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:bg-white focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none transition-all shadow-2xs"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           {/* Reset Filters & Active Badge */}
           {activeFilterCount > 0 && (
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs font-bold border border-blue-200 dark:border-blue-500/30">
+              <span className="px-2.5 py-1 rounded-xl bg-blue-50 text-[#0b2e5b] border border-blue-200 text-xs font-bold">
                 {activeFilterCount} Active {activeFilterCount === 1 ? 'Filter' : 'Filters'}
               </span>
               <button
                 onClick={handleResetFilters}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-color)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white text-slate-600 border border-slate-200 hover:text-slate-900 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset All</span>
@@ -537,11 +545,11 @@ export default function JntukPlayersAdminPage() {
           
           {/* Academic Year Filter */}
           <div>
-            <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase mb-1">Academic Year</label>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Academic Year</label>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-xs font-semibold text-[var(--text-primary)] focus:outline-none"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:bg-white focus:border-[#0b2e5b] focus:outline-none shadow-2xs cursor-pointer transition-all"
             >
               <option value="All">All Academic Years</option>
               {availableYears.map(yr => (
@@ -552,11 +560,11 @@ export default function JntukPlayersAdminPage() {
 
           {/* Department Filter */}
           <div>
-            <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase mb-1">Department</label>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Department</label>
             <select
               value={selectedDept}
               onChange={(e) => setSelectedDept(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-xs font-semibold text-[var(--text-primary)] focus:outline-none"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:bg-white focus:border-[#0b2e5b] focus:outline-none shadow-2xs cursor-pointer transition-all"
             >
               <option value="All">All Departments</option>
               {OFFICIAL_DEPARTMENTS.map(dept => (
@@ -567,11 +575,11 @@ export default function JntukPlayersAdminPage() {
 
           {/* Sport Selector */}
           <div>
-            <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase mb-1">Sport Discipline</label>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Sport Discipline</label>
             <select
               value={selectedSport}
               onChange={(e) => setSelectedSport(e.target.value)}
-              className="w-full px-2.5 py-1.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-xs font-semibold text-[var(--text-primary)] focus:outline-none"
+              className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:bg-white focus:border-[#0b2e5b] focus:outline-none shadow-2xs cursor-pointer transition-all"
             >
               <option value="All">All Sports Disciplines</option>
               {availableSports.map(sp => (
@@ -613,32 +621,28 @@ export default function JntukPlayersAdminPage() {
             const canMoveDown = currentOrder < maxOrder;
 
             return (
-              <div key={player.id} className="relative rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 flex flex-col justify-between shadow-sm card-hover">
+              <div key={player.id} className="relative rounded-2xl bg-white border border-slate-200 p-5 flex flex-col justify-between shadow-2xs hover:shadow-xs hover:border-blue-200 transition-all group">
                 
                 {/* Card Action Header */}
-                <div className="flex items-center justify-between pb-2 border-b border-[var(--border-color)] mb-2">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {/* Display Order Badge */}
                     <div 
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-900/30 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700 font-extrabold text-[11px] shadow-2xs"
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-bold text-[11px]"
                       title={`Public Display Order #${currentOrder} within ${player.level} ${player.academicYear}`}
                     >
-                      <span className="text-[9px] uppercase tracking-wider text-amber-700 dark:text-amber-400 font-bold">Order</span>
+                      <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Order</span>
                       <span>#{currentOrder}</span>
                     </div>
 
-                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded border ${
-                      player.level === 'District'
-                        ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800'
-                        : 'bg-blue-50 text-[#0b2e5b] border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
-                    }`}>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-lg bg-blue-50 text-[#0b2e5b] border border-blue-200">
                       {player.level === 'District' ? 'District' : 'JNTUK'}
                     </span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600">
                       AY {player.academicYear}
                     </span>
                     {multiYearPlayerKeys.has(getPlayerKey(player)) && (
-                      <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                      <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-lg bg-blue-50 text-[#0b2e5b] border border-blue-100">
                         Multi-Year
                       </span>
                     )}
@@ -646,14 +650,14 @@ export default function JntukPlayersAdminPage() {
 
                   <div className="flex items-center gap-1">
                     {/* Quick Reorder Up / Down Controls */}
-                    <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 rounded-lg p-0.5 border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
                       <button
                         type="button"
                         onClick={() => handleQuickReorder(player, 'up')}
                         disabled={!canMoveUp}
-                        className={`p-1 rounded text-slate-700 dark:text-slate-300 transition-colors ${
+                        className={`p-1 rounded text-slate-600 transition-colors ${
                           canMoveUp 
-                            ? 'hover:bg-white dark:hover:bg-slate-700 hover:text-[#0b2e5b] cursor-pointer' 
+                            ? 'hover:bg-white hover:text-[#0b2e5b] cursor-pointer' 
                             : 'opacity-25 cursor-not-allowed'
                         }`}
                         title={canMoveUp ? `Move Up to position #${currentOrder - 1}` : 'Already at top position (#1)'}
@@ -664,9 +668,9 @@ export default function JntukPlayersAdminPage() {
                         type="button"
                         onClick={() => handleQuickReorder(player, 'down')}
                         disabled={!canMoveDown}
-                        className={`p-1 rounded text-slate-700 dark:text-slate-300 transition-colors ${
+                        className={`p-1 rounded text-slate-600 transition-colors ${
                           canMoveDown 
-                            ? 'hover:bg-white dark:hover:bg-slate-700 hover:text-[#0b2e5b] cursor-pointer' 
+                            ? 'hover:bg-white hover:text-[#0b2e5b] cursor-pointer' 
                             : 'opacity-25 cursor-not-allowed'
                         }`}
                         title={canMoveDown ? `Move Down to position #${currentOrder + 1}` : 'Already at bottom position'}
@@ -677,14 +681,14 @@ export default function JntukPlayersAdminPage() {
 
                     <button
                       onClick={() => handleEdit(player)}
-                      className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
                       title="Edit Athlete Record"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(player.id, player.studentName)}
-                      className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                       title="Delete Athlete Record"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -706,7 +710,7 @@ export default function JntukPlayersAdminPage() {
 
       {/* Add / Edit Athlete Modal with Live Crest Preview */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm overflow-hidden animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs overflow-hidden animate-fadeIn">
           {/* Backdrop Click */}
           <div className="absolute inset-0" onClick={() => setShowModal(false)} />
 
@@ -748,7 +752,7 @@ export default function JntukPlayersAdminPage() {
                         onClick={() => setFormData(prev => ({ ...prev, level: 'JNTUK' }))}
                         className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                           formData.level !== 'District'
-                            ? 'border-[#0b2e5b] bg-blue-50/70 text-[#0b2e5b] shadow-xs'
+                            ? 'border-[#0b2e5b] bg-blue-50/70 text-[#0b2e5b] shadow-2xs'
                             : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                         }`}
                       >
@@ -761,11 +765,11 @@ export default function JntukPlayersAdminPage() {
                         onClick={() => setFormData(prev => ({ ...prev, level: 'District' }))}
                         className={`p-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                           formData.level === 'District'
-                            ? 'border-purple-600 bg-purple-50 text-purple-900 shadow-xs'
+                            ? 'border-[#0b2e5b] bg-blue-50/70 text-[#0b2e5b] shadow-2xs'
                             : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100'
                         }`}
                       >
-                        <Trophy className="w-4 h-4 text-purple-600" />
+                        <Trophy className="w-4 h-4 text-[#0b2e5b]" />
                         <span>District Level</span>
                       </button>
                     </div>
@@ -779,7 +783,7 @@ export default function JntukPlayersAdminPage() {
                       placeholder="Enter full name" 
                       value={formData.studentName} 
                       onChange={(e) => setFormData({ ...formData, studentName: e.target.value })} 
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-semibold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400" 
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-semibold focus:bg-white focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400 transition-colors" 
                     />
                   </div>
 
@@ -792,7 +796,7 @@ export default function JntukPlayersAdminPage() {
                         placeholder="Enter roll number" 
                         value={formData.rollNumber} 
                         onChange={(e) => setFormData({ ...formData, rollNumber: e.target.value })} 
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-mono font-bold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400" 
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-mono font-bold focus:bg-white focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400 transition-colors" 
                       />
                     </div>
                     <div>
@@ -800,7 +804,7 @@ export default function JntukPlayersAdminPage() {
                       <select 
                         value={formData.department} 
                         onChange={(e) => setFormData({ ...formData, department: e.target.value })} 
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:bg-white focus:border-[#0b2e5b] focus:outline-none transition-colors" 
                       >
                         <option value="">Select department</option>
                         {OFFICIAL_DEPARTMENTS.map(d => (
@@ -814,10 +818,10 @@ export default function JntukPlayersAdminPage() {
                     <div>
                       <label className="block text-slate-700 mb-1 font-bold">Sport Discipline (Event) *</label>
                       <input 
-                        type="text"
-                        required
+                        type="text" 
+                        required 
                         list="jntuk-sports-suggestions"
-                        placeholder="Select or enter sport"
+                        placeholder="Select or enter sport" 
                         value={formData.sport} 
                         onChange={(e) => setFormData({ ...formData, sport: e.target.value })} 
                         onBlur={(e) => {
@@ -826,7 +830,7 @@ export default function JntukPlayersAdminPage() {
                             setFormData(prev => ({ ...prev, sport: clean }));
                           }
                         }}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:bg-white focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400 transition-colors" 
                       />
                       <datalist id="jntuk-sports-suggestions">
                         {availableSports.map(sp => (
@@ -839,7 +843,7 @@ export default function JntukPlayersAdminPage() {
                       <select 
                         value={formData.academicYear} 
                         onChange={(e) => setFormData({ ...formData, academicYear: e.target.value })} 
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs font-bold focus:bg-white focus:border-[#0b2e5b] focus:outline-none transition-colors" 
                       >
                         <option value="">Select academic year</option>
                         <option value="2025-2026">2025-2026</option>
@@ -852,12 +856,12 @@ export default function JntukPlayersAdminPage() {
                   </div>
 
                   {/* Display Order Management Field */}
-                  <div className="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200 shadow-2xs space-y-1.5">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="block text-[#0b2e5b] font-extrabold text-xs">
+                      <label className="block text-[#0b2e5b] font-bold text-xs">
                         Display Order
                       </label>
-                      <span className="text-[10px] font-bold text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-bold text-slate-600 bg-slate-200/80 px-2.5 py-0.5 rounded-full">
                         Scope: {formData.level || 'JNTUK'} • {formData.academicYear || 'Academic Year'}
                       </span>
                     </div>
@@ -874,10 +878,10 @@ export default function JntukPlayersAdminPage() {
                             setFormData({ ...formData, displayOrder: val });
                           }
                         }} 
-                        className="w-full px-3 py-2 rounded-xl bg-white border border-amber-300 text-slate-900 text-xs font-mono font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none placeholder:text-slate-400 shadow-2xs" 
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-mono font-bold focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400 shadow-2xs transition-colors" 
                       />
                     </div>
-                    <p className="text-[10.5px] text-amber-900/80 leading-normal">
+                    <p className="text-[11px] text-slate-500 leading-normal">
                       Controls the player's position in the public player list for the selected category and academic year.
                     </p>
                   </div>
@@ -889,7 +893,7 @@ export default function JntukPlayersAdminPage() {
                       placeholder="Enter tournament or championship name" 
                       value={formData.tournamentName} 
                       onChange={(e) => setFormData({ ...formData, tournamentName: e.target.value })} 
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400" 
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400 transition-colors" 
                     />
                   </div>
 
@@ -900,7 +904,7 @@ export default function JntukPlayersAdminPage() {
                       placeholder="Enter venue, host institution, or district" 
                       value={formData.venueHost} 
                       onChange={(e) => setFormData({ ...formData, venueHost: e.target.value })} 
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400" 
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400 transition-colors" 
                     />
                   </div>
 
@@ -911,7 +915,7 @@ export default function JntukPlayersAdminPage() {
                       placeholder="Enter achievement details or honors" 
                       value={formData.achievementDetails} 
                       onChange={(e) => setFormData({ ...formData, achievementDetails: e.target.value })} 
-                      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:ring-2 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400" 
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-xs focus:bg-white focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none placeholder:text-slate-400 transition-colors" 
                     />
                   </div>
 
@@ -933,7 +937,7 @@ export default function JntukPlayersAdminPage() {
                       <Eye className="w-3.5 h-3.5 text-[#0b2e5b]" />
                       Live Card Preview
                     </span>
-                    <span className="text-[10px] text-amber-700 bg-amber-100 font-bold px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] text-[#0b2e5b] bg-blue-50 border border-blue-200 font-bold px-2.5 py-0.5 rounded-full">
                       Position #{formData.displayOrder || 'Auto'}
                     </span>
                   </div>
@@ -977,7 +981,7 @@ export default function JntukPlayersAdminPage() {
                 type="submit"
                 form="elite-athlete-form"
                 disabled={isSubmitting}
-                className="px-6 py-2.5 rounded-xl font-bold bg-[#0b2e5b] text-white hover:bg-[#0d3a73] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-md text-xs"
+                className="px-6 py-2.5 rounded-xl font-bold bg-[#0b2e5b] text-white hover:bg-[#0d3a73] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-xs text-xs transition-all"
               >
                 {isSubmitting ? (
                   <>

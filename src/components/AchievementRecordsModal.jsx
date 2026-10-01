@@ -9,37 +9,21 @@ const TYPE_CONFIG = {
     title: 'Institutional Championship Trophies',
     subtitle: 'Championship and tournament trophies won by KKR & KSR Institute of Technology & Sciences',
     icon: Trophy,
-    iconColor: 'text-amber-500',
-    badgeClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
-    heroGradient: 'from-amber-500/20 via-yellow-500/10 to-transparent',
-    accentBorder: 'border-amber-500/30',
   },
   gold: {
     title: 'Gold Medal Laurels & Winner Honors',
     subtitle: 'First-place tournament victories and gold medals secured by collegiate sports teams and athletes',
     icon: Crown,
-    iconColor: 'text-yellow-500',
-    badgeClass: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20',
-    heroGradient: 'from-yellow-500/20 via-amber-500/10 to-transparent',
-    accentBorder: 'border-yellow-500/30',
   },
   silver: {
     title: 'Silver Medal Laurels & Runner-up Honors',
     subtitle: 'Second-place tournament laurels and silver medals earned in competitive university tournaments',
     icon: Award,
-    iconColor: 'text-slate-400',
-    badgeClass: 'bg-slate-400/10 text-slate-600 dark:text-slate-300 border border-slate-400/20',
-    heroGradient: 'from-slate-400/20 via-slate-300/10 to-transparent',
-    accentBorder: 'border-slate-400/30',
   },
   bronze: {
     title: 'Bronze Medal Laurels & 3rd Place Honors',
     subtitle: 'Third-place tournament laurels and bronze medal finishes in collegiate athletic championships',
     icon: Medal,
-    iconColor: 'text-amber-700 dark:text-amber-600',
-    badgeClass: 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-500/20',
-    heroGradient: 'from-orange-600/20 via-amber-700/10 to-transparent',
-    accentBorder: 'border-orange-500/30',
   },
 };
 
@@ -69,7 +53,6 @@ export default function AchievementRecordsModal({
     return records.filter((r) => {
       const recType = (r.achievementType || r.medalType || '').trim().toLowerCase();
       if (normalizedType === 'trophy') {
-        // Trophies include explicit "Trophy" or records marked as trophy
         return recType === 'trophy' || r.isTrophy;
       }
       return recType === normalizedType;
@@ -100,15 +83,12 @@ export default function AchievementRecordsModal({
   // Filtered records
   const filteredRecords = useMemo(() => {
     return typeRecords.filter((r) => {
-      // Sport filter
       if (selectedSport !== 'All' && r.sport !== selectedSport) {
         return false;
       }
-      // Year filter
       if (selectedYear !== 'All' && r.year !== selectedYear) {
         return false;
       }
-      // Search term
       if (searchTerm.trim()) {
         const q = searchTerm.trim().toLowerCase();
         const tournament = (r.tournament || '').toLowerCase();
@@ -156,7 +136,6 @@ export default function AchievementRecordsModal({
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKeyDown);
 
-    // Auto focus search input after animation
     const timer = setTimeout(() => {
       searchInputRef.current?.focus();
     }, 100);
@@ -182,32 +161,24 @@ export default function AchievementRecordsModal({
     >
       <div 
         ref={modalRef}
-        className="relative w-full max-w-5xl max-h-[92vh] flex flex-col rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-2xl overflow-hidden animate-slideUp"
+        className="relative w-full max-w-5xl max-h-[92vh] flex flex-col rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden animate-slideUp"
       >
-        {/* Decorative Top Accent Bar */}
-        <div className={`h-1.5 w-full bg-gradient-to-r ${
-          normalizedType === 'gold' ? 'from-yellow-400 via-amber-500 to-yellow-600' :
-          normalizedType === 'silver' ? 'from-slate-300 via-slate-400 to-slate-500' :
-          normalizedType === 'bronze' ? 'from-amber-600 via-orange-600 to-amber-800' :
-          'from-blue-600 via-amber-500 to-blue-700'
-        }`} />
-
-        {/* Modal Header */}
-        <div className="p-5 sm:p-6 border-b border-[var(--border-color)] flex items-start justify-between gap-4 bg-[var(--bg-card-subtle)]">
-          <div className="flex items-start gap-3.5">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${config.badgeClass} shadow-sm`}>
-              <IconComponent className={`w-6 h-6 ${config.iconColor}`} />
+        {/* Top Header */}
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-start justify-between gap-4 bg-slate-50/70">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0b2e5b] border border-blue-200 flex items-center justify-center shrink-0 shadow-xs">
+              <IconComponent className="w-5 h-5 text-[#0b2e5b]" />
             </div>
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h3 id="achievement-modal-title" className="text-lg sm:text-xl font-extrabold text-[var(--text-primary)] tracking-tight">
+                <h3 id="achievement-modal-title" className="text-lg sm:text-xl font-bold text-[#0b2e5b] tracking-tight">
                   {config.title}
                 </h3>
-                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${config.badgeClass}`}>
+                <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0b2e5b] border border-blue-200">
                   {typeRecords.length} {typeRecords.length === 1 ? 'Record' : 'Records'}
                 </span>
               </div>
-              <p className="text-xs text-[var(--text-secondary)] max-w-2xl leading-relaxed">
+              <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
                 {config.subtitle}
               </p>
             </div>
@@ -216,29 +187,29 @@ export default function AchievementRecordsModal({
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] border border-transparent hover:border-[var(--border-color)] transition-all cursor-pointer shrink-0"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-[#0b2e5b] hover:bg-blue-50 border border-transparent hover:border-blue-200 transition-all cursor-pointer shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Toolbar: Search & Dynamic Filters */}
-        <div className="p-4 sm:px-6 border-b border-[var(--border-color)] bg-[var(--bg-card)] flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between text-xs">
+        {/* Toolbar: Search & Filters */}
+        <div className="p-3.5 sm:px-5 border-b border-slate-100 bg-white flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between text-xs">
           {/* Search bar */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-muted)]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               ref={searchInputRef}
               type="text"
               placeholder="Search by tournament, sport, winner, runner-up..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-8 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full pl-9 pr-8 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0b2e5b] shadow-2xs transition-colors"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 top-2.5 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -248,12 +219,12 @@ export default function AchievementRecordsModal({
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2">
             {/* Sport Filter */}
-            <div className="flex items-center gap-1.5 bg-[var(--bg-card-subtle)] border border-[var(--border-color)] rounded-lg px-2.5 py-1.5">
-              <Filter className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+              <Filter className="w-3.5 h-3.5 text-slate-400" />
               <select
                 value={selectedSport}
                 onChange={(e) => setSelectedSport(e.target.value)}
-                className="bg-transparent text-[var(--text-primary)] font-semibold focus:outline-none cursor-pointer"
+                className="bg-transparent text-slate-700 font-semibold focus:outline-none cursor-pointer"
               >
                 <option value="All">All Sports ({availableSports.length})</option>
                 {availableSports.map((sport) => (
@@ -263,12 +234,12 @@ export default function AchievementRecordsModal({
             </div>
 
             {/* Year Filter */}
-            <div className="flex items-center gap-1.5 bg-[var(--bg-card-subtle)] border border-[var(--border-color)] rounded-lg px-2.5 py-1.5">
-              <Calendar className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="bg-transparent text-[var(--text-primary)] font-semibold focus:outline-none cursor-pointer"
+                className="bg-transparent text-slate-700 font-semibold focus:outline-none cursor-pointer"
               >
                 <option value="All">All Years</option>
                 {availableYears.map((year) => (
@@ -277,7 +248,7 @@ export default function AchievementRecordsModal({
               </select>
             </div>
 
-            {/* Active filter count / clear */}
+            {/* Active filter clear */}
             {(searchTerm || selectedSport !== 'All' || selectedYear !== 'All') && (
               <button
                 onClick={() => {
@@ -285,7 +256,7 @@ export default function AchievementRecordsModal({
                   setSelectedSport('All');
                   setSelectedYear('All');
                 }}
-                className="px-2.5 py-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 font-semibold transition-colors"
+                className="px-2.5 py-1.5 rounded-xl text-[#0b2e5b] hover:bg-blue-50 font-semibold transition-colors cursor-pointer"
               >
                 Clear Filters
               </button>
@@ -294,24 +265,24 @@ export default function AchievementRecordsModal({
         </div>
 
         {/* Modal Body: Records Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
           {isLoading ? (
             <div className="space-y-3 py-6">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-14 rounded-lg bg-[var(--bg-card-subtle)] animate-pulse" />
+                <div key={i} className="h-12 rounded-lg bg-slate-100 animate-pulse" />
               ))}
             </div>
           ) : filteredRecords.length === 0 ? (
             <div className="py-12 px-4 text-center space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-[var(--bg-card-subtle)] border border-[var(--border-color)] flex items-center justify-center mx-auto text-[var(--text-muted)]">
-                <Layers className="w-7 h-7" />
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center mx-auto text-[#0b2e5b]">
+                <Layers className="w-6 h-6" />
               </div>
-              <h4 className="text-base font-bold text-[var(--text-primary)]">
+              <h4 className="text-base font-bold text-slate-800">
                 {typeRecords.length === 0 
                   ? `No ${config.title} Found` 
                   : 'No Records Match Your Filters'}
               </h4>
-              <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto">
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
                 {typeRecords.length === 0
                   ? `Official ${normalizedType} records will appear here as soon as they are added by the sports directorate.`
                   : 'Try adjusting your search keywords or clearing active filters to see all results.'}
@@ -319,25 +290,24 @@ export default function AchievementRecordsModal({
             </div>
           ) : (
             <>
-              {/* Desktop Table (Visible on sm screens and up) */}
-              <div className="hidden sm:block overflow-hidden rounded-xl border border-[var(--border-color)] shadow-sm">
+              {/* White and Blue Table — Styled identically to Sports Members table */}
+              <div className="hidden sm:block overflow-hidden rounded-xl border border-slate-200 shadow-2xs bg-white">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
+                  <table className="w-full text-left">
                     <thead>
-                      <tr className="bg-[var(--bg-card-subtle)] border-b border-[var(--border-color)] text-[var(--text-secondary)] font-bold uppercase tracking-wider text-[11px]">
-                        <th className="py-3 px-3.5 w-14 text-center">S.No</th>
-                        <th className="py-3 px-4">Tournament / Competition</th>
-                        <th className="py-3 px-4 w-36">Game / Sport</th>
-                        <th className="py-3 px-3.5 w-24 text-center">Year</th>
-                        <th className="py-3 px-4">Winner</th>
-                        <th className="py-3 px-4">Runner-up</th>
+                      <tr className="bg-[#0b2e5b] text-white">
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider w-16 text-center">S.No</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider">Tournament / Competition</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider w-36">Game / Sport</th>
+                        <th className="px-4 py-3 text-center text-[11px] font-bold uppercase tracking-wider w-24">Year</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider">Winner</th>
+                        <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider">Runner-up</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-primary)]">
+                    <tbody>
                       {paginatedRecords.map((record, index) => {
                         const serialNumber = (currentPage - 1) * itemsPerPage + index + 1;
                         
-                        // Robust outcome resolution
                         const w = (record.winner || '').trim();
                         const r = (record.runnerUp || '').trim();
                         const d = (record.details || '').trim();
@@ -367,50 +337,46 @@ export default function AchievementRecordsModal({
                         return (
                           <tr 
                             key={record.id || index}
-                            className="hover:bg-[var(--bg-card-subtle)]/70 transition-colors"
+                            className={`border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                              index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
+                            }`}
                           >
-                            <td className="py-3 px-3.5 text-center font-bold text-[var(--text-muted)]">
+                            <td className="px-4 py-3 text-xs font-bold text-slate-500 text-center">
                               {serialNumber}
                             </td>
-                            <td className="py-3 px-4 font-semibold text-[var(--text-primary)]">
-                              <div className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                                <span>{record.tournament}</span>
-                                {isRaw3rd && (
-                                  <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
-                                    🥉 3rd Place
-                                  </span>
-                                )}
-                              </div>
+                            <td className="px-4 py-3 text-xs">
+                              <span className="font-bold text-slate-800">
+                                {record.tournament}
+                              </span>
+                              {isRaw3rd && (
+                                <span className="ml-2 text-[11px] font-semibold text-slate-500">
+                                  (3rd Place)
+                                </span>
+                              )}
                               {record.details && (
-                                <p className="text-[11px] text-[var(--text-muted)] mt-0.5 font-normal">
+                                <p className="text-[11px] text-slate-500 mt-0.5">
                                   {record.details}
                                 </p>
                               )}
                             </td>
-                            <td className="py-3 px-4">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                {record.sport}
-                              </span>
+                            <td className="px-4 py-3 text-xs font-semibold text-[#0b2e5b]">
+                              {record.sport}
                             </td>
-                            <td className="py-3 px-3.5 text-center font-bold text-[var(--text-secondary)]">
+                            <td className="px-4 py-3 text-xs text-center font-semibold text-slate-600">
                               {record.year || '—'}
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="px-4 py-3 text-xs font-semibold">
                               {isKitsWinner ? (
-                                <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 text-[11px]">
-                                  🏆 {winnerText}
-                                </span>
+                                <span className="text-[#0b2e5b] font-bold">{winnerText}</span>
                               ) : (
-                                <span className="text-[var(--text-secondary)]">{winnerText || '—'}</span>
+                                <span className="text-slate-700">{winnerText || '—'}</span>
                               )}
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="px-4 py-3 text-xs font-semibold">
                               {isKitsRunner ? (
-                                <span className="inline-flex items-center gap-1 font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800 text-[11px]">
-                                  🥈 {runnerText}
-                                </span>
+                                <span className="text-[#0b2e5b] font-bold">{runnerText}</span>
                               ) : (
-                                <span className="text-[var(--text-secondary)]">{runnerText || '—'}</span>
+                                <span className="text-slate-700">{runnerText || '—'}</span>
                               )}
                             </td>
                           </tr>
@@ -421,8 +387,8 @@ export default function AchievementRecordsModal({
                 </div>
               </div>
 
-              {/* Mobile Responsive Cards (Visible on screens < sm) */}
-              <div className="sm:hidden space-y-3">
+              {/* Mobile View: Clean White & Blue Cards */}
+              <div className="sm:hidden space-y-2.5">
                 {paginatedRecords.map((record, index) => {
                   const serialNumber = (currentPage - 1) * itemsPerPage + index + 1;
                   
@@ -455,56 +421,52 @@ export default function AchievementRecordsModal({
                   return (
                     <div 
                       key={record.id || index}
-                      className="p-3.5 rounded-xl bg-[var(--bg-card-subtle)] border border-[var(--border-color)] space-y-2 text-xs"
+                      className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 text-xs"
                     >
-                      <div className="flex items-start justify-between gap-2 border-b border-[var(--border-color)] pb-2">
+                      <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2">
                         <div className="flex items-center gap-2">
-                          <span className="w-5 h-5 rounded-full bg-[var(--bg-card)] border border-[var(--border-color)] flex items-center justify-center font-bold text-[10px] text-[var(--text-muted)]">
+                          <span className="w-5 h-5 rounded-full bg-blue-50 text-[#0b2e5b] border border-blue-200 flex items-center justify-center font-bold text-[10px]">
                             {serialNumber}
                           </span>
-                          <span className="font-bold text-[11px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                          <span className="font-bold text-[#0b2e5b]">
                             {record.sport}
                           </span>
                         </div>
-                        <span className="font-extrabold text-[11px] text-[var(--text-secondary)] bg-[var(--bg-card)] px-2 py-0.5 rounded border border-[var(--border-color)]">
+                        <span className="font-semibold text-slate-600 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
                           {record.year}
                         </span>
                       </div>
 
-                      <div className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2">
-                        <span>{record.tournament}</span>
+                      <div className="font-bold text-sm text-slate-800">
+                        {record.tournament}
                         {isRaw3rd && (
-                          <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-orange-50 text-orange-800 dark:bg-orange-950/40 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
-                            🥉 3rd Place
+                          <span className="ml-1.5 text-xs font-semibold text-slate-500">
+                            (3rd Place)
                           </span>
                         )}
                       </div>
 
                       {record.details && (
-                        <p className="text-[11px] text-[var(--text-muted)]">
+                        <p className="text-[11px] text-slate-500">
                           {record.details}
                         </p>
                       )}
 
-                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-[var(--border-color)] text-[11px]">
+                      <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100 text-[11px]">
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] block">Winner</span>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Winner</span>
                           {isKitsWinner ? (
-                            <span className="font-bold text-emerald-700 dark:text-emerald-300 text-[11px]">
-                              🏆 {winnerText}
-                            </span>
+                            <span className="font-bold text-[#0b2e5b]">{winnerText}</span>
                           ) : (
-                            <span className="text-[var(--text-secondary)]">{winnerText || '—'}</span>
+                            <span className="text-slate-700 font-semibold">{winnerText || '—'}</span>
                           )}
                         </div>
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] block">Runner-up</span>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Runner-up</span>
                           {isKitsRunner ? (
-                            <span className="font-bold text-amber-700 dark:text-amber-300 text-[11px]">
-                              🥈 {runnerText}
-                            </span>
+                            <span className="font-bold text-[#0b2e5b]">{runnerText}</span>
                           ) : (
-                            <span className="text-[var(--text-secondary)]">{runnerText || '—'}</span>
+                            <span className="text-slate-700 font-semibold">{runnerText || '—'}</span>
                           )}
                         </div>
                       </div>
@@ -517,13 +479,13 @@ export default function AchievementRecordsModal({
         </div>
 
         {/* Modal Footer: Pagination Controls & Record Stats */}
-        <div className="p-3.5 sm:px-6 border-t border-[var(--border-color)] bg-[var(--bg-card-subtle)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-          <div className="text-[var(--text-secondary)] text-center sm:text-left">
-            Showing <span className="font-bold text-[var(--text-primary)]">{filteredRecords.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</span> to{' '}
-            <span className="font-bold text-[var(--text-primary)]">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> of{' '}
-            <span className="font-bold text-[var(--text-primary)]">{filteredRecords.length}</span> records
+        <div className="p-3.5 sm:px-5 border-t border-slate-100 bg-slate-50 text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div>
+            Showing <span className="font-bold text-[#0b2e5b]">{filteredRecords.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+            <span className="font-bold text-[#0b2e5b]">{Math.min(currentPage * itemsPerPage, filteredRecords.length)}</span> of{' '}
+            <span className="font-bold text-[#0b2e5b]">{filteredRecords.length}</span> records
             {filteredRecords.length !== typeRecords.length && (
-              <span className="text-[var(--text-muted)] ml-1">
+              <span className="text-slate-400 ml-1">
                 (filtered from {typeRecords.length} total)
               </span>
             )}
@@ -534,20 +496,20 @@ export default function AchievementRecordsModal({
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg border border-slate-200 bg-white text-[#0b2e5b] hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 aria-label="Previous page"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
 
-              <span className="px-3 py-1 font-semibold text-[var(--text-primary)]">
+              <span className="px-3 py-1 font-bold text-[#0b2e5b]">
                 Page {currentPage} of {totalPages}
               </span>
 
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-lg border border-slate-200 bg-white text-[#0b2e5b] hover:bg-blue-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 aria-label="Next page"
               >
                 <ChevronRight className="w-4 h-4" />

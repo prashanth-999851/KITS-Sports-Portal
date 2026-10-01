@@ -4,10 +4,9 @@ import { useToast } from '../../context/ToastContext';
 import { AdminGridPageSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
 import { 
-  Award, Medal, Trophy, Crown, Plus, X, Trash2, Edit, 
+  Award, Medal, Trophy, Crown, X, Trash2, Edit, 
   Search, Download, UploadCloud, Eye, Loader2, ChevronLeft, ChevronRight 
 } from 'lucide-react';
-import ImageUploadWithCropper from '../components/ImageUploadWithCropper';
 import AchievementExcelImportModal from '../components/AchievementExcelImportModal';
 import { downloadAchievementExcelTemplate } from '../../utils/achievementUtils';
 
@@ -15,7 +14,6 @@ export default function AchievementsAdminPage() {
   const { 
     achievements, 
     achievementRecords = [], 
-    addAchievement, 
     updateAchievement,
     deleteAchievement, 
     importAchievements,
@@ -24,9 +22,6 @@ export default function AchievementsAdminPage() {
     isLoadingAchievements 
   } = useConvexState();
   const { showToast } = useToast();
-
-  // Active top-level Tab: 'records' | 'awards'
-  const [activeTab, setActiveTab] = useState('records');
 
   // Search & Filters for Records Table
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,7 +37,6 @@ export default function AchievementsAdminPage() {
   const [showRecordModal, setShowRecordModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null);
-  const [showAwardModal, setShowAwardModal] = useState(false);
   const [showTallyModal, setShowTallyModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -79,15 +73,7 @@ export default function AchievementsAdminPage() {
     details: '',
   });
 
-  // Legacy Award Form state
-  const [awardForm, setAwardForm] = useState({
-    title: '',
-    recipient: '',
-    category: 'Individual Excellence',
-    achievement: '',
-    medalType: 'Gold',
-    image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600'
-  });
+
 
   // Unique lists for dropdown filters
   const uniqueSports = useMemo(() => {
@@ -166,20 +152,6 @@ export default function AchievementsAdminPage() {
   }, [searchTerm, selectedType, selectedSport, selectedYear, pageSize]);
 
   // Handlers for Record CRUD
-  const handleOpenAddRecord = () => {
-    setEditingRecord(null);
-    setRecordForm({
-      tournament: '',
-      sport: '',
-      year: new Date().getFullYear().toString(),
-      achievementType: 'Trophy',
-      winner: 'KKR & KSR Institute of Technology & Sciences (KITS)',
-      runnerUp: '',
-      details: '',
-    });
-    setShowRecordModal(true);
-  };
-
   const handleOpenEditRecord = (record) => {
     setEditingRecord(record);
     setRecordForm({
@@ -200,17 +172,14 @@ export default function AchievementsAdminPage() {
       showToast('Please fill in all required fields (Tournament, Sport, Year).', 'error');
       return;
     }
+    if (!editingRecord) return;
 
     setIsSubmitting(true);
     try {
-      if (editingRecord) {
-        await updateAchievement(editingRecord.id, recordForm);
-        showToast('Achievement updated successfully!', 'success');
-      } else {
-        await addAchievement(recordForm);
-        showToast('Achievement added successfully!', 'success');
-      }
+      await updateAchievement(editingRecord.id, recordForm);
+      showToast('Achievement updated successfully!', 'success');
       setShowRecordModal(false);
+      setEditingRecord(null);
     } catch (err) {
       console.error(err);
       showToast('Failed to save achievement: ' + (err.message || err), 'error');
@@ -238,39 +207,7 @@ export default function AchievementsAdminPage() {
     return res;
   };
 
-  // Legacy Wall of Fame Award Handlers
-  const handleSubmitAward = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      await addAchievement(awardForm);
-      showToast('Wall of Fame honor published successfully!', 'success');
-      setShowAwardModal(false);
-      setAwardForm({
-        title: '',
-        recipient: '',
-        category: 'Individual Excellence',
-        achievement: '',
-        medalType: 'Gold',
-        image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600'
-      });
-    } catch (err) {
-      console.error(err);
-      showToast('Failed to add award.', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
-  const handleDeleteAward = async (award) => {
-    if (!window.confirm(`Are you sure you want to delete the award "${award.title}"?`)) return;
-    try {
-      await deleteAchievement(award.id);
-      showToast(`Award "${award.title}" removed successfully.`, 'info');
-    } catch (err) {
-      showToast('Failed to delete award: ' + (err.message || err), 'error');
-    }
-  };
 
   const handleTallySubmit = async (e) => {
     e.preventDefault();
@@ -292,12 +229,12 @@ export default function AchievementsAdminPage() {
     }
   };
 
-  const inputClass = "w-full px-3 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] text-xs focus:border-blue-500 focus:outline-none";
+  const inputClass = "w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none shadow-2xs transition-colors";
 
   if (isLoading || isLoadingAchievements) {
     return (
       <AdminGridPageSkeleton 
-        title="Achievements & Wall of Fame Manager" 
+        title="Achievements Manager" 
         subtitle="Loading institutional medal tallies and sports achievements..." 
       />
     );
@@ -307,10 +244,10 @@ export default function AchievementsAdminPage() {
     <div className="space-y-6">
       
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">Achievements, Trophies & Laurels Manager</h2>
-          <p className="text-xs text-[var(--text-muted)]">
+          <h2 className="text-xl font-bold text-slate-900">Achievements, Trophies & Laurels Manager</h2>
+          <p className="text-xs text-slate-500">
             Manage tournament achievements, batch import Excel files, and maintain live public medal tallies.
           </p>
         </div>
@@ -319,7 +256,7 @@ export default function AchievementsAdminPage() {
           {/* Download Template */}
           <button
             onClick={downloadAchievementExcelTemplate}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-slate-400 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:text-slate-900 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-2xs cursor-pointer"
             title="Download blank sample Excel template"
           >
             <Download className="w-3.5 h-3.5" />
@@ -329,126 +266,84 @@ export default function AchievementsAdminPage() {
           {/* Import Excel */}
           <button
             onClick={() => setShowImportModal(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-xs cursor-pointer"
           >
             <UploadCloud className="w-3.5 h-3.5" />
             <span>Import Excel</span>
           </button>
-
-          {/* Add Record */}
-          <button
-            onClick={handleOpenAddRecord}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-[#0d3a73] hover:bg-[#104a8e] text-white transition-all shadow-sm cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Achievement</span>
-          </button>
         </div>
       </div>
 
-      {/* Live Medal Tallies Metric Cards */}
+      {/* Institutional Medal Tallies Metric Cards — Styled consistently with public achievements */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-1 relative group hover:border-[#0b2e5b] transition-colors">
-          <Trophy className="w-6 h-6 text-amber-500 mx-auto" />
-          <p className="text-2xl font-bold text-[var(--text-primary)]">{achievements.tallies.trophies}</p>
-          <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">🏆 Overall Trophies</span>
-          {achievements.tallies.isDynamic && (
-            <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
-              Live from DB
-            </span>
-          )}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-200 transition-all text-center space-y-2 group">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0b2e5b] mx-auto group-hover:scale-105 transition-transform">
+            <Trophy className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-extrabold text-[#0b2e5b] tracking-tight">{tallyTrophies}</p>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Trophies Won</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-1 hover:border-yellow-500 transition-colors">
-          <Crown className="w-6 h-6 text-yellow-500 mx-auto" />
-          <p className="text-2xl font-bold text-yellow-500">{achievements.tallies.gold}</p>
-          <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">🥇 Gold Medals</span>
-          {achievements.tallies.isDynamic && (
-            <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
-              Live from DB
-            </span>
-          )}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-200 transition-all text-center space-y-2 group">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0b2e5b] mx-auto group-hover:scale-105 transition-transform">
+            <Crown className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-extrabold text-[#0b2e5b] tracking-tight">{tallyGold}</p>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Gold Medals</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-1 hover:border-slate-400 transition-colors">
-          <Award className="w-6 h-6 text-slate-400 mx-auto" />
-          <p className="text-2xl font-bold text-slate-400">{achievements.tallies.silver}</p>
-          <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">🥈 Silver Medals</span>
-          {achievements.tallies.isDynamic && (
-            <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
-              Live from DB
-            </span>
-          )}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-200 transition-all text-center space-y-2 group">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0b2e5b] mx-auto group-hover:scale-105 transition-transform">
+            <Award className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-extrabold text-[#0b2e5b] tracking-tight">{tallySilver}</p>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Silver Medals</span>
         </div>
 
-        <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-center space-y-1 hover:border-amber-700 transition-colors">
-          <Medal className="w-6 h-6 text-amber-700 mx-auto" />
-          <p className="text-2xl font-bold text-amber-700">{achievements.tallies.bronze}</p>
-          <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">🥉 Bronze Medals</span>
-          {achievements.tallies.isDynamic && (
-            <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold">
-              Live from DB
-            </span>
-          )}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs hover:shadow-xs hover:border-blue-200 transition-all text-center space-y-2 group">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#0b2e5b] mx-auto group-hover:scale-105 transition-transform">
+            <Medal className="w-5 h-5" />
+          </div>
+          <p className="text-3xl font-extrabold text-[#0b2e5b] tracking-tight">{tallyBronze}</p>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Bronze Medals</span>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center justify-between border-b border-[var(--border-color)]">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab('records')}
-            className={`pb-3 px-3 text-xs font-bold transition-all relative ${
-              activeTab === 'records'
-                ? 'text-[#0b2e5b] dark:text-blue-400 border-b-2 border-[#0b2e5b] dark:border-blue-400'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            <span>Tournament Roster & Medals ({achievementRecords.length})</span>
-          </button>
+      {/* Table Section Header & Manage Tallies */}
+      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+        <h3 className="text-sm font-bold text-[#0b2e5b]">
+          Tournament Roster & Medals ({achievementRecords.length})
+        </h3>
 
-          <button
-            onClick={() => setActiveTab('awards')}
-            className={`pb-3 px-3 text-xs font-bold transition-all relative ${
-              activeTab === 'awards'
-                ? 'text-[#0b2e5b] dark:text-blue-400 border-b-2 border-[#0b2e5b] dark:border-blue-400'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-            }`}
-          >
-            <span>Wall of Fame Honors ({achievements.awards.length})</span>
-          </button>
-        </div>
-
-        {/* Override Tallies Option */}
+        {/* Manage Tallies Option */}
         <button
           onClick={() => setShowTallyModal(true)}
-          className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-1 font-semibold pb-2"
+          className="text-xs text-[#0b2e5b] hover:text-[#0d3a73] hover:bg-blue-50 px-3 py-1.5 rounded-xl flex items-center gap-1.5 font-bold transition-colors cursor-pointer"
         >
           <Edit className="w-3.5 h-3.5" />
-          <span>Manual Tally Override</span>
+          <span>Edit Medal Tallies</span>
         </button>
       </div>
 
-      {/* TAB 1: TOURNAMENT ACHIEVEMENTS TABLE */}
-      {activeTab === 'records' && (
+      {/* TOURNAMENT ACHIEVEMENTS TABLE */}
         <div className="space-y-4">
           
           {/* Search & Filter Toolbar */}
-          <div className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between text-xs">
+          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-2xs flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between text-xs">
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-[var(--text-muted)]" />
+              <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search tournament, game, winner, runner-up..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] focus:border-blue-500 focus:outline-none"
+                className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs focus:bg-white focus:border-[#0b2e5b] focus:ring-1 focus:ring-[#0b2e5b] focus:outline-none transition-all shadow-2xs"
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-2.5 top-2.5 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-1"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -461,7 +356,7 @@ export default function AchievementsAdminPage() {
               <select
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="px-2.5 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] font-semibold focus:outline-none cursor-pointer"
+                className="px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold focus:bg-white focus:border-[#0b2e5b] focus:outline-none cursor-pointer shadow-2xs transition-all"
               >
                 <option value="All">All Types</option>
                 <option value="Trophy">🏆 Trophies</option>
@@ -474,7 +369,7 @@ export default function AchievementsAdminPage() {
               <select
                 value={selectedSport}
                 onChange={(e) => setSelectedSport(e.target.value)}
-                className="px-2.5 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] font-semibold focus:outline-none cursor-pointer"
+                className="px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold focus:bg-white focus:border-[#0b2e5b] focus:outline-none cursor-pointer shadow-2xs transition-all"
               >
                 <option value="All">All Sports ({uniqueSports.length})</option>
                 {uniqueSports.map(s => <option key={s} value={s}>{s}</option>)}
@@ -484,7 +379,7 @@ export default function AchievementsAdminPage() {
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="px-2.5 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] font-semibold focus:outline-none cursor-pointer"
+                className="px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold focus:bg-white focus:border-[#0b2e5b] focus:outline-none cursor-pointer shadow-2xs transition-all"
               >
                 <option value="All">All Years</option>
                 {uniqueYears.map(y => <option key={y} value={y}>{y}</option>)}
@@ -494,7 +389,7 @@ export default function AchievementsAdminPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-2.5 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] text-[var(--text-primary)] font-semibold focus:outline-none cursor-pointer"
+                className="px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold focus:bg-white focus:border-[#0b2e5b] focus:outline-none cursor-pointer shadow-2xs transition-all"
               >
                 <option value="yearDesc">Year (Newest First)</option>
                 <option value="yearAsc">Year (Oldest First)</option>
@@ -510,7 +405,7 @@ export default function AchievementsAdminPage() {
                     setSelectedSport('All');
                     setSelectedYear('All');
                   }}
-                  className="px-2.5 py-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 font-semibold"
+                  className="px-3 py-2 rounded-xl text-[#0b2e5b] hover:bg-blue-50 font-bold text-xs transition-colors cursor-pointer"
                 >
                   Clear
                 </button>
@@ -518,33 +413,33 @@ export default function AchievementsAdminPage() {
             </div>
           </div>
 
-          {/* Table Container */}
+          {/* Table Container — Styled identically to Sports Members and Public Achievements Table */}
           {achievementRecords.length === 0 ? (
             <EmptyState
               title="No Achievement Records Found"
-              description="Click 'Import Excel' to upload your existing sports achievement sheet, or 'Add Achievement' to create records manually."
+              description="Click 'Import Excel' to upload your sports achievement sheet into the database."
               icon={Trophy}
             />
           ) : (
-            <div className="rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] overflow-hidden shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-[var(--bg-card-subtle)] border-b border-[var(--border-color)] text-[var(--text-secondary)] font-bold text-[11px] uppercase tracking-wider">
-                      <th className="py-3 px-3.5 w-14 text-center">S.No</th>
-                      <th className="py-3 px-4">Tournament / Competition</th>
-                      <th className="py-3 px-4 w-36">Game / Sport</th>
-                      <th className="py-3 px-3 text-center w-20">Year</th>
-                      <th className="py-3 px-3 text-center w-28">Type</th>
-                      <th className="py-3 px-4">Winner</th>
-                      <th className="py-3 px-4">Runner-up</th>
-                      <th className="py-3 px-4 text-center w-28">Actions</th>
+                    <tr className="bg-[#0b2e5b] text-white">
+                      <th className="py-3.5 px-4 w-16 text-center text-[11px] font-bold uppercase tracking-wider">S.No</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-bold uppercase tracking-wider">Tournament / Competition</th>
+                      <th className="py-3.5 px-4 w-36 text-left text-[11px] font-bold uppercase tracking-wider">Game / Sport</th>
+                      <th className="py-3.5 px-3 text-center w-24 text-[11px] font-bold uppercase tracking-wider">Year</th>
+                      <th className="py-3.5 px-3 text-center w-28 text-[11px] font-bold uppercase tracking-wider">Type</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-bold uppercase tracking-wider">Winner</th>
+                      <th className="py-3.5 px-4 text-left text-[11px] font-bold uppercase tracking-wider">Runner-up</th>
+                      <th className="py-3.5 px-4 text-center w-28 text-[11px] font-bold uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-primary)]">
+                  <tbody>
                     {paginatedRecords.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="py-8 text-center text-[var(--text-muted)] font-semibold">
+                        <td colSpan={8} className="py-12 text-center text-slate-500 font-semibold">
                           No achievement records match your search and filter criteria.
                         </td>
                       </tr>
@@ -557,36 +452,41 @@ export default function AchievementsAdminPage() {
                         const isTrophy = (r.achievementType || '').toLowerCase() === 'trophy';
 
                         const typePillClass = isGold
-                          ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border border-yellow-500/20'
+                          ? 'bg-yellow-50 text-yellow-800 border border-yellow-200'
                           : isSilver
-                          ? 'bg-slate-400/10 text-slate-700 dark:text-slate-300 border border-slate-400/20'
+                          ? 'bg-slate-100 text-slate-700 border border-slate-300'
                           : isBronze
-                          ? 'bg-orange-500/10 text-orange-700 dark:text-orange-400 border border-orange-500/20'
-                          : 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20';
+                          ? 'bg-orange-50 text-orange-800 border border-orange-200'
+                          : 'bg-blue-50 text-[#0b2e5b] border border-blue-200';
 
                         return (
-                          <tr key={r.id} className="hover:bg-[var(--bg-card-subtle)]/70 transition-colors">
-                            <td className="py-3 px-3.5 text-center font-bold text-[var(--text-muted)]">
+                          <tr 
+                            key={r.id || idx} 
+                            className={`border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                              idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
+                            }`}
+                          >
+                            <td className="py-3.5 px-4 text-center font-bold text-slate-400 text-xs">
                               {sNo}
                             </td>
-                            <td className="py-3 px-4 font-semibold">
-                              <span className="text-[var(--text-primary)]">{r.tournament}</span>
+                            <td className="py-3.5 px-4">
+                              <span className="font-bold text-slate-800 text-xs block">{r.tournament}</span>
                               {r.details && (
-                                <p className="text-[10px] text-[var(--text-muted)] font-normal truncate max-w-xs">
+                                <p className="text-[11px] text-slate-500 font-normal truncate max-w-xs mt-0.5">
                                   {r.details}
                                 </p>
                               )}
                             </td>
-                            <td className="py-3 px-4">
-                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                            <td className="py-3.5 px-4">
+                              <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-[#0b2e5b] border border-blue-200 inline-block">
                                 {r.sport}
                               </span>
                             </td>
-                            <td className="py-3 px-3 text-center font-bold text-[var(--text-secondary)]">
+                            <td className="py-3.5 px-3 text-center font-bold text-slate-600 text-xs">
                               {r.year || '—'}
                             </td>
-                            <td className="py-3 px-3 text-center">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${typePillClass}`}>
+                            <td className="py-3.5 px-3 text-center">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${typePillClass}`}>
                                 {isTrophy && '🏆'}
                                 {isGold && '🥇'}
                                 {isSilver && '🥈'}
@@ -594,50 +494,50 @@ export default function AchievementsAdminPage() {
                                 <span>{r.achievementType}</span>
                               </span>
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="py-3.5 px-4 text-xs">
                               {r.winner ? (
                                 <span className={r.winner?.includes('KKR') || r.winner?.includes('KITS') || r.winner?.toUpperCase() === 'WINNER'
-                                  ? 'inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 text-[11px]'
-                                  : 'text-[var(--text-secondary)]'}>
-                                  {r.winner?.toUpperCase() === 'WINNER' ? '🏆 KKR & KSR Institute (KITS)' : r.winner}
+                                  ? 'font-bold text-[#0b2e5b]'
+                                  : 'text-slate-700 font-medium'}>
+                                  {r.winner?.toUpperCase() === 'WINNER' ? 'KKR & KSR Institute (KITS)' : r.winner}
                                 </span>
                               ) : (
-                                <span className="text-[var(--text-muted)]">—</span>
+                                <span className="text-slate-400">—</span>
                               )}
                             </td>
-                            <td className="py-3 px-4">
+                            <td className="py-3.5 px-4 text-xs">
                               {r.runnerUp ? (
                                 <span className={r.runnerUp?.includes('KKR') || r.runnerUp?.includes('KITS') || r.runnerUp?.toUpperCase() === 'RUNNER'
-                                  ? 'inline-flex items-center gap-1 font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800 text-[11px]'
-                                  : 'text-[var(--text-secondary)]'}>
-                                  {r.runnerUp?.toUpperCase() === 'RUNNER' ? '🥈 KKR & KSR Institute (KITS)' : r.runnerUp}
+                                  ? 'font-bold text-[#0b2e5b]'
+                                  : 'text-slate-700 font-medium'}>
+                                  {r.runnerUp?.toUpperCase() === 'RUNNER' ? 'KKR & KSR Institute (KITS)' : r.runnerUp}
                                 </span>
                               ) : (
-                                <span className="text-[var(--text-muted)]">—</span>
+                                <span className="text-slate-400">—</span>
                               )}
                             </td>
-                            <td className="py-3 px-4 text-center">
+                            <td className="py-3.5 px-4 text-center">
                               <div className="flex items-center justify-center gap-1">
                                 <button
                                   onClick={() => setViewingRecord(r)}
-                                  className="p-1.5 rounded text-[var(--text-muted)] hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#0b2e5b] hover:bg-blue-50 transition-colors cursor-pointer"
                                   title="View details"
                                 >
-                                  <Eye className="w-3.5 h-3.5" />
+                                  <Eye className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleOpenEditRecord(r)}
-                                  className="p-1.5 rounded text-[var(--text-muted)] hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950 transition-colors"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors cursor-pointer"
                                   title="Edit achievement"
                                 >
-                                  <Edit className="w-3.5 h-3.5" />
+                                  <Edit className="w-4 h-4" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteRecord(r)}
-                                  className="p-1.5 rounded text-[var(--text-muted)] hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                                   title="Delete achievement"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5" />
+                                  <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
                             </td>
@@ -650,18 +550,18 @@ export default function AchievementsAdminPage() {
               </div>
 
               {/* Table Footer with Pagination */}
-              <div className="p-3.5 border-t border-[var(--border-color)] bg-[var(--bg-card-subtle)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+              <div className="p-4 border-t border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
                 <div className="flex items-center gap-3">
-                  <span className="text-[var(--text-secondary)]">
-                    Showing <span className="font-bold text-[var(--text-primary)]">{filteredRecords.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}</span> to{' '}
-                    <span className="font-bold text-[var(--text-primary)]">{Math.min(currentPage * pageSize, filteredRecords.length)}</span> of{' '}
-                    <span className="font-bold text-[var(--text-primary)]">{filteredRecords.length}</span> records
+                  <span>
+                    Showing <span className="font-bold text-slate-900">{filteredRecords.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}</span> to{' '}
+                    <span className="font-bold text-slate-900">{Math.min(currentPage * pageSize, filteredRecords.length)}</span> of{' '}
+                    <span className="font-bold text-slate-900">{filteredRecords.length}</span> records
                   </span>
 
                   <select
                     value={pageSize}
                     onChange={(e) => setPageSize(Number(e.target.value))}
-                    className="px-2 py-1 rounded bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)] font-semibold"
+                    className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 font-semibold shadow-2xs focus:outline-none cursor-pointer"
                   >
                     <option value={10}>10 per page</option>
                     <option value={15}>15 per page</option>
@@ -675,17 +575,17 @@ export default function AchievementsAdminPage() {
                     <button
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
-                      className="p-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="p-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-colors cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="px-3 py-1 font-semibold text-[var(--text-primary)]">
+                    <span className="px-3 py-1 font-semibold text-slate-700">
                       Page {currentPage} of {totalPages}
                     </span>
                     <button
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
-                      className="p-1.5 rounded-lg border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] hover:bg-[var(--bg-card-subtle)] disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="p-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs transition-colors cursor-pointer"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -696,64 +596,6 @@ export default function AchievementsAdminPage() {
           )}
 
         </div>
-      )}
-
-      {/* TAB 2: WALL OF FAME ANNUAL EXCELLENCE AWARDS */}
-      {activeTab === 'awards' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
-            <h3 className="text-sm font-bold text-[var(--text-primary)]">Wall of Fame Award Honors</h3>
-            <button
-              onClick={() => setShowAwardModal(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#0d3a73] text-white hover:bg-[#104a8e]"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Wall of Fame Award</span>
-            </button>
-          </div>
-
-          {achievements.awards.length === 0 ? (
-            <EmptyState
-              title="No Wall of Fame Honors Added Yet"
-              description="Click 'Add Wall of Fame Award' above to publish individual awards and certificates."
-              icon={Award}
-            />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {achievements.awards.map((award, i) => (
-                <div key={award.id || i} className="rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] p-4 flex flex-col sm:flex-row gap-4 card-hover relative group">
-                  <div className="w-full sm:w-32 h-32 rounded-lg overflow-hidden shrink-0 border border-[var(--border-color)]">
-                    <img 
-                      src={award.image} 
-                      alt={award.title} 
-                      className="w-full h-full object-cover" 
-                      onError={(e) => { 
-                        e.target.onerror = null; 
-                        e.target.src = "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=600"; 
-                      }} 
-                    />
-                  </div>
-                  <div className="space-y-1.5 text-xs flex-1 pr-8">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400">
-                      {award.category}
-                    </span>
-                    <h4 className="text-sm font-bold text-[var(--text-primary)]">{award.title}</h4>
-                    <p className="text-amber-600 dark:text-amber-400 font-semibold">Awarded to: {award.recipient}</p>
-                    <p className="text-[var(--text-secondary)] leading-relaxed">{award.achievement}</p>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteAward(award)}
-                    className="absolute top-3 right-3 p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
-                    title="Delete Award"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* MODAL 1: EXCEL IMPORT MODAL */}
       <AchievementExcelImportModal
@@ -763,17 +605,17 @@ export default function AchievementsAdminPage() {
         onImportComplete={handleExcelImport}
       />
 
-      {/* MODAL 2: ADD / EDIT TOURNAMENT ACHIEVEMENT RECORD */}
-      {showRecordModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-lg p-6 rounded-2xl glass-modal space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
-              <h3 className="text-base font-bold text-[var(--text-primary)]">
-                {editingRecord ? 'Edit Achievement Record' : 'Add Tournament Achievement'}
+      {/* MODAL 2: EDIT TOURNAMENT ACHIEVEMENT RECORD */}
+      {showRecordModal && editingRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="relative w-full max-w-lg p-6 rounded-2xl bg-white border border-slate-200 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-base font-bold text-[#0b2e5b]">
+                Edit Achievement Record
               </h3>
               <button 
-                onClick={() => setShowRecordModal(false)} 
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                onClick={() => { setShowRecordModal(false); setEditingRecord(null); }} 
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -781,7 +623,7 @@ export default function AchievementsAdminPage() {
 
             <form onSubmit={handleSubmitRecord} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
+                <label className="block text-slate-700 mb-1 font-semibold">
                   Tournament / Competition Name <span className="text-red-500">*</span>
                 </label>
                 <input 
@@ -796,7 +638,7 @@ export default function AchievementsAdminPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
+                  <label className="block text-slate-700 mb-1 font-semibold">
                     Game / Sport <span className="text-red-500">*</span>
                   </label>
                   <input 
@@ -810,7 +652,7 @@ export default function AchievementsAdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
+                  <label className="block text-slate-700 mb-1 font-semibold">
                     Year <span className="text-red-500">*</span>
                   </label>
                   <input 
@@ -825,7 +667,7 @@ export default function AchievementsAdminPage() {
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
+                <label className="block text-slate-700 mb-1 font-semibold">
                   Achievement Type <span className="text-red-500">*</span>
                 </label>
                 <select 
@@ -841,7 +683,7 @@ export default function AchievementsAdminPage() {
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
+                <label className="block text-slate-700 mb-1 font-semibold">
                   Winner (College / Team Name)
                 </label>
                 <input 
@@ -853,7 +695,7 @@ export default function AchievementsAdminPage() {
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
+                <label className="block text-slate-700 mb-1 font-semibold">
                   Runner-up (College / Team Name)
                 </label>
                 <input 
@@ -866,7 +708,7 @@ export default function AchievementsAdminPage() {
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">
+                <label className="block text-slate-700 mb-1 font-semibold">
                   Details / Notes (Optional)
                 </label>
                 <textarea 
@@ -878,23 +720,23 @@ export default function AchievementsAdminPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--border-color)]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
-                  onClick={() => setShowRecordModal(false)}
-                  className="px-4 py-2 rounded-lg border border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-primary)] font-semibold"
+                  onClick={() => { setShowRecordModal(false); setEditingRecord(null); }}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-800 hover:bg-slate-50 font-semibold transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-lg bg-[#0d3a73] hover:bg-[#104a8e] text-white font-bold disabled:opacity-50 flex items-center gap-1.5 shadow-md"
+                  className="px-5 py-2.5 rounded-xl bg-[#0b2e5b] hover:bg-[#0d3a73] text-white font-bold disabled:opacity-50 flex items-center gap-1.5 shadow-xs transition-all cursor-pointer"
                 >
                   {isSubmitting ? (
                     <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving...</span></>
                   ) : (
-                    <span>{editingRecord ? 'Save Changes' : 'Create Record'}</span>
+                    <span>Save Changes</span>
                   )}
                 </button>
               </div>
@@ -905,65 +747,65 @@ export default function AchievementsAdminPage() {
 
       {/* MODAL 3: VIEW RECORD DETAILS MODAL */}
       {viewingRecord && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-md p-6 rounded-2xl glass-modal space-y-4">
-            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
-              <h3 className="text-base font-bold text-[var(--text-primary)] flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="relative w-full max-w-md p-6 rounded-2xl bg-white border border-slate-200 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-base font-bold text-[#0b2e5b] flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-[#0b2e5b]" />
                 <span>Achievement Details</span>
               </h3>
               <button 
                 onClick={() => setViewingRecord(null)} 
-                className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-xl bg-[var(--bg-card-subtle)] space-y-1">
-                <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Tournament</span>
-                <p className="text-sm font-bold text-[var(--text-primary)]">{viewingRecord.tournament}</p>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500">Tournament</span>
+                <p className="text-sm font-bold text-slate-900">{viewingRecord.tournament}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-[var(--bg-card-subtle)] space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Sport</span>
-                  <p className="font-bold text-[var(--text-primary)]">{viewingRecord.sport}</p>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-500">Sport</span>
+                  <p className="font-bold text-[#0b2e5b]">{viewingRecord.sport}</p>
                 </div>
-                <div className="p-3 rounded-xl bg-[var(--bg-card-subtle)] space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Year</span>
-                  <p className="font-bold text-[var(--text-primary)]">{viewingRecord.year}</p>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-500">Year</span>
+                  <p className="font-bold text-slate-800">{viewingRecord.year}</p>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-[var(--bg-card-subtle)] space-y-1">
-                <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Achievement Type</span>
-                <p className="font-bold text-amber-600 dark:text-amber-400">{viewingRecord.achievementType}</p>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500">Achievement Type</span>
+                <p className="font-bold text-[#0b2e5b]">{viewingRecord.achievementType}</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-[var(--bg-card-subtle)] space-y-1">
-                <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Winner</span>
-                <p className="font-bold text-emerald-600 dark:text-emerald-400">{viewingRecord.winner || '—'}</p>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500">Winner</span>
+                <p className="font-bold text-[#0b2e5b]">{viewingRecord.winner || '—'}</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-[var(--bg-card-subtle)] space-y-1">
-                <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Runner-up</span>
-                <p className="font-bold text-amber-600 dark:text-amber-400">{viewingRecord.runnerUp || '—'}</p>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                <span className="text-[10px] uppercase font-bold text-slate-500">Runner-up</span>
+                <p className="font-bold text-slate-700">{viewingRecord.runnerUp || '—'}</p>
               </div>
 
               {viewingRecord.details && (
-                <div className="p-3 rounded-xl bg-[var(--bg-card-subtle)] space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Details</span>
-                  <p className="text-[var(--text-secondary)]">{viewingRecord.details}</p>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-500">Details</span>
+                  <p className="text-slate-600">{viewingRecord.details}</p>
                 </div>
               )}
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-[var(--border-color)]">
+            <div className="flex justify-end pt-3 border-t border-slate-200">
               <button
                 onClick={() => setViewingRecord(null)}
-                className="px-4 py-2 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] font-semibold text-[var(--text-primary)] text-xs"
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 font-bold text-slate-700 text-xs transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -972,98 +814,88 @@ export default function AchievementsAdminPage() {
         </div>
       )}
 
-      {/* MODAL 4: MANUAL TALLY OVERRIDE MODAL */}
+      {/* MODAL 4: EDIT MEDAL TALLIES MODAL */}
       {showTallyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-md p-6 rounded-xl glass-modal space-y-4">
-            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
-              <h3 className="text-base font-bold text-[var(--text-primary)]">Manual Medal Tallies Override</h3>
-              <button onClick={() => setShowTallyModal(false)} className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)]"><X className="w-4 h-4" /></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="relative w-full max-w-md p-6 rounded-2xl bg-white border border-slate-200 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-base font-bold text-[#0b2e5b]">Edit Medal Tallies</h3>
+              <button 
+                onClick={() => setShowTallyModal(false)} 
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <p className="text-[11px] text-[var(--text-muted)]">
-              Note: When tournament records exist in the database, counts are derived live from actual records. Use this form to set baseline settings if no records exist.
+            <p className="text-[11px] text-slate-500">
+              Update the official institutional tally counts displayed across the sports portal.
             </p>
 
-            <form onSubmit={handleTallySubmit} className="space-y-3 text-xs">
+            <form onSubmit={handleTallySubmit} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Overall Trophies</label>
-                <input type="number" min="0" required value={tallyData.trophies} onChange={(e) => setTallyData({ ...tallyData, trophies: Number(e.target.value) })} className={inputClass} />
+                <label className="block text-slate-700 mb-1 font-semibold">Overall Trophies</label>
+                <input 
+                  type="number" 
+                  min="0" 
+                  required 
+                  value={tallyData.trophies} 
+                  onChange={(e) => setTallyData({ ...tallyData, trophies: Number(e.target.value) })} 
+                  className={inputClass} 
+                />
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Gold Medals</label>
-                <input type="number" min="0" required value={tallyData.gold} onChange={(e) => setTallyData({ ...tallyData, gold: Number(e.target.value) })} className={inputClass} />
+                <label className="block text-slate-700 mb-1 font-semibold">Gold Medals</label>
+                <input 
+                  type="number" 
+                  min="0" 
+                  required 
+                  value={tallyData.gold} 
+                  onChange={(e) => setTallyData({ ...tallyData, gold: Number(e.target.value) })} 
+                  className={inputClass} 
+                />
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Silver Medals</label>
-                <input type="number" min="0" required value={tallyData.silver} onChange={(e) => setTallyData({ ...tallyData, silver: Number(e.target.value) })} className={inputClass} />
+                <label className="block text-slate-700 mb-1 font-semibold">Silver Medals</label>
+                <input 
+                  type="number" 
+                  min="0" 
+                  required 
+                  value={tallyData.silver} 
+                  onChange={(e) => setTallyData({ ...tallyData, silver: Number(e.target.value) })} 
+                  className={inputClass} 
+                />
               </div>
 
               <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Bronze Medals</label>
-                <input type="number" min="0" required value={tallyData.bronze} onChange={(e) => setTallyData({ ...tallyData, bronze: Number(e.target.value) })} className={inputClass} />
+                <label className="block text-slate-700 mb-1 font-semibold">Bronze Medals</label>
+                <input 
+                  type="number" 
+                  min="0" 
+                  required 
+                  value={tallyData.bronze} 
+                  onChange={(e) => setTallyData({ ...tallyData, bronze: Number(e.target.value) })} 
+                  className={inputClass} 
+                />
               </div>
 
-              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 flex items-center justify-center gap-2">
-                {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving Tallies...</span></> : 'Save Override Counts'}
-              </button>
+              <div className="pt-2">
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting} 
+                  className="w-full py-2.5 rounded-xl font-bold bg-[#0b2e5b] text-white hover:bg-[#0d3a73] disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
+                >
+                  {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Saving Tallies...</span></> : 'Save Medal Tallies'}
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* MODAL 5: ADD WALL OF FAME AWARD MODAL */}
-      {showAwardModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="relative w-full max-w-lg p-6 rounded-xl glass-modal space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-[var(--border-color)] pb-3">
-              <h3 className="text-base font-bold text-[var(--text-primary)]">Add Wall of Fame Honor</h3>
-              <button onClick={() => setShowAwardModal(false)} className="p-1 rounded text-[var(--text-muted)] hover:text-[var(--text-primary)]"><X className="w-4 h-4" /></button>
-            </div>
 
-            <form onSubmit={handleSubmitAward} className="space-y-3 text-xs">
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Award Title *</label>
-                <input type="text" required value={awardForm.title} onChange={(e) => setAwardForm({ ...awardForm, title: e.target.value })} className={inputClass} />
-              </div>
-
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Recipient Athlete / Team *</label>
-                <input type="text" required value={awardForm.recipient} onChange={(e) => setAwardForm({ ...awardForm, recipient: e.target.value })} className={inputClass} />
-              </div>
-
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Medal Type *</label>
-                <select value={awardForm.medalType} onChange={(e) => setAwardForm({ ...awardForm, medalType: e.target.value })} className={inputClass}>
-                  <option value="Gold">Gold Medal</option>
-                  <option value="Silver">Silver Medal</option>
-                  <option value="Bronze">Bronze Medal</option>
-                  <option value="Trophy">Trophy</option>
-                </select>
-              </div>
-
-              <ImageUploadWithCropper
-                label="Award Image / Medal Photo"
-                value={awardForm.image}
-                onChange={(url) => setAwardForm(prev => ({ ...prev, image: url }))}
-                aspectRatio="16:9"
-                helpText="Crop and position achievement trophy or medal photo"
-              />
-
-              <div>
-                <label className="block text-[var(--text-secondary)] mb-1 font-semibold">Achievement Narrative *</label>
-                <textarea required rows={3} value={awardForm.achievement} onChange={(e) => setAwardForm({ ...awardForm, achievement: e.target.value })} className={inputClass} />
-              </div>
-
-              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 rounded-lg font-bold bg-[#0d3a73] text-white hover:bg-[#104a8e] disabled:opacity-50 flex items-center justify-center gap-2">
-                {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /><span>Publishing Honor...</span></> : 'Publish Honor to Wall of Fame'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
 
     </div>
   );

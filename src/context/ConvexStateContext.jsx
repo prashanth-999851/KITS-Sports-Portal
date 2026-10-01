@@ -152,30 +152,22 @@ export function ConvexStateProvider({ children }) {
       medalType: a.medalType,
     }));
 
-  // Derive dynamic tallies directly from stored records
-  let dynamicTrophies = 0;
-  let dynamicGold = 0;
-  let dynamicSilver = 0;
-  let dynamicBronze = 0;
-
-  for (const rec of achievementRecords) {
-    const t = (rec.achievementType || '').trim().toLowerCase();
-    if (t === 'trophy') dynamicTrophies++;
-    else if (t === 'gold') dynamicGold++;
-    else if (t === 'silver') dynamicSilver++;
-    else if (t === 'bronze') dynamicBronze++;
-  }
-
-  const hasDbAchievements = achievementRecords.length > 0;
-
+  // Admin-managed medal tallies (configured via Admin Settings)
   const achievements = {
     tallies: {
-      trophies: hasDbAchievements ? dynamicTrophies : (rawSettings.tally_trophies !== undefined ? Number(rawSettings.tally_trophies) : 0),
-      gold: hasDbAchievements ? dynamicGold : (rawSettings.tally_gold !== undefined ? Number(rawSettings.tally_gold) : 0),
-      silver: hasDbAchievements ? dynamicSilver : (rawSettings.tally_silver !== undefined ? Number(rawSettings.tally_silver) : 0),
-      bronze: hasDbAchievements ? dynamicBronze : (rawSettings.tally_bronze !== undefined ? Number(rawSettings.tally_bronze) : 0),
+      trophies: rawSettings.tally_trophies !== undefined && rawSettings.tally_trophies !== null && rawSettings.tally_trophies !== '' 
+        ? Number(rawSettings.tally_trophies) 
+        : 50,
+      gold: rawSettings.tally_gold !== undefined && rawSettings.tally_gold !== null && rawSettings.tally_gold !== '' 
+        ? Number(rawSettings.tally_gold) 
+        : 40,
+      silver: rawSettings.tally_silver !== undefined && rawSettings.tally_silver !== null && rawSettings.tally_silver !== '' 
+        ? Number(rawSettings.tally_silver) 
+        : 20,
+      bronze: rawSettings.tally_bronze !== undefined && rawSettings.tally_bronze !== null && rawSettings.tally_bronze !== '' 
+        ? Number(rawSettings.tally_bronze) 
+        : 10,
       isLoaded: qAchievements !== undefined && qSettings !== undefined,
-      isDynamic: hasDbAchievements,
     },
     records: achievementRecords,
     awards: achievementAwards,

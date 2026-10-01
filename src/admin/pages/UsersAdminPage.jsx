@@ -6,7 +6,7 @@ import EmptyState from '../../components/EmptyState';
 import { UserPlus, X, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function UsersAdminPage() {
-  const { users, addUser, toggleUserActive, isLoading, isLoadingUsers } = useConvexState();
+  const { users, addUser, toggleUserActive, isLoading, isLoadingUsers, currentUser } = useConvexState();
   const { showToast } = useToast();
   const [showModal, setShowModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,6 +35,16 @@ export default function UsersAdminPage() {
   };
 
   const handleToggleActive = async (u) => {
+    const isSelf = Boolean(
+      currentUser && (
+        (currentUser.id && u.id === currentUser.id) ||
+        (currentUser.email && u.email && u.email.toLowerCase().trim() === currentUser.email.toLowerCase().trim())
+      )
+    );
+    if (isSelf) {
+      showToast('You cannot suspend your own administrative account.', 'warning');
+      return;
+    }
     setTogglingId(u.id);
     try {
       await toggleUserActive(u.id);
@@ -96,28 +106,55 @@ export default function UsersAdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border-color)] text-[var(--text-secondary)]">
-                {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-[var(--bg-card-subtle)]">
-                    <td className="p-3 font-mono font-bold text-blue-600 dark:text-blue-400">{u.id}</td>
-                    <td className="p-3 font-bold text-[var(--text-primary)]">{u.name}</td>
-                    <td className="p-3">{u.email}</td>
-                    <td className="p-3 font-semibold text-amber-600 dark:text-amber-400">{u.role}</td>
-                    <td className="p-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${u.isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'}`}>
-                        {u.isActive ? 'Active' : 'Suspended'}
-                      </span>
-                    </td>
-                    <td className="p-3 text-right">
-                      <button
-                        onClick={() => handleToggleActive(u)}
-                        disabled={togglingId === u.id}
-                        className={`px-3 py-1 rounded text-[10px] font-bold transition-all cursor-pointer disabled:opacity-50 ${u.isActive ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
-                      >
-                        {togglingId === u.id ? 'Updating...' : u.isActive ? 'Suspend' : 'Activate'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {users.map((u) => {
+                  const isSelf = Boolean(
+                    currentUser && (
+                      (currentUser.id && u.id === currentUser.id) ||
+                      (currentUser.email && u.email && u.email.toLowerCase().trim() === currentUser.email.toLowerCase().trim())
+                    )
+                  );
+
+                  return (
+                    <tr key={u.id} className="hover:bg-[var(--bg-card-subtle)]">
+                      <td className="p-3 font-mono font-bold text-blue-600 dark:text-blue-400">{u.id}</td>
+                      <td className="p-3 font-bold text-[var(--text-primary)]">
+                        <div className="flex items-center gap-2">
+                          <span>{u.name}</span>
+                          {isSelf && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-[#0b2e5b] border border-blue-200">
+                              You
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3">{u.email}</td>
+                      <td className="p-3 font-semibold text-amber-600 dark:text-amber-400">{u.role}</td>
+                      <td className="p-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${u.isActive ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'}`}>
+                          {u.isActive ? 'Active' : 'Suspended'}
+                        </span>
+                      </td>
+                      <td className="p-3 text-right">
+                        {isSelf ? (
+                          <span 
+                            className="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 cursor-default"
+                            title="You cannot suspend the account you are currently logged into"
+                          >
+                            Logged in
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleActive(u)}
+                            disabled={togglingId === u.id}
+                            className={`px-3 py-1 rounded text-[10px] font-bold transition-all cursor-pointer disabled:opacity-50 ${u.isActive ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`}
+                          >
+                            {togglingId === u.id ? 'Updating...' : u.isActive ? 'Suspend' : 'Activate'}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
