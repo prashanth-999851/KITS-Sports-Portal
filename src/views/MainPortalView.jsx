@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
-import CoreValues from '../components/CoreValues';
+import DirectorProfile from '../components/DirectorProfile';
 import SportsSection from '../components/SportsSection';
 import ExecutiveBody from '../components/ExecutiveBody';
 import Achievements from '../components/Achievements';
@@ -77,7 +77,7 @@ export default function MainPortalView() {
           onExploreClick={() => handleNavigate('sports')}
         />
 
-        <CoreValues />
+        <DirectorProfile />
 
         <SportsSection onRegisterSport={openSportRegistration} />
 

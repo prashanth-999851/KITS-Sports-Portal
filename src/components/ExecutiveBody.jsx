@@ -1,3 +1,5 @@
+import React from 'react';
+import { motion } from 'framer-motion';
 import { useConvexState } from '../context/ConvexStateContext';
 
 function ExecutiveSkeleton() {
@@ -32,7 +34,13 @@ function ExecutiveSkeleton() {
 
 function MemberCard({ member, isTopTier = false }) {
   return (
-    <div className="group flex flex-col items-center text-center space-y-2.5 sm:space-y-3 w-full max-w-[10rem] sm:w-48 sm:max-w-none md:w-52 animate-slideUp cursor-default">
+    <motion.div 
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: false, amount: 0.2 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="group flex flex-col items-center text-center space-y-2.5 sm:space-y-3 w-full max-w-[10rem] sm:w-48 sm:max-w-none md:w-52 cursor-default"
+    >
       {/* Circular Portrait Frame */}
       <div className="relative">
         <div className={`rounded-full p-1 sm:p-1.5 bg-white border-2 border-slate-200 shadow-md group-hover:border-[#0b2e5b] group-hover:shadow-lg transition-all duration-300 ${
@@ -65,7 +73,7 @@ function MemberCard({ member, isTopTier = false }) {
           {member.position}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -86,12 +94,18 @@ export default function ExecutiveBody() {
   const tier2 = managementMembers.length > 1 ? managementMembers.slice(1) : [];
 
   return (
-    <section id="executive" className="py-12 sm:py-16 bg-slate-50/70 transition-colors">
+    <section id="executive" className="py-12 sm:py-16 bg-slate-50/70 transition-colors overflow-hidden">
       <div className="section-divider" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-10 sm:space-y-14">
         
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-2.5">
+        {/* Section Header with scroll animation */}
+        <motion.div 
+          initial={{ opacity: 0, y: 35 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.25 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center max-w-3xl mx-auto space-y-2.5"
+        >
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0b2e5b]">
             Institutional Leadership
           </p>
@@ -101,7 +115,7 @@ export default function ExecutiveBody() {
           <p className="text-slate-600 text-xs sm:text-sm font-medium leading-relaxed max-w-xl mx-auto">
             Meet the distinguished institutional leadership guiding the sports directorate and athletic development at KiTS Sports Club.
           </p>
-        </div>
+        </motion.div>
 
         {isLoading ? (
           <ExecutiveSkeleton />

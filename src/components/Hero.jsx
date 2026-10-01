@@ -4,23 +4,40 @@ import { tw } from '@/constants';
 
 // Dynamically import all images from the Slideshow folder
 const slideshowModules = import.meta.glob(
-  '/assets/images/Slideshow/*.{jpg,jpeg,png,webp}',
+  [
+    '/assets/images/Slideshow/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+    '/assets/Slideshow/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}',
+  ],
   { eager: true, import: 'default' }
 );
 
-const SLIDESHOW_IMAGES = Object.entries(slideshowModules).map(([path, src]) => {
-  const filename = path.split('/').pop().toLowerCase();
-  let title = "KiTS Campus Athletics";
-  if (filename.includes('jntuk')) title = "JNTUK Inter-University Representation";
-  else if (filename.includes('cricket')) title = "Annual Cricket Championship";
-  else if (filename.includes('volleyball')) title = "State Volleyball League";
+// Sort images numerically so 1.jpg, 2.jpg, 3.png etc. play in exact sequential order
+const SLIDESHOW_IMAGES = Object.entries(slideshowModules)
+  .sort(([pathA], [pathB]) => {
+    const filenameA = pathA.split('/').pop();
+    const filenameB = pathB.split('/').pop();
+    return filenameA.localeCompare(filenameB, undefined, { numeric: true, sensitivity: 'base' });
+  })
+  .map(([path, src]) => {
+    const filename = path.split('/').pop().toLowerCase();
+    let title = "KiTS Campus Athletics";
+    if (filename.includes('jntuk')) title = "JNTUK Inter-University Representation";
+    else if (filename.includes('cricket')) title = "Annual Cricket Championship";
+    else if (filename.includes('volleyball')) title = "State Volleyball League";
 
-  return {
-    src,
-    title,
-    position: filename.includes('jntuk') ? '70% center' : 'center center',
-  };
-});
+    return {
+      src,
+      title,
+      position: filename.includes('jntuk') ? '70% center' : 'center center',
+    };
+  });
+
+// ==========================================
+// SLIDESHOW CONFIGURATION
+// Change slide display time here (in milliseconds):
+// 3000 = 3 seconds | 4000 = 4 seconds | 5000 = 5 seconds
+// ==========================================
+const SLIDE_DURATION_MS = 8000;
 
 export default function Hero({ onJoinClick, onExploreClick }) {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -29,12 +46,12 @@ export default function Hero({ onJoinClick, onExploreClick }) {
 
   const slides = SLIDESHOW_IMAGES;
 
-  // Auto-advance slideshow every 5 seconds
+  // Auto-advance slideshow based on SLIDE_DURATION_MS
   useEffect(() => {
     if (slides.length <= 1) return;
     const interval = setInterval(() => {
       setCurrentSlideIndex((prev) => (prev + 1) % slides.length);
-    }, 5000);
+    }, SLIDE_DURATION_MS);
     return () => clearInterval(interval);
   }, [slides.length]);
 
@@ -104,9 +121,8 @@ export default function Hero({ onJoinClick, onExploreClick }) {
           );
         })}
 
-        {/* Contrast Overlays for Desktop */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#041428]/90 via-[#061a36]/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#041428]/90 via-transparent to-transparent" />
+        {/* Very Light Transparent Layer */}
+        <div className="absolute inset-0 bg-black/35 pointer-events-none" />
       </div>
 
       {/* Content Container */}
@@ -117,11 +133,11 @@ export default function Hero({ onJoinClick, onExploreClick }) {
 
           {/* Title */}
           <div className="space-y-3">
-            <h1 className="text-hero font-extrabold tracking-tight leading-[1.15] text-white">
+            <h1 className="text-hero font-extrabold tracking-tight leading-[1.15] text-white drop-shadow-md">
               K<span className="text-red-500">i</span>TS
               <span className="block text-amber-400">Sports Club</span>
             </h1>
-            <p className={`${tw`text-bodyLg`} text-slate-300/90 font-normal leading-relaxed max-w-md`}>
+            <p className={`${tw`text-bodyLg`} text-slate-100 font-normal leading-relaxed max-w-md drop-shadow-md`}>
               Official Platform for Sports Registrations, Tournaments, Achievements, and Athletic Excellence.
             </p>
           </div>
@@ -168,7 +184,7 @@ export default function Hero({ onJoinClick, onExploreClick }) {
 
           {/* Title */}
           <div className="space-y-2">
-            <h1 className="text-hero font-extrabold tracking-tight leading-tight">
+            <h1 className="text-hero font-extrabold tracking-tight leading-tight text-white">
               K<span className="text-red-500">i</span>TS <span className="text-amber-400">Sports Club</span>
             </h1>
             <p className={`${tw`text-bodyLg`} text-slate-300 font-normal max-w-md mx-auto`}>
@@ -215,19 +231,12 @@ export default function Hero({ onJoinClick, onExploreClick }) {
                     style={{ objectPosition: slide.position }}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  {/* Very Light Transparent Layer */}
+                  <div className="absolute inset-0 bg-black/15 pointer-events-none" />
                 </div>
               ))}
 
-              {/* Bottom Caption Badge */}
-              {currentSlide && (
-                <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between gap-2">
-                  <div className="bg-black/70 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 text-left">
-                    <span className={`${tw`text-caption`} font-bold text-amber-400 uppercase block`}>Featured Showcase</span>
-                    <h4 className={`${tw`text-bodySm`} font-bold text-white truncate`}>{currentSlide.title}</h4>
-                  </div>
-                </div>
-              )}
+
             </div>
           </div>
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useConvexState } from '../context/ConvexStateContext';
 import EmptyState from './EmptyState';
 import { MapPin, ArrowRight, Trophy } from 'lucide-react';
@@ -46,12 +47,18 @@ export default function SportsSection({ onRegisterSport }) {
     : sports.filter(s => s.category.includes(selectedCategory));
 
   return (
-    <section id="sports" className="py-12 sm:py-16 bg-[var(--bg-main)] transition-colors">
+    <section id="sports" className="py-12 sm:py-16 bg-[var(--bg-main)] transition-colors overflow-hidden">
       <div className="section-divider" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-9">
 
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-2.5">
+        {/* Header with smooth scroll animation */}
+        <motion.div 
+          initial={{ opacity: 0, y: 35 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.25 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center max-w-3xl mx-auto space-y-2.5"
+        >
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0b2e5b]">
             9+ Sports Disciplines
           </p>
@@ -77,7 +84,7 @@ export default function SportsSection({ onRegisterSport }) {
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* 4 Cards per Row Grid */}
         {isLoading ? (
@@ -90,10 +97,14 @@ export default function SportsSection({ onRegisterSport }) {
           />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 stagger-children items-stretch">
-            {filteredSports.map((sport) => (
-              <div
+            {filteredSports.map((sport, idx) => (
+              <motion.div
                 key={sport.id}
-                className="group rounded-xl bg-white border border-slate-200 overflow-hidden flex flex-col justify-between card-hover shadow-sm animate-slideUp transition-all duration-200 hover:shadow-md hover:border-slate-300 h-full"
+                initial={{ opacity: 0, y: 35 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.15 }}
+                transition={{ duration: 0.5, delay: (idx % 4) * 0.08, ease: "easeOut" }}
+                className="group rounded-xl bg-white border border-slate-200 overflow-hidden flex flex-col justify-between card-hover shadow-sm transition-all duration-200 hover:shadow-md hover:border-slate-300 h-full"
               >
                 {/* 1st Half: Sports Image Banner */}
                 <div className="relative h-56 sm:h-52 md:h-48 lg:h-44 overflow-hidden bg-slate-100 shrink-0">
@@ -174,7 +185,7 @@ export default function SportsSection({ onRegisterSport }) {
                   </div>
 
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}

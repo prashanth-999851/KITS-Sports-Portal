@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useConvexState } from '../context/ConvexStateContext';
 import { Trophy, Medal, Award, Crown, ExternalLink } from 'lucide-react';
 import AchievementRecordsModal from './AchievementRecordsModal';
@@ -70,12 +71,18 @@ export default function Achievements() {
   ] : [];
 
   return (
-    <section id="achievements" className="py-12 sm:py-16 bg-white transition-colors">
+    <section id="achievements" className="py-12 sm:py-16 bg-white transition-colors overflow-hidden">
       <div className="section-divider" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-12">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-2.5">
+        {/* Header with scroll animation */}
+        <motion.div 
+          initial={{ opacity: 0, y: 35 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.25 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center max-w-3xl mx-auto space-y-2.5"
+        >
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#0b2e5b]">
             Wall of Fame
           </p>
@@ -85,7 +92,7 @@ export default function Achievements() {
           <p className="text-[var(--text-secondary)] text-xs sm:text-sm leading-relaxed max-w-2xl mx-auto">
             Celebrating the champions, record breakers, best teams, and national representatives who bring honor to KKR & KSR Institute.
           </p>
-        </div>
+        </motion.div>
 
         {/* Medal Tally Cards */}
         {isTallyLoading ? (
@@ -96,8 +103,12 @@ export default function Achievements() {
               const Icon = medal.icon;
               const hasView = medal.canView;
               return (
-                <div 
+                <motion.div 
                   key={idx} 
+                  initial={{ opacity: 0, y: 30, scale: 0.96 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: false, amount: 0.2 }}
+                  transition={{ duration: 0.5, delay: idx * 0.08, ease: "easeOut" }}
                   role={hasView ? "button" : undefined}
                   tabIndex={hasView ? 0 : undefined}
                   aria-label={hasView ? `View all ${medal.label} records (${medal.value})` : undefined}
@@ -108,7 +119,7 @@ export default function Achievements() {
                       setActiveModalType(medal.type);
                     }
                   } : undefined}
-                  className={`group relative p-6 rounded-xl bg-white border border-slate-200 text-center space-y-2.5 shadow-sm animate-slideUp transition-all duration-200 ${
+                  className={`group relative p-6 rounded-xl bg-white border border-slate-200 text-center space-y-2.5 shadow-sm transition-all duration-200 ${
                     hasView 
                       ? 'hover:border-[#0b2e5b] card-hover cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0b2e5b] focus:ring-offset-2 hover:shadow-md' 
                       : ''
@@ -131,7 +142,7 @@ export default function Achievements() {
                       <ExternalLink className="w-3 h-3 group-hover:translate-x-0.5 transition-transform text-black" />
                     </div>
                   )}
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -150,14 +161,27 @@ export default function Achievements() {
 
         {/* Awards - Only displayed if awards exist */}
         {awards && awards.length > 0 && (
-          <div className="space-y-6 pt-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="space-y-6 pt-4"
+          >
             <h3 className="text-lg sm:text-xl font-bold text-[#0b2e5b] border-b border-slate-200 pb-3">
               Annual Excellence Awards
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 stagger-children">
               {awards.map((award, i) => (
-                <div key={i} className="group rounded-xl bg-white border border-slate-200 overflow-hidden flex flex-col sm:flex-row card-hover shadow-sm animate-slideUp">
+                <motion.div 
+                  key={i} 
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: false, amount: 0.15 }}
+                  transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+                  className="group rounded-xl bg-white border border-slate-200 overflow-hidden flex flex-col sm:flex-row card-hover shadow-sm"
+                >
                   <div className="w-full sm:w-40 h-40 sm:h-auto shrink-0 overflow-hidden bg-slate-100 img-zoom">
                     <img
                       src={award.image}
@@ -183,10 +207,10 @@ export default function Achievements() {
                       {award.achievement}
                     </p>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
       </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useConvexState } from '../context/ConvexStateContext';
 import { Maximize2, X, Image as ImageIcon } from 'lucide-react';
 
@@ -37,12 +38,18 @@ export default function Gallery() {
     : gallery.filter(item => item.category === activeCategory);
 
   return (
-    <section id="gallery" className="py-12 sm:py-16 bg-[var(--bg-main)] transition-colors">
+    <section id="gallery" className="py-12 sm:py-16 bg-[var(--bg-main)] transition-colors overflow-hidden">
       <div className="section-divider" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-10">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-3">
+        {/* Header with scroll animation */}
+        <motion.div 
+          initial={{ opacity: 0, y: 35 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false, amount: 0.25 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center max-w-3xl mx-auto space-y-3"
+        >
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--secondary)] dark:text-blue-400">
             Visual Memories
           </p>
@@ -69,16 +76,20 @@ export default function Gallery() {
               </button>
             ))}
           </div>
-        </div>
+        </motion.div>
 
         {/* Gallery Grid */}
         {isLoading || gallery.length === 0 ? (
           <GallerySkeleton />
         ) : (
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-5 space-y-5">
-            {filteredItems.map((item) => (
-              <div
+            {filteredItems.map((item, idx) => (
+              <motion.div
                 key={item.id}
+                initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: false, amount: 0.15 }}
+                transition={{ duration: 0.5, delay: (idx % 3) * 0.08, ease: "easeOut" }}
                 onClick={() => setLightboxImage(item)}
                 className="break-inside-avoid relative rounded-xl overflow-hidden bg-[var(--bg-card)] border border-[var(--border-color)] group cursor-pointer card-hover"
               >
@@ -109,7 +120,7 @@ export default function Gallery() {
                     <p className="text-xs text-slate-200 line-clamp-2 sm:line-clamp-1 mt-0.5 drop-shadow-sm">{item.caption}</p>
                   )}
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
