@@ -328,6 +328,7 @@ export function ConvexStateProvider({ children }) {
   const updateRegStatus = useMutation(api.registrations.updateStatus);
   const updateRegistrationMut = useMutation(api.registrations.update);
   const removeRegistration = useMutation(api.registrations.remove);
+  const batchImportRegistrationsMut = useMutation(api.registrations.batchImport);
   const generateUploadUrlMut = useMutation(api.files.generateUploadUrl);
   const createStudentMut = useMutation(api.students.create);
   const updateStudentMut = useMutation(api.students.update);
@@ -531,6 +532,15 @@ export function ConvexStateProvider({ children }) {
         throw err;
       }
     }
+  };
+
+  const importMemberships = async (records, updateExisting = false) => {
+    const result = await batchImportRegistrationsMut(withSession({
+      records,
+      updateExisting,
+    }));
+    await logAction('IMPORT_MEMBERSHIPS', `Imported ${result.imported} memberships, updated ${result.updated}, skipped ${result.skipped}`);
+    return result;
   };
 
   // Master Student Directory CRUD
@@ -887,6 +897,7 @@ export function ConvexStateProvider({ children }) {
       updateApplicationStatus,
       updateApplication,
       deleteApplication,
+      importMemberships,
       addStudentMaster,
       updateStudentMaster,
       deleteStudentMaster,

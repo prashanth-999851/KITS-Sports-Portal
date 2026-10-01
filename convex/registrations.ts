@@ -283,3 +283,135 @@ export const remove = mutation({
     await ctx.db.delete(doc._id);
   },
 });
+
+/**
+ * Enterprise Batch Import of Student Memberships from Excel with validation,
+ * duplicate detection, optional update-in-place, and audit logging.
+ */
+export const batchImport = mutation({
+  args: {
+    sessionToken,
+    records: v.array(
+      v.object({
+        studentName: v.string(),
+        rollNumber: v.string(),
+        department: v.string(),
+        year: v.string(),
+        section: v.string(),
+        gender: v.string(),
+        email: v.string(),
+        phone: v.string(),
+        preferredSports: v.union(v.array(v.string()), v.string()),
+        playingExperience: v.optional(v.string()),
+        experienceCertificateFileId: v.optional(v.string()),
+        status: v.optional(v.string()),
+        remarks: v.optional(v.string()),
+        trackingId: v.optional(v.string()),
+      })
+    ),
+    updateExisting: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const admin = await requireAdmin(ctx, args.sessionToken);
+    const existingRecords = await ctx.db.query("registrations").collect();
+
+    const rollMap = new Map<string, any>();
+    const trackingMap = new Map<string, any>();
+
+    for (const r of existingRecords) {
+      if (r.rollNumber) {
+        rollMap.set(r.rollNumber.trim().toUpperCase(), r);
+      }
+      if (r.trackingId) {
+        trackingMap.set(r.trackingId.trim().toUpperCase(), r);
+      }
+    }
+
+    let imported = 0;
+    let updated = 0;
+    let skipped = 0;
+    const now = new Date().toISOString().split("T")[0];
+
+    // Helper to generate a unique trackingId
+    const generateUniqueTrackingId = () => {
+      let code = "";
+      do {
+        code = `KKR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+      } while (trackingMap.has(code));
+      return code;
+    };
+
+    for (const item of args.records) {
+      const cleanRoll = item.rollNumber.trim().toUpperCase();
+      const cleanTracking = item.trackingId?.trim().toUpperCase();
+
+      const existing = (cleanTracking ? trackingMap.get(cleanTracking) : null) || rollMap.get(cleanRoll);
+
+      if (existing) {
+        if (args.updateExisting) {
+          const patchData: Record<string, any> = {
+            studentName: item.studentName.trim(),
+            department: item.department.trim(),
+            year: item.year.trim(),
+            section: item.section.trim(),
+            gender: item.gender.trim(),
+            email: item.email.trim(),
+            phone: item.phone.trim(),
+            preferredSports: item.preferredSports,
+          };
+          if (item.status) {
+            patchData.status = item.status;
+          }
+          if (item.remarks !== undefined) {
+            patchData.remarks = item.remarks;
+          }
+          if (item.playingExperience !== undefined) {
+            patchData.playingExperience = item.playingExperience;
+          }
+          await ctx.db.patch(existing._id, patchData);
+          updated++;
+        } else {
+          skipped++;
+        }
+      } else {
+        const trackingId = cleanTracking && !trackingMap.has(cleanTracking)
+          ? cleanTracking
+          : generateUniqueTrackingId();
+
+        const newDoc = {
+          trackingId,
+          studentName: item.studentName.trim(),
+          rollNumber: cleanRoll,
+          department: item.department.trim(),
+          year: item.year.trim(),
+          section: item.section.trim(),
+          gender: item.gender.trim() || "Male",
+          email: item.email.trim(),
+          phone: item.phone.trim(),
+          preferredSports: item.preferredSports,
+          playingExperience: item.playingExperience || "No Previous Experience",
+          experienceCertificateFileId: item.experienceCertificateFileId || "",
+          status: item.status || "Approved",
+          remarks: item.remarks || "",
+          appliedDate: now,
+        };
+
+        const insertedId = await ctx.db.insert("registrations", newDoc);
+        trackingMap.set(trackingId, { ...newDoc, _id: insertedId });
+        rollMap.set(cleanRoll, { ...newDoc, _id: insertedId });
+        imported++;
+      }
+    }
+
+    // Insert into auditLogs
+    await ctx.db.insert("auditLogs", {
+      userId: admin._id,
+      userEmail: admin.email,
+      action: "IMPORT_MEMBERSHIPS",
+      details: `Imported ${imported} memberships, updated ${updated}, skipped ${skipped}`,
+      timestamp: new Date().toISOString(),
+    });
+
+    return { imported, updated, skipped };
+  },
+});

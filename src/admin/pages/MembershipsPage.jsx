@@ -18,9 +18,11 @@ import {
   PauseCircle,
   PlayCircle,
   Check,
-  ChevronDown
+  ChevronDown,
+  UploadCloud
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import MembershipExcelImportModal from '../components/MembershipExcelImportModal';
 
 import { 
   ADMIN_ACADEMIC_YEARS,
@@ -57,6 +59,7 @@ export default function MembershipsPage() {
   // Modals & Menu state
   const [activeMenu, setActiveMenu] = useState(null); // { id, app, top, right, openUpward }
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingApp, setEditingApp] = useState(null);
   const [deletingApp, setDeletingApp] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -399,7 +402,7 @@ export default function MembershipsPage() {
           <p className="text-xs text-[var(--text-muted)]">Official roster of inducted student athletes and active sports club members. Search, manage disciplinary status, onboard members, and export records.</p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           {/* Add Membership Button */}
           <button
             onClick={() => setShowAddModal(true)}
@@ -407,6 +410,16 @@ export default function MembershipsPage() {
           >
             <UserPlus className="w-4 h-4" />
             <span>Add Membership</span>
+          </button>
+
+          {/* Import from Excel Button */}
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition-all shadow-sm cursor-pointer whitespace-nowrap"
+            title="Bulk import memberships from Excel spreadsheet"
+          >
+            <UploadCloud className="w-4 h-4" />
+            <span>Import from Excel</span>
           </button>
 
           {/* Export to Excel */}
@@ -1326,6 +1339,13 @@ export default function MembershipsPage() {
           </div>
         </div>
       )}
+
+      {/* ================= BULK EXCEL IMPORT MODAL ================= */}
+      <MembershipExcelImportModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        existingApplications={applications}
+      />
 
     </div>
   );
