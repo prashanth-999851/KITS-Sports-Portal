@@ -54,9 +54,9 @@ export default function DirectorProfile() {
     department: "Department of Physical Education",
     institution: "KKR & KSR Institute of Technology & Sciences (Autonomous)",
     photo: uploadedPdPhoto || null,
-    quote: "Sports and physical activities are not merely extracurricular pursuits; they forge discipline, mental resilience, and the enduring leadership virtues that empower our students to excel in every sphere of life.",
-    messageParagraph1: "At KiTS Sports Club, we are firmly committed to nurturing an ecosystem where athletic vigor and academic pursuit walk hand in hand. Physical education is fundamental to holistic student development, fostering mutual respect, strategic decision-making, and camaraderie across disciplines.",
-    messageParagraph2: "Our sports directorate provides dedicated training grounds, multi-discipline coaching, and regular practice sessions across 11+ sports categories. We take immense pride in our athletes representing KiTS at JNTUK inter-collegiate tournaments, state meets, and university championships, continually bringing laurels to the institute."
+    quote: "Sports is not for timepass, It is a way of life.",
+    messageParagraph1: "At KiTS Sports Club, we encourage every student to take part in sports along with their studies. Sports help students stay fit, disciplined, confident, and work well as a team. We provide regular practice and support for students who are interested in different sports activities.",
+    messageParagraph2: "We are happy to see our students representing KiTS in various competitions at the district, JNTUK, state, South Zone, and All-India levels. Our aim is to give every student a good opportunity to improve their skills, participate in competitions, and achieve success in sports while continuing their education."
   };
 
   // Assistant Physical Director Data
