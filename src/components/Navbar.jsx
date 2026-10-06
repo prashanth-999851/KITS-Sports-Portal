@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useConvexState } from '../context/ConvexStateContext';
+import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import { tw } from '@/constants';
 
 export default function Navbar({
@@ -11,6 +13,7 @@ export default function Navbar({
 }) {
   const navigate = useNavigate();
   const { notifications = [] } = useConvexState();
+  const eventsEnabled = useQuery(api.events.isEventsEnabled);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Lock body scroll when mobile menu is open
@@ -28,18 +31,34 @@ export default function Navbar({
     };
   }, [mobileMenuOpen]);
 
-  const navLinks = [
-    { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
-    { id: 'sports', label: 'Sports' },
-    { id: 'executive', label: 'Leadership' },
-    { id: 'achievements', label: 'Achievements' },
-    { id: 'elite-players', label: 'Elite Players' },
-    { id: 'sports-members', label: 'Sports Members' },
-    { id: 'rules', label: 'Rules' },
-    { id: 'gallery', label: 'Gallery' },
-    { id: 'contact', label: 'Contact' },
-  ];
+  const isEventsActive = Boolean(eventsEnabled);
+
+  const navLinks = isEventsActive
+    ? [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About' },
+        { id: 'sports', label: 'Sports' },
+        { id: 'executive', label: 'Leadership' },
+        { id: 'achievements', label: 'Achievements' },
+        { id: 'elite-players', label: 'Elite Players' },
+        { id: 'events', label: 'Events' },
+        { id: 'sports-members', label: 'Sports Members' },
+        { id: 'rules', label: 'Rules' },
+        { id: 'gallery', label: 'Gallery' },
+        { id: 'contact', label: 'Contact' },
+      ]
+    : [
+        { id: 'home', label: 'Home' },
+        { id: 'about', label: 'About' },
+        { id: 'sports', label: 'Sports' },
+        { id: 'executive', label: 'Leadership' },
+        { id: 'achievements', label: 'Achievements' },
+        { id: 'elite-players', label: 'Elite Players' },
+        { id: 'sports-members', label: 'Sports Members' },
+        { id: 'rules', label: 'Rules' },
+        { id: 'gallery', label: 'Gallery' },
+        { id: 'contact', label: 'Contact' },
+      ];
 
   const handleNavClick = (id) => {
     setMobileMenuOpen(false);
@@ -57,6 +76,7 @@ export default function Navbar({
       membership: '/register',
       registration: '/register',
       gallery: '/#gallery',
+      events: '/events',
       rules: '/rules',
       contact: '/contact',
     };
@@ -147,29 +167,46 @@ export default function Navbar({
               })}
 
               {/* More Dropdown */}
-              <div className="relative group flex items-center">
-                <button className={`relative px-3 py-2 ${tw`text-body`} font-bold text-slate-700 hover:text-[#0b2e5b] flex items-center gap-1 transition-colors cursor-pointer group`}>
-                  <span className="relative flex items-center gap-1">
-                    <span>More</span>
-                    <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180" />
-                    <span className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#0b2e5b] opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100 transition-all duration-200 origin-center" />
-                  </span>
-                </button>
+              {navLinks.length > 7 && (
+                <div className="relative group flex items-center">
+                  <button className={`relative px-3 py-2 ${tw`text-body`} font-bold flex items-center gap-1 transition-colors cursor-pointer group ${
+                    navLinks.slice(7).some(link => activeSection === link.id)
+                      ? 'text-[#0b2e5b]'
+                      : 'text-slate-700 hover:text-[#0b2e5b]'
+                  }`}>
+                    <span className="relative flex items-center gap-1">
+                      <span>More</span>
+                      <ChevronDown className="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180" />
+                      <span className={`absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-[#0b2e5b] transition-all duration-200 origin-center ${
+                        navLinks.slice(7).some(link => activeSection === link.id)
+                          ? 'opacity-100 scale-x-100'
+                          : 'opacity-0 scale-x-0 group-hover:opacity-100 group-hover:scale-x-100'
+                      }`} />
+                    </span>
+                  </button>
 
-                <div className="absolute right-0 top-full w-48 pt-2 hidden group-hover:block z-50">
-                  <div className="rounded-xl bg-white border border-slate-200 shadow-2xl p-1.5 animate-fadeIn">
-                    {navLinks.slice(7).map((link) => (
-                      <button
-                        key={link.id}
-                        onClick={() => handleNavClick(link.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg ${tw`text-body`} font-semibold text-slate-700 hover:text-[#0b2e5b] hover:bg-slate-50 transition-colors`}
-                      >
-                        {link.label}
-                      </button>
-                    ))}
+                  <div className="absolute right-0 top-full w-48 pt-2 hidden group-hover:block z-50">
+                    <div className="rounded-xl bg-white border border-slate-200 shadow-2xl p-1.5 animate-fadeIn">
+                      {navLinks.slice(7).map((link) => {
+                        const isItemActive = activeSection === link.id;
+                        return (
+                          <button
+                            key={link.id}
+                            onClick={() => handleNavClick(link.id)}
+                            className={`w-full text-left px-3 py-2 rounded-lg ${tw`text-body`} font-semibold transition-colors ${
+                              isItemActive
+                                ? 'text-[#0b2e5b] bg-slate-100 font-bold'
+                                : 'text-slate-700 hover:text-[#0b2e5b] hover:bg-slate-50'
+                            }`}
+                          >
+                            {link.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </nav>
 
             {/* Action Buttons */}

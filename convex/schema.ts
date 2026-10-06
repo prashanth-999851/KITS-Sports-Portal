@@ -180,4 +180,57 @@ export default defineSchema({
     displayOrder: v.optional(v.number()),
     createdAt: v.optional(v.string()),
   }),
+
+  // ── Event Management System ──────────────────────────────────────────────
+  events: defineTable({
+    title: v.string(),
+    shortDescription: v.string(),
+    fullDescription: v.optional(v.string()),
+    category: v.optional(v.string()),
+    venue: v.optional(v.string()),
+    eventDate: v.string(),
+    startTime: v.optional(v.string()),
+    endTime: v.optional(v.string()),
+    registrationType: v.string(), // "individual" | "team"
+    minTeamSize: v.optional(v.number()),
+    maxTeamSize: v.optional(v.number()),
+    capacity: v.optional(v.number()),
+    registrationOpens: v.optional(v.string()),
+    registrationCloses: v.optional(v.string()),
+    registrationEnabled: v.boolean(),
+    status: v.string(), // "draft" | "published" | "archived"
+    imageUrl: v.optional(v.string()),
+    createdBy: v.optional(v.string()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_status", ["status"])
+    .index("by_eventDate", ["eventDate"]),
+
+  eventRegistrations: defineTable({
+    eventId: v.id("events"),
+    registrationType: v.string(), // "individual" | "team"
+    // Individual fields
+    fullName: v.optional(v.string()),
+    email: v.string(),
+    phone: v.string(),
+    gender: v.optional(v.string()),
+    college: v.optional(v.string()),
+    // Team fields
+    teamName: v.optional(v.string()),
+    teamSize: v.optional(v.number()),
+    status: v.string(), // "confirmed" | "cancelled"
+    createdAt: v.string(),
+  })
+    .index("by_eventId", ["eventId"])
+    .index("by_email_event", ["email", "eventId"]),
+
+  eventTeamMembers: defineTable({
+    registrationId: v.id("eventRegistrations"),
+    name: v.string(),
+    email: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    role: v.optional(v.string()), // "captain" | "member"
+  })
+    .index("by_registrationId", ["registrationId"]),
 });

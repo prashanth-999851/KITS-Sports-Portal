@@ -43,6 +43,8 @@ export default function MainPortalView() {
       navigate('/elite-players');
     } else if (id === 'sports-members') {
       navigate('/sports-members');
+    } else if (id === 'events') {
+      navigate('/events');
     } else if (id === 'admin') {
       navigate('/admin/dashboard');
     } else {

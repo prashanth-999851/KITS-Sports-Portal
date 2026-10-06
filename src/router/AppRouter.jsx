@@ -27,6 +27,8 @@ const RegistrationView = lazy(() => import('../views/RegistrationView'));
 const RulesRegulations = lazy(() => import('../components/RulesRegulations'));
 const ContactSection = lazy(() => import('../components/ContactSection'));
 const SportsMembersView = lazy(() => import('../views/SportsMembersView'));
+const EventsView = lazy(() => import('../views/EventsView'));
+const EventDetailView = lazy(() => import('../views/EventDetailView'));
 
 // Admin Architecture & Guards (Eagerly Loaded for Immediate Shell Paint on Reload)
 import ProtectedRoute from '../admin/ProtectedRoute';
@@ -44,6 +46,7 @@ const JntukPlayersAdminPage = lazy(() => import('../admin/pages/JntukPlayersAdmi
 const GalleryAdminPage = lazy(() => import('../admin/pages/GalleryAdminPage'));
 const NotificationsAdminPage = lazy(() => import('../admin/pages/NotificationsAdminPage'));
 const UsersAdminPage = lazy(() => import('../admin/pages/UsersAdminPage'));
+const EventsAdminPage = lazy(() => import('../admin/pages/EventsAdminPage'));
 const NotFoundPage = lazy(() => import('../pages/NotFoundPage'));
 
 // Wrapper components for views that need onBack — avoids window.location.href full reload
@@ -75,6 +78,11 @@ function ContactSectionWrapper() {
 function SportsMembersViewWrapper() {
   const navigate = useNavigate();
   return <SportsMembersView onBack={() => navigate('/')} />;
+}
+
+function EventsViewWrapper() {
+  const navigate = useNavigate();
+  return <EventsView onBack={() => navigate('/')} />;
 }
 
 function PageLoader() {
@@ -115,6 +123,8 @@ export default function AppRouter() {
               <Route path="/rules" element={<RulesRegulationsWrapper />} />
               <Route path="/constitution" element={<RulesRegulationsWrapper />} />
               <Route path="/contact" element={<ContactSectionWrapper />} />
+              <Route path="/events" element={<EventsViewWrapper />} />
+              <Route path="/events/:id" element={<EventDetailView />} />
 
               {/* Admin Auth Routes */}
               <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -144,6 +154,7 @@ export default function AppRouter() {
                     <UsersAdminPage />
                   </ProtectedRoute>
                 } />
+                <Route path="events" element={<EventsAdminPage />} />
               </Route>
 
               {/* Fallback 404 Route */}

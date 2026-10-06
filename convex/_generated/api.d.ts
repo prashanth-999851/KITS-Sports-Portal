@@ -12,6 +12,7 @@ import type * as achievements from "../achievements.js";
 import type * as auditLogs from "../auditLogs.js";
 import type * as auth from "../auth.js";
 import type * as coreValues from "../coreValues.js";
+import type * as events from "../events.js";
 import type * as executiveMembers from "../executiveMembers.js";
 import type * as files from "../files.js";
 import type * as gallery from "../gallery.js";
@@ -35,6 +36,7 @@ declare const fullApi: ApiFromModules<{
   auditLogs: typeof auditLogs;
   auth: typeof auth;
   coreValues: typeof coreValues;
+  events: typeof events;
   executiveMembers: typeof executiveMembers;
   files: typeof files;
   gallery: typeof gallery;

@@ -49,6 +49,8 @@ export function ConvexStateProvider({ children }) {
   const qCoreValues = useQuery(api.coreValues.list);
   const qRules = useQuery(api.rules.list);
   const qJntukPlayers = useQuery(api.jntukPlayers.list);
+  const qEvents = useQuery(api.events.list, adminSessionToken ? { sessionToken: adminSessionToken } : "skip");
+  const qEventsEnabled = useQuery(api.events.isEventsEnabled);
   const qSessionValidation = useQuery(
     api.users.validateSession,
     adminSessionToken ? { sessionToken: adminSessionToken } : "skip"
@@ -76,6 +78,7 @@ export function ConvexStateProvider({ children }) {
   const isLoadingGallery = qGallery === undefined;
   const isLoadingNotifications = qNotifications === undefined;
   const isLoadingUsers = adminSessionToken && currentUser?.role === 'Super Admin' ? qUsers === undefined : false;
+  const isLoadingEvents = adminSessionToken ? qEvents === undefined : false;
 
   const isLoading = 
     qSports === undefined || 
@@ -98,6 +101,7 @@ export function ConvexStateProvider({ children }) {
   const rawRules = qRules ?? [];
   const rawJntukPlayers = qJntukPlayers ?? [];
   const rawApprovedMembers = [];
+  const rawEvents = qEvents ?? [];
 
   // ========== TRANSFORM DATA to match component expectations ==========
 
@@ -257,6 +261,7 @@ export function ConvexStateProvider({ children }) {
 
   // Settings: transform to object format components expect
   const settings = {
+    ...rawSettings,
     instituteName: rawSettings.instituteName || 'KKR & KSR Institute of Technology & Sciences',
     campusAddress: rawSettings.campusAddress || 'Vinjanampadu, Vaddeswaram Post, Guntur - 522017, AP',
     contactEmail: rawSettings.contactEmail || '',
@@ -360,6 +365,18 @@ export function ConvexStateProvider({ children }) {
   const normalizeAllJntukRecordsMut = useMutation(api.jntukPlayers.normalizeAllRecords);
   const updateSettingsBatch = useMutation(api.settings.updateBatch);
   const createAuditLog = useMutation(api.auditLogs.create);
+
+  // Event Management Mutations
+  const createEventMut = useMutation(api.events.create);
+  const updateEventMut = useMutation(api.events.update);
+  const publishEventMut = useMutation(api.events.publish);
+  const unpublishEventMut = useMutation(api.events.unpublish);
+  const archiveEventMut = useMutation(api.events.archive);
+  const removeEventMut = useMutation(api.events.remove);
+  const toggleEventRegMut = useMutation(api.events.toggleRegistration);
+  const cancelEventRegMut = useMutation(api.events.cancelRegistration);
+  const restoreEventRegMut = useMutation(api.events.restoreRegistration);
+  const deleteEventRegMut = useMutation(api.events.deleteRegistration);
 
   // ========== HELPER: Audit Log & Error Interceptor ==========
   const handleMutationError = (err) => {
@@ -859,6 +876,131 @@ export function ConvexStateProvider({ children }) {
     await logAction('UPDATE_SETTINGS', 'System settings updated.');
   };
 
+  // ========== EVENT MANAGEMENT ACTIONS ==========
+  const [eventRegistrations, setEventRegistrations] = useState([]);
+
+  const createEvent = async (eventData) => {
+    try {
+      const id = await createEventMut(withSession(eventData));
+      await logAction('CREATE_EVENT', `Created event: ${eventData.title}`);
+      return id;
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
+  const updateEvent = async (id, eventData) => {
+    try {
+      await updateEventMut(withSession({ id, ...eventData }));
+      await logAction('UPDATE_EVENT', `Updated event ID: ${id}`);
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
+  const publishEvent = async (id) => {
+    try {
+      await publishEventMut(withSession({ id }));
+      await logAction('PUBLISH_EVENT', `Published event ID: ${id}`);
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
+  const unpublishEvent = async (id) => {
+    try {
+      await unpublishEventMut(withSession({ id }));
+      await logAction('UNPUBLISH_EVENT', `Unpublished event ID: ${id}`);
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
+  const archiveEvent = async (id) => {
+    try {
+      await archiveEventMut(withSession({ id }));
+      await logAction('ARCHIVE_EVENT', `Archived event ID: ${id}`);
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
+  const deleteEvent = async (id) => {
+    try {
+      await removeEventMut(withSession({ id }));
+      await logAction('DELETE_EVENT', `Deleted event ID: ${id}`);
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
+  const toggleEventRegistration = async (id) => {
+    try {
+      await toggleEventRegMut(withSession({ id }));
+      await logAction('TOGGLE_EVENT_REG', `Toggled registration for event ID: ${id}`);
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
+  // Note: loadEventRegistrations is handled by loadEventRegsReal below
+
+  // Use a separate reactive query for event registrations
+  const [activeEventRegId, setActiveEventRegId] = useState(null);
+  const qEventRegs = useQuery(
+    api.events.listRegistrations,
+    adminSessionToken && activeEventRegId ? { sessionToken: adminSessionToken, eventId: activeEventRegId } : "skip"
+  );
+
+  // Sync qEventRegs to state
+  React.useEffect(() => {
+    if (qEventRegs !== undefined) {
+      setEventRegistrations(qEventRegs);
+    }
+  }, [qEventRegs]);
+
+  // Override loadEventRegistrations to set active event ID
+  const loadEventRegsReal = (eventId) => {
+    setActiveEventRegId(eventId);
+  };
+
+  const cancelEventRegistration = async (registrationId) => {
+    try {
+      await cancelEventRegMut(withSession({ registrationId }));
+      await logAction('CANCEL_EVENT_REG', `Cancelled event registration ID: ${registrationId}`);
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
+  const restoreEventRegistration = async (registrationId) => {
+    try {
+      await restoreEventRegMut(withSession({ registrationId }));
+      await logAction('RESTORE_EVENT_REG', `Restored event registration ID: ${registrationId}`);
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
+  const deleteEventRegistration = async (registrationId) => {
+    try {
+      await deleteEventRegMut(withSession({ registrationId }));
+      await logAction('DELETE_EVENT_REG', `Deleted event registration ID: ${registrationId}`);
+    } catch (err) {
+      handleMutationError(err);
+      throw err;
+    }
+  };
+
   return (
     <ConvexStateContext.Provider value={{
       isLoading,
@@ -872,6 +1014,7 @@ export function ConvexStateProvider({ children }) {
       isLoadingGallery,
       isLoadingNotifications,
       isLoadingUsers,
+      isLoadingEvents,
       isSessionExpired,
       setIsSessionExpired,
       currentUser,
@@ -935,7 +1078,22 @@ export function ConvexStateProvider({ children }) {
       isLoadingElitePlayers: isLoadingJntukPlayers,
       addUser,
       toggleUserActive,
-      updateSettings
+      updateSettings,
+      // Event Management
+      events: rawEvents,
+      eventsEnabled: qEventsEnabled ?? false,
+      eventRegistrations,
+      createEvent,
+      updateEvent,
+      publishEvent,
+      unpublishEvent,
+      archiveEvent,
+      deleteEvent,
+      toggleEventRegistration,
+      loadEventRegistrations: loadEventRegsReal,
+      cancelEventRegistration,
+      restoreEventRegistration,
+      deleteEventRegistration,
     }}>
       {children}
     </ConvexStateContext.Provider>

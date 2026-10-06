@@ -15,7 +15,8 @@ import {
   Menu, 
   X, 
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Calendar
 } from 'lucide-react';
 import SessionExpiredModal from './components/SessionExpiredModal';
 import { AdminTablePageSkeleton } from '../components/LoadingSkeleton';
@@ -48,6 +49,7 @@ export default function AdminLayout() {
     { path: '/admin/executive-body', label: 'Executive Body', icon: Sparkles },
     { path: '/admin/gallery', label: 'Media Gallery', icon: Image },
     { path: '/admin/notifications', label: 'Notifications', icon: Bell },
+    { path: '/admin/events', label: 'Events', icon: Calendar },
     { path: '/admin/users', label: 'Admin & RBAC', icon: ShieldCheck, roles: ['Super Admin'] },
   ];
 
