@@ -326,6 +326,51 @@ export function ConvexStateProvider({ children }) {
     preferredSports: m.preferredSports,
   }));
 
+  // Events: normalize refactored event structure
+  const events = rawEvents.map(e => {
+    const posterUrl = e.posterUrl || e.imageUrl || (e.images && e.images.length > 0 ? e.images[0] : "") || "";
+    const posterStorageId = e.posterStorageId || (e.imageStorageIds && e.imageStorageIds.length > 0 ? e.imageStorageIds[0] : "");
+    const eventName = e.eventName || e.title || "";
+    const shortDescription = e.shortDescription || "";
+    const description = e.description || e.fullDescription || "";
+    const eventType = e.eventType || "intramural";
+    const venue = e.venue || "";
+    const registrationStartDate = e.registrationStartDate || e.registrationOpens || e.eventDate || "";
+    const registrationEndDate = e.registrationEndDate || e.registrationCloses || e.eventDate || "";
+    const sportsDisciplines = Array.isArray(e.sportsDisciplines) && e.sportsDisciplines.length > 0
+      ? e.sportsDisciplines
+      : (e.category ? [e.category] : []);
+    const registrationFee = e.registrationFee || { type: "free", amount: 0 };
+
+    return {
+      ...e,
+      id: e._id,
+      eventName,
+      title: eventName,
+      eventType,
+      posterUrl,
+      posterStorageId,
+      imageUrl: posterUrl,
+      images: posterUrl ? [posterUrl] : [],
+      imageStorageIds: posterStorageId ? [posterStorageId] : [],
+      registrationStartDate,
+      registrationEndDate,
+      registrationOpens: registrationStartDate,
+      registrationCloses: registrationEndDate,
+      eventDate: registrationStartDate,
+      venue,
+      sportsDisciplines,
+      category: e.category || (sportsDisciplines.length > 0 ? sportsDisciplines[0] : ""),
+      shortDescription,
+      description,
+      fullDescription: description,
+      registrationFee,
+      status: e.status || "published",
+      registrationEnabled: e.registrationEnabled ?? true,
+      registrationType: e.registrationType || "team",
+    };
+  });
+
   // ========== CONVEX MUTATIONS ==========
   const loginMut = useMutation(api.users.login);
   const logoutMut = useMutation(api.users.logout);
@@ -335,6 +380,7 @@ export function ConvexStateProvider({ children }) {
   const removeRegistration = useMutation(api.registrations.remove);
   const batchImportRegistrationsMut = useMutation(api.registrations.batchImport);
   const generateUploadUrlMut = useMutation(api.files.generateUploadUrl);
+  const resolveStorageUrlMut = useMutation(api.files.resolveStorageUrl);
   const createStudentMut = useMutation(api.students.create);
   const updateStudentMut = useMutation(api.students.update);
   const removeStudentMut = useMutation(api.students.remove);
@@ -466,6 +512,39 @@ export function ConvexStateProvider({ children }) {
     }
     const { storageId } = await result.json();
     return storageId;
+  };
+
+  const uploadEventImage = async (fileOrBlob) => {
+    let fileToUpload = fileOrBlob;
+    // If it's a data URL string, convert to Blob
+    if (typeof fileOrBlob === 'string' && fileOrBlob.startsWith('data:')) {
+      const [header, base64Data] = fileOrBlob.split(',');
+      const mime = header.match(/:(.*?);/)?.[1] || 'image/jpeg';
+      const binary = atob(base64Data);
+      const array = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        array[i] = binary.charCodeAt(i);
+      }
+      fileToUpload = new Blob([array], { type: mime });
+    }
+
+    const postUrl = await generateUploadUrlMut();
+    const result = await fetch(postUrl, {
+      method: "POST",
+      headers: { "Content-Type": fileToUpload.type || "image/jpeg" },
+      body: fileToUpload,
+    });
+    if (!result.ok) {
+      throw new Error(`Failed to upload event image. Server returned ${result.status}`);
+    }
+    const { storageId } = await result.json();
+    let url = null;
+    try {
+      url = await resolveStorageUrlMut({ storageId });
+    } catch (e) {
+      console.warn("Could not resolve storage URL immediately:", e);
+    }
+    return { storageId, url };
   };
 
   // ========== PUBLIC ACTIONS ==========
@@ -882,7 +961,7 @@ export function ConvexStateProvider({ children }) {
   const createEvent = async (eventData) => {
     try {
       const id = await createEventMut(withSession(eventData));
-      await logAction('CREATE_EVENT', `Created event: ${eventData.title}`);
+      await logAction('CREATE_EVENT', `Created event: ${eventData.eventName || eventData.title}`);
       return id;
     } catch (err) {
       handleMutationError(err);
@@ -1036,6 +1115,7 @@ export function ConvexStateProvider({ children }) {
       logout,
       generateUploadUrl: generateUploadUrlMut,
       uploadExperienceCertificate,
+      uploadEventImage,
       addStudentApplication,
       updateApplicationStatus,
       updateApplication,
@@ -1080,7 +1160,7 @@ export function ConvexStateProvider({ children }) {
       toggleUserActive,
       updateSettings,
       // Event Management
-      events: rawEvents,
+      events,
       eventsEnabled: qEventsEnabled ?? false,
       eventRegistrations,
       createEvent,

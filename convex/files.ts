@@ -18,3 +18,14 @@ export const getFileUrl = query({
     }
   },
 });
+
+export const resolveStorageUrl = mutation({
+  args: { storageId: v.string() },
+  handler: async (ctx, args) => {
+    try {
+      return await ctx.storage.getUrl(args.storageId as any);
+    } catch {
+      return null;
+    }
+  },
+});

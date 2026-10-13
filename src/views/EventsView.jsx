@@ -6,7 +6,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { 
   Calendar, MapPin, Users, User, ChevronLeft, 
-  ArrowRight, Trophy
+  ArrowRight, Trophy, Image as ImageIcon
 } from 'lucide-react';
 import { tw } from '@/constants';
 
@@ -114,8 +114,14 @@ function EventCard({ event, onClick }) {
     >
       {/* Image */}
       {event.imageUrl && (
-        <div className="img-zoom h-44 bg-gradient-to-br from-[#0b2e5b] to-[#0d3a73]">
+        <div className="relative img-zoom h-44 bg-gradient-to-br from-[#0b2e5b] to-[#0d3a73]">
           <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+          {event.images && event.images.length > 1 && (
+            <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/65 backdrop-blur-xs text-[10px] text-white font-bold flex items-center gap-1 shadow-sm">
+              <ImageIcon className="w-3 h-3 text-blue-300" />
+              <span>2 Photos</span>
+            </div>
+          )}
         </div>
       )}
       {!event.imageUrl && (

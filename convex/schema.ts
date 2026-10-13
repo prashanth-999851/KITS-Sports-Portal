@@ -183,23 +183,43 @@ export default defineSchema({
 
   // ── Event Management System ──────────────────────────────────────────────
   events: defineTable({
-    title: v.string(),
+    // Refactored fields
+    eventType: v.optional(v.string()), // "intramural" | "inter_college"
+    eventName: v.optional(v.string()),
+    posterStorageId: v.optional(v.string()),
+    posterUrl: v.optional(v.string()),
+    registrationStartDate: v.optional(v.string()),
+    registrationEndDate: v.optional(v.string()),
+    venue: v.string(),
+    sportsDisciplines: v.optional(v.array(v.string())),
     shortDescription: v.string(),
+    description: v.optional(v.string()),
+    registrationFee: v.optional(
+      v.object({
+        type: v.string(), // "free" | "paid"
+        amount: v.optional(v.number()),
+        basis: v.optional(v.string()), // "per_team" | "per_person"
+      })
+    ),
+
+    // Legacy fields (optional for backward compatibility)
+    title: v.optional(v.string()),
     fullDescription: v.optional(v.string()),
     category: v.optional(v.string()),
-    venue: v.optional(v.string()),
-    eventDate: v.string(),
+    eventDate: v.optional(v.string()),
     startTime: v.optional(v.string()),
     endTime: v.optional(v.string()),
-    registrationType: v.string(), // "individual" | "team"
+    registrationType: v.optional(v.string()), // "individual" | "team"
     minTeamSize: v.optional(v.number()),
     maxTeamSize: v.optional(v.number()),
     capacity: v.optional(v.number()),
     registrationOpens: v.optional(v.string()),
     registrationCloses: v.optional(v.string()),
-    registrationEnabled: v.boolean(),
-    status: v.string(), // "draft" | "published" | "archived"
+    registrationEnabled: v.optional(v.boolean()),
+    status: v.optional(v.string()), // "draft" | "published" | "archived"
     imageUrl: v.optional(v.string()),
+    images: v.optional(v.array(v.string())),
+    imageStorageIds: v.optional(v.array(v.string())),
     createdBy: v.optional(v.string()),
     createdAt: v.string(),
     updatedAt: v.string(),

@@ -10,6 +10,7 @@ import {
   MapPin, CalendarDays, Tag, Trophy, SlidersHorizontal, RotateCcw,
   Lock, Unlock, Minus, Save, Sparkles
 } from 'lucide-react';
+import EventImageUploader from '../components/EventImageUploader';
 import {
   SPORTS_REGISTRATION_CONFIG,
   SPORTS_LIST,
@@ -42,6 +43,8 @@ const INITIAL_FORM = {
   registrationEnabled: true,
   status: 'draft',
   imageUrl: '',
+  images: [],
+  imageStorageIds: [],
 };
 
 const PAGE_SIZE = 10;
@@ -289,12 +292,19 @@ export default function EventsAdminPage() {
     setSaving(true);
     try {
       const sportName = form.category.trim();
+      const eventImages = form.images && form.images.length > 0
+        ? form.images.slice(0, 2)
+        : (form.imageUrl ? [form.imageUrl] : []);
+      const { customSport: _customSport, ...formPayload } = form;
       await createEvent({
-        ...form,
+        ...formPayload,
         category: sportName,
         capacity: form.capacity ? Number(form.capacity) : undefined,
         minTeamSize: form.registrationType === 'team' ? Number(form.minTeamSize) : undefined,
         maxTeamSize: form.registrationType === 'team' ? Number(form.maxTeamSize) : undefined,
+        imageUrl: eventImages[0] || form.imageUrl || '',
+        images: eventImages,
+        imageStorageIds: form.imageStorageIds || [],
       });
       showToast(`Event created for ${sportName}!`, 'success');
       setView('list');
@@ -312,12 +322,19 @@ export default function EventsAdminPage() {
     setSaving(true);
     try {
       const sportName = form.category.trim();
+      const eventImages = form.images && form.images.length > 0
+        ? form.images.slice(0, 2)
+        : (form.imageUrl ? [form.imageUrl] : []);
+      const { customSport: _customSport, ...formPayload } = form;
       await updateEvent(selectedEvent._id, {
-        ...form,
+        ...formPayload,
         category: sportName,
         capacity: form.capacity ? Number(form.capacity) : undefined,
         minTeamSize: form.registrationType === 'team' ? Number(form.minTeamSize) : undefined,
         maxTeamSize: form.registrationType === 'team' ? Number(form.maxTeamSize) : undefined,
+        imageUrl: eventImages[0] || form.imageUrl || '',
+        images: eventImages,
+        imageStorageIds: form.imageStorageIds || [],
       });
       showToast('Event updated successfully!', 'success');
       setView('list');
@@ -335,6 +352,9 @@ export default function EventsAdminPage() {
     const sportCfg = getSportConfig(event.category, customSportRules);
     const isOverride = !sportCfg.supportedTypes.includes(event.registrationType);
     setAllowModeOverride(isOverride);
+    const eventImages = (event.images && event.images.length > 0)
+      ? event.images
+      : (event.imageUrl ? [event.imageUrl] : []);
     setForm({
       title: event.title || '',
       shortDescription: event.shortDescription || '',
@@ -353,7 +373,9 @@ export default function EventsAdminPage() {
       registrationCloses: event.registrationCloses || '',
       registrationEnabled: event.registrationEnabled ?? true,
       status: event.status || 'draft',
-      imageUrl: event.imageUrl || '',
+      imageUrl: event.imageUrl || eventImages[0] || '',
+      images: eventImages,
+      imageStorageIds: event.imageStorageIds || [],
     });
     setView('edit');
   };
@@ -843,12 +865,20 @@ export default function EventsAdminPage() {
                 <option value="published">Published</option>
               </select>
             </div>
-            <FormField label="Event Image URL" value={form.imageUrl} onChange={(v) => handleFormChange('imageUrl', v)} placeholder="https://... (poster or cover image)" />
-            {form.imageUrl && (
-              <div className="rounded-lg overflow-hidden border border-[var(--border-color)]">
-                <img src={form.imageUrl} alt="Preview" className="w-full h-40 object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
-              </div>
-            )}
+            {/* Rich Event Images Uploader (up to 2) */}
+            <EventImageUploader
+              images={form.images?.length > 0 ? form.images : (form.imageUrl ? [form.imageUrl] : [])}
+              imageStorageIds={form.imageStorageIds || []}
+              onChange={({ images: newImages, imageStorageIds: newStorageIds, imageUrl: newPrimaryUrl }) => {
+                setForm(prev => ({
+                  ...prev,
+                  images: newImages,
+                  imageStorageIds: newStorageIds,
+                  imageUrl: newPrimaryUrl,
+                }));
+              }}
+              disabled={saving}
+            />
           </div>
         </div>
 
@@ -1127,13 +1157,46 @@ export default function EventsAdminPage() {
                     return (
                       <tr key={event._id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-card-subtle)] transition-colors">
                         <td className="px-4 py-3">
-                          <div className="font-semibold text-[var(--text-primary)] max-w-[220px] truncate">{event.title}</div>
-                          {event.category && (
-                            <div className="flex items-center gap-1 text-[10px] text-[#0b2e5b] dark:text-blue-400 font-semibold mt-0.5">
-                              <Trophy className="w-3 h-3 text-amber-500 shrink-0" />
-                              <span>{event.category}</span>
+                          <div className="flex items-center gap-3">
+                            {/* Thumbnail preview */}
+                            <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-[var(--border-color)] shrink-0 flex items-center justify-center">
+                              {event.imageUrl || (event.images && event.images[0]) ? (
+                                <img
+                                  src={event.imageUrl || event.images[0]}
+                                  alt={event.title}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <Calendar className="w-5 h-5 text-[var(--text-muted)] opacity-50" />
+                              )}
+                              {event.images && event.images.length > 1 && (
+                                <span className="absolute bottom-0.5 right-0.5 px-1 py-0.2 rounded text-[8.5px] font-bold bg-black/75 text-white leading-tight">
+                                  2
+                                </span>
+                              )}
                             </div>
-                          )}
+                            <div className="min-w-0">
+                              <div className="font-semibold text-[var(--text-primary)] max-w-[200px] truncate" title={event.title}>
+                                {event.title}
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {event.category && (
+                                  <span className="flex items-center gap-1 text-[10px] text-[#0b2e5b] dark:text-blue-400 font-semibold">
+                                    <Trophy className="w-3 h-3 text-amber-500 shrink-0" />
+                                    <span>{event.category}</span>
+                                  </span>
+                                )}
+                                {event.images && event.images.length > 1 && (
+                                  <span className="text-[9.5px] px-1.5 py-0.2 rounded-full font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                                    2 photos
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-[var(--text-secondary)] whitespace-nowrap">
                           {event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
