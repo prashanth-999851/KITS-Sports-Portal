@@ -4,6 +4,7 @@ import { useConvexState } from '../../context/ConvexStateContext';
 import { useToast } from '../../context/ToastContext';
 import { ButtonSpinner } from '../../components/LoadingSkeleton';
 import { Lock, Mail, ShieldCheck, Eye, EyeOff, AlertCircle, Clock } from 'lucide-react';
+import SEO from '../../components/SEO';
 
 export default function AdminLoginPage() {
   const { currentUser, login } = useConvexState();
@@ -137,6 +138,10 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen bg-[#061a36] text-white font-admin admin-scope flex items-center justify-center p-4">
+      <SEO
+        title="Admin Login — KITS Sports Directorate"
+        robots="noindex, nofollow"
+      />
       <div className="w-full max-w-md space-y-6">
         
         {/* Logo Banner */}

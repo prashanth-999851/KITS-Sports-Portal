@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import SessionExpiredModal from './components/SessionExpiredModal';
 import { AdminTablePageSkeleton } from '../components/LoadingSkeleton';
+import SEO from '../components/SEO';
 
 export default function AdminLayout() {
   const { currentUser, logout, applications = [] } = useConvexState();
@@ -55,6 +56,10 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-admin admin-scope flex flex-col md:flex-row transition-colors duration-300">
+      <SEO
+        title="Admin Console — KITS Sports Directorate"
+        robots="noindex, nofollow"
+      />
       
       {/* Sidebar Overlay for Mobile */}
       {sidebarOpen && (

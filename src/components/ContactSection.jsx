@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import SEO from './SEO';
 import { 
   Send, 
   CheckCircle, 
@@ -236,9 +237,27 @@ export default function ContactSection({ onBack }) {
       office: "Sports Club, Room No: 29"
     }
   ];
+  const contactFaqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(f => ({
+      "@type": "Question",
+      "name": f.q,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": f.a
+      }
+    }))
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300">
+      <SEO
+        title="Contact Physical Education Directorate"
+        description="Get in touch with the Department of Physical Education and Sports Directorate at KKR & KSR Institute of Technology & Sciences, Guntur. Office desk, direct lines, and FAQs."
+        canonicalPath="/contact"
+        jsonLd={contactFaqSchema}
+      />
 
       {/* Unified Top Navbar */}
       <Navbar

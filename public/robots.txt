@@ -3,4 +3,8 @@ Allow: /
 Disallow: /admin/
 Disallow: /admin
 
-Sitemap: https://kitssports.netlify.app/sitemap.xml
+# Production Host
+Host: https://kitssports.in
+
+# Sitemaps
+Sitemap: https://kitssports.in/sitemap.xml

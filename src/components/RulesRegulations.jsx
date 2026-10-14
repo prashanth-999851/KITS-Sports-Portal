@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import SEO from './SEO';
 import { 
   Download, 
   FileText, 
@@ -216,6 +217,11 @@ export default function RulesRegulations({ onBack }) {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300">
+      <SEO
+        title="Sports Constitution, Rules & Regulations"
+        description="Official sports rulebook, governance constitution, attendance on-duty (OD) regulations, and athlete code of conduct at KKR & KSR Institute of Technology & Sciences."
+        canonicalPath="/rules"
+      />
       
       {/* Unified Top Navbar */}
       <Navbar

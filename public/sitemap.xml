@@ -1,39 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://kitssports.netlify.app/</loc>
+    <loc>https://kitssports.in/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://kitssports.netlify.app/about</loc>
+    <loc>https://kitssports.in/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://kitssports.netlify.app/elite-players</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://kitssports.netlify.app/sports-members</loc>
+    <loc>https://kitssports.in/elite-players</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://kitssports.netlify.app/register</loc>
+    <loc>https://kitssports.in/sports-members</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://kitssports.in/register</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://kitssports.netlify.app/rules</loc>
+    <loc>https://kitssports.in/rules</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://kitssports.netlify.app/contact</loc>
+    <loc>https://kitssports.in/contact</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 </urlset>
-

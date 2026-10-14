@@ -4,10 +4,11 @@ import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import {
   Calendar, MapPin, ChevronLeft, AlertCircle,
   Trophy, ZoomIn, X, Image as ImageIcon,
-  Tag, IndianRupee, Layers, CheckCircle
+  Tag, IndianRupee, Layers
 } from 'lucide-react';
 import { tw } from '@/constants';
 
@@ -16,7 +17,7 @@ export default function EventDetailView() {
   const navigate = useNavigate();
   const event = useQuery(api.events.getPublished, id ? { id } : "skip");
   const eventsEnabled = useQuery(api.events.isEventsEnabled);
-  const sportsList = useQuery(api.sports.list) || [];
+  const rawSportsList = useQuery(api.sports.list);
 
   const [selectedImgIdx, setSelectedImgIdx] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -24,17 +25,24 @@ export default function EventDetailView() {
   // Map sports IDs to names
   const sportsMap = useMemo(() => {
     const map = {};
-    for (const s of sportsList) {
+    if (!rawSportsList) return map;
+    for (const s of rawSportsList) {
       if (s._id) map[s._id] = s.name;
       if (s.name) map[s.name] = s.name;
     }
     return map;
-  }, [sportsList]);
+  }, [rawSportsList]);
 
   // Redirect if events disabled
   if (eventsEnabled === false) {
     return (
       <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans">
+        <SEO
+          title="Events Unavailable"
+          description="The events section is currently disabled."
+          canonicalPath="/events"
+          robots="noindex, follow"
+        />
         <Navbar activeSection="events" setActiveSection={(sec) => navigate(sec === 'home' ? '/' : `/${sec}`)} />
         <div className="pt-24 pb-20 px-4 min-h-[60vh] flex items-center justify-center">
           <div className="text-center space-y-4 max-w-md mx-auto">
@@ -64,6 +72,7 @@ export default function EventDetailView() {
   if (!event) {
     return (
       <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans">
+        <SEO title="Event Not Found" robots="noindex, nofollow" />
         <Navbar activeSection="events" setActiveSection={(sec) => navigate(sec === 'home' ? '/' : `/${sec}`)} />
         <div className="pt-24 pb-20 px-4 min-h-[60vh] flex items-center justify-center">
           <div className="text-center space-y-4 max-w-md mx-auto">
@@ -104,8 +113,50 @@ export default function EventDetailView() {
     ? `₹${fee.amount ?? 0} (${fee.basis === 'per_person' ? 'Per Person' : 'Per Team'})`
     : 'Free Entry';
 
+  const eventStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "SportsEvent",
+    "name": eventName,
+    "description": event.shortDescription || event.description || eventName,
+    "startDate": startDate || undefined,
+    "endDate": endDate || undefined,
+    "eventStatus": isRegOpen ? "https://schema.org/EventScheduled" : "https://schema.org/EventCompleted",
+    "location": {
+      "@type": "Place",
+      "name": event.venue || "KITS Sports Grounds",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Vinjanampadu",
+        "addressLocality": "Guntur",
+        "addressRegion": "Andhra Pradesh",
+        "postalCode": "522017",
+        "addressCountry": "IN"
+      }
+    },
+    "image": activeImage || "https://kitssports.in/kits_logo.png",
+    "organizer": {
+      "@type": "SportsOrganization",
+      "name": "KiTS Sports Club",
+      "url": "https://kitssports.in"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": isFeePaid ? String(fee.amount ?? 0) : "0",
+      "priceCurrency": "INR",
+      "availability": isRegOpen ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+      "url": `https://kitssports.in/events/${id}`
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans transition-colors duration-300">
+      <SEO
+        title={`${eventName} — Sports Event`}
+        description={event.shortDescription || event.description || `${eventName} sports event and tournament registration at KKR & KSR Institute of Technology & Sciences.`}
+        canonicalPath={`/events/${id}`}
+        ogImage={activeImage || 'https://kitssports.in/kits_logo.png'}
+        jsonLd={eventStructuredData}
+      />
       <Navbar activeSection="events" setActiveSection={(sec) => navigate(sec === 'home' ? '/' : `/${sec}`)} />
 
       {/* Back Button */}

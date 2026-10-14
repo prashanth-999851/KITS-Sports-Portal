@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import { useConvexState } from '../context/ConvexStateContext';
 import { useToast } from '../context/ToastContext';
 import { ButtonSpinner } from '../components/LoadingSkeleton';
@@ -462,6 +463,11 @@ export default function RegistrationView({ onBack }) {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans transition-colors duration-300">
+      <SEO
+        title="Sports Registration & Membership Portal"
+        description="Register for college sports trials, join varsity teams, apply for sports memberships, and track your application status at KKR & KSR Institute of Technology & Sciences."
+        canonicalPath="/register"
+      />
       
       {/* Unified Top Navbar */}
       <Navbar

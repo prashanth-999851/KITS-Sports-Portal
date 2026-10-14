@@ -94,7 +94,6 @@ export default function Hero({ onJoinClick, onExploreClick }) {
   ];
   const fallbackSlide = { src: '/hero_sports_banner.jpg', title: 'KiTS Campus Athletics', position: 'center center' };
   const activeSlides = slides.length > 0 ? slides : [fallbackSlide];
-  const currentSlide = activeSlides[currentSlideIndex] || activeSlides[0];
 
   return (
     <section
@@ -113,7 +112,7 @@ export default function Hero({ onJoinClick, onExploreClick }) {
             >
               <img
                 src={slide.src}
-                alt="KiTS Sports"
+                alt={slide.title || "KiTS Campus Athletics"}
                 style={{ objectPosition: slide.position }}
                 className="absolute inset-0 w-full h-full object-cover"
               />

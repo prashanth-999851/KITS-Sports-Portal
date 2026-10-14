@@ -1,6 +1,19 @@
+import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import { tw } from '@/constants';
 
 export default function Footer({ setActiveSection }) {
+  const eventsEnabled = useQuery(api.events.isEventsEnabled);
+
+  const navItems = [
+    { id: 'home', label: 'Home', url: '/' },
+    { id: 'about', label: 'About', url: '/about' },
+    ...(eventsEnabled ? [{ id: 'events', label: 'Events', url: '/events' }] : []),
+    { id: 'sports', label: 'Sports', url: '/#sports' },
+    { id: 'executive', label: 'Executive Body', url: '/#executive' },
+    { id: 'achievements', label: 'Achievements', url: '/#achievements' }
+  ];
+
   return (
     <footer className={`bg-[#041428] text-slate-400 ${tw`text-caption`} py-14`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
@@ -12,7 +25,7 @@ export default function Footer({ setActiveSection }) {
             <div className="flex items-center gap-2.5">
               <img 
                 src="/kits_logo.png?v=2" 
-                alt="Logo" 
+                alt="KiTS Sports Club Logo" 
                 className="h-10 w-10 object-contain bg-white rounded-full p-0.5" 
               />
               <div>
@@ -29,21 +42,21 @@ export default function Footer({ setActiveSection }) {
           <div className="space-y-2">
             <h5 className="text-xs font-bold text-slate-300 uppercase tracking-[0.15em] mb-3">Navigation</h5>
             <ul className="space-y-2">
-              {['home', 'about', 'sports', 'executive', 'achievements'].map((sec) => (
-                <li key={sec}>
-                  <button
-                    onClick={() => {
-                      if (sec === 'about') {
-                        window.location.href = '/about';
-                        return;
+              {navItems.map((sec) => (
+                <li key={sec.id}>
+                  <a
+                    href={sec.url}
+                    onClick={(e) => {
+                      if (sec.url.startsWith('/#')) {
+                        e.preventDefault();
+                        setActiveSection(sec.id);
+                        document.getElementById(sec.id)?.scrollIntoView({ behavior: 'smooth' });
                       }
-                      setActiveSection(sec);
-                      document.getElementById(sec)?.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="hover:text-blue-400 capitalize transition-colors text-slate-500 hover:translate-x-0.5 inline-block"
                   >
-                    {sec === 'executive' ? 'Executive Body' : sec}
-                  </button>
+                    {sec.label}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -57,24 +70,24 @@ export default function Footer({ setActiveSection }) {
                 { id: 'elite-players', label: 'Elite Players', url: '/elite-players' },
                 { id: 'sports-members', label: 'Sports Members', url: '/sports-members' },
                 { id: 'registration', label: 'Sports Registration', url: '/register' },
-                { id: 'gallery', label: 'Gallery' },
+                { id: 'gallery', label: 'Gallery', url: '/#gallery' },
                 { id: 'rules', label: 'Constitution', url: '/rules' },
                 { id: 'contact', label: 'Contact Us', url: '/contact' }
               ].map((item) => (
                 <li key={item.id}>
-                  <button
-                    onClick={() => {
-                      if (item.url) {
-                        window.location.href = item.url;
-                        return;
+                  <a
+                    href={item.url}
+                    onClick={(e) => {
+                      if (item.url.startsWith('/#')) {
+                        e.preventDefault();
+                        setActiveSection(item.id);
+                        document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
                       }
-                      setActiveSection(item.id);
-                      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="hover:text-blue-400 transition-colors text-slate-500 hover:translate-x-0.5 inline-block"
                   >
                     {item.label}
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>

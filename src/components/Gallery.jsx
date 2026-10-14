@@ -96,7 +96,7 @@ export default function Gallery() {
                 <div className="img-zoom">
                   <img
                     src={item.image}
-                    alt={item.title}
+                    alt={item.title || "KiTS Campus Sports Gallery"}
                     className="w-full h-auto object-cover"
                     onError={(e) => {
                       e.target.onerror = null;

@@ -4,6 +4,7 @@ import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import { 
   Calendar, MapPin, Users, User, ChevronLeft, 
   ArrowRight, Trophy, Image as ImageIcon
@@ -19,6 +20,12 @@ export default function EventsView() {
   if (eventsEnabled === false) {
     return (
       <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans">
+        <SEO
+          title="Events Coming Soon"
+          description="The events section is currently unavailable. Please check back later for upcoming sports events."
+          canonicalPath="/events"
+          robots="noindex, follow"
+        />
         <Navbar activeSection="events" setActiveSection={(id) => navigate(id === 'home' ? '/' : `/${id}`)} />
         <div className="pt-24 pb-20 px-4 min-h-[60vh] flex items-center justify-center">
           <div className="text-center space-y-4 max-w-md mx-auto">
@@ -56,6 +63,11 @@ export default function EventsView() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans transition-colors duration-300">
+      <SEO
+        title="Tournaments & Sports Events"
+        description="Upcoming intramural championships, inter-collegiate tournaments, sports leagues, and athletic meets hosted by KKR & KSR Institute of Technology & Sciences."
+        canonicalPath="/events"
+      />
       <Navbar activeSection="events" setActiveSection={(id) => navigate(id === 'home' ? '/' : `/${id}`)} />
 
       {/* Hero Section */}

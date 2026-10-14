@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, Component } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
@@ -229,6 +230,11 @@ function SportsMembersContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col transition-colors duration-300">
+      <SEO
+        title="Approved Sports Members & Squads"
+        description="Official roster of approved student athletes across all 9+ sports disciplines at KKR & KSR Institute of Technology & Sciences."
+        canonicalPath="/sports-members"
+      />
       <Navbar
         activeSection="sports-members"
         onOpenMembership={() => navigate('/register')}

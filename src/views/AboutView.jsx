@@ -3,6 +3,7 @@ import { Eye, Target, CheckCircle2, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 
 export default function AboutView({ onBack }) {
   const navigate = useNavigate();
@@ -31,6 +32,11 @@ export default function AboutView({ onBack }) {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 transition-colors duration-300">
+      <SEO
+        title="About KITS Sports Club — Sports Directorate"
+        description="Learn about the KITS Sports Directorate, athletic vision, mission pillars, sports infrastructure, and dedicated coaching at KKR & KSR Institute of Technology & Sciences, Guntur."
+        canonicalPath="/about"
+      />
       
       {/* Unified Top Navbar */}
       <Navbar

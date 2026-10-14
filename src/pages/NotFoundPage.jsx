@@ -1,12 +1,18 @@
 import React from 'react';
 import { Home, ArrowLeft, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 export default function NotFoundPage() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-[#0b2e5b] text-white flex items-center justify-center p-6 text-center">
+      <SEO
+        title="Page Not Found — 404"
+        description="The requested page could not be found on the KITS Sports Portal."
+        robots="noindex, nofollow"
+      />
       <div className="max-w-md space-y-6">
         <div className="w-20 h-20 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center mx-auto text-blue-400">
           <ShieldAlert className="w-10 h-10 animate-bounce" />

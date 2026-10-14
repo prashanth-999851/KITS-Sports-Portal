@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import JntukPlayersSection from '../components/JntukPlayersSection';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import { useNavigate } from 'react-router-dom';
 import { useConvexState } from '../context/ConvexStateContext';
 import { ShieldCheck, Trophy } from 'lucide-react';
@@ -75,11 +76,15 @@ export default function JntukStarsView() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = 'Elite Players | KKR & KSR Institute of Technology & Sciences';
   }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col transition-colors duration-300">
+      <SEO
+        title="Elite Athletes & JNTUK University Stars"
+        description="Discover elite athletes and varsity sports stars representing KKR & KSR Institute of Technology & Sciences at JNTUK university tournaments and district sports meets."
+        canonicalPath="/elite-players"
+      />
       
       {/* Unified Top Navbar */}
       <Navbar

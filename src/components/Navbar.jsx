@@ -60,27 +60,28 @@ export default function Navbar({
         { id: 'contact', label: 'Contact' },
       ];
 
+  const routeMap = {
+    home: '/',
+    about: '/about',
+    sports: '/#sports',
+    executive: '/#executive',
+    achievements: '/#achievements',
+    'elite-players': '/elite-players',
+    'jntuk-players': '/elite-players',
+    'jntuk-stars': '/elite-players',
+    'sports-members': '/sports-members',
+    membership: '/register',
+    registration: '/register',
+    gallery: '/#gallery',
+    events: '/events',
+    rules: '/rules',
+    contact: '/contact',
+  };
+
+  const getNavHref = (id) => routeMap[id] || '/';
+
   const handleNavClick = (id) => {
     setMobileMenuOpen(false);
-
-    const routeMap = {
-      home: '/',
-      about: '/about',
-      sports: '/#sports',
-      executive: '/#executive',
-      achievements: '/#achievements',
-      'elite-players': '/elite-players',
-      'jntuk-players': '/elite-players',
-      'jntuk-stars': '/elite-players',
-      'sports-members': '/sports-members',
-      membership: '/register',
-      registration: '/register',
-      gallery: '/#gallery',
-      events: '/events',
-      rules: '/rules',
-      contact: '/contact',
-    };
-
     const targetRoute = routeMap[id] || '/';
 
     // Standalone page routes: always navigate directly
@@ -124,28 +125,36 @@ export default function Navbar({
           <div className="flex items-center justify-between h-16">
             
             {/* Logo & Brand */}
-            <div 
-              onClick={() => handleNavClick('home')}
+            <a 
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavClick('home');
+              }}
               className="flex items-center gap-2.5 cursor-pointer group"
             >
               <img 
                 src="/kits_logo.png?v=2" 
-                alt="KiTS Sports Club" 
+                alt="KiTS Sports Club Logo" 
                 className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />
-              <h1 className={`${tw`text-body`} font-bold text-[#0b2e5b] leading-tight tracking-wide group-hover:text-[#0d3a73] transition-colors`}>
+              <span className={`${tw`text-body`} font-bold text-[#0b2e5b] leading-tight tracking-wide group-hover:text-[#0d3a73] transition-colors`}>
                 K<span className="text-red-600">i</span>TS Sports Club
-              </h1>
-            </div>
+              </span>
+            </a>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-2 h-16">
               {navLinks.slice(0, 7).map((link) => {
                 const isActive = activeSection === link.id || (link.id === 'elite-players' && (activeSection === 'jntuk-players' || activeSection === 'jntuk-stars'));
                 return (
-                  <button
+                  <a
                     key={link.id}
-                    onClick={() => handleNavClick(link.id)}
+                    href={getNavHref(link.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleNavClick(link.id);
+                    }}
                     className={`relative px-3 py-2 ${tw`text-body`} font-bold transition-colors flex items-center group cursor-pointer ${
                       isActive
                         ? 'text-[#0b2e5b]'
@@ -162,7 +171,7 @@ export default function Navbar({
                         }`}
                       />
                     </span>
-                  </button>
+                  </a>
                 );
               })}
 
@@ -190,17 +199,21 @@ export default function Navbar({
                       {navLinks.slice(7).map((link) => {
                         const isItemActive = activeSection === link.id;
                         return (
-                          <button
+                          <a
                             key={link.id}
-                            onClick={() => handleNavClick(link.id)}
-                            className={`w-full text-left px-3 py-2 rounded-lg ${tw`text-body`} font-semibold transition-colors ${
+                            href={getNavHref(link.id)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleNavClick(link.id);
+                            }}
+                            className={`block w-full text-left px-3 py-2 rounded-lg ${tw`text-body`} font-semibold transition-colors ${
                               isItemActive
                                 ? 'text-[#0b2e5b] bg-slate-100 font-bold'
                                 : 'text-slate-700 hover:text-[#0b2e5b] hover:bg-slate-50'
                             }`}
                           >
                             {link.label}
-                          </button>
+                          </a>
                         );
                       })}
                     </div>
@@ -213,12 +226,20 @@ export default function Navbar({
             <div className="flex items-center gap-3">
 
               {/* Register CTA - Solid Theme Blue Button */}
-              <button
-                onClick={() => onOpenMembership ? onOpenMembership() : handleNavClick('membership')}
+              <a
+                href="/register"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (onOpenMembership) {
+                    onOpenMembership();
+                  } else {
+                    handleNavClick('membership');
+                  }
+                }}
                 className={`hidden sm:inline-flex items-center justify-center px-5 py-2 rounded-lg ${tw`text-body`} font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all duration-200 active:scale-95 shadow-sm cursor-pointer`}
               >
                 Register
-              </button>
+              </a>
 
               {/* Mobile Menu Toggle */}
               <button
@@ -301,22 +322,28 @@ export default function Navbar({
             {navLinks.map((link) => {
               const isActive = activeSection === link.id || (link.id === 'elite-players' && (activeSection === 'jntuk-players' || activeSection === 'jntuk-stars'));
               return (
-                <button
+                <a
                   key={link.id}
-                  onClick={() => handleNavClick(link.id)}
-                  className={`w-full text-left px-3 py-2.5 ${tw`text-body`} font-semibold transition-all border-l-2 cursor-pointer ${
+                  href={getNavHref(link.id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(link.id);
+                  }}
+                  className={`block w-full text-left px-3 py-2.5 ${tw`text-body`} font-semibold transition-all border-l-2 cursor-pointer ${
                     isActive
                       ? 'border-[#0b2e5b] text-[#0b2e5b] bg-slate-50 pl-4'
                       : 'border-transparent text-[#0b2e5b] hover:text-[#0b2e5b] hover:border-slate-300 pl-3'
                   }`}
                 >
                   {link.label}
-                </button>
+                </a>
               );
             })}
             <div className="pt-3 flex flex-col gap-2 border-t border-slate-200">
-              <button
-                onClick={() => { 
+              <a
+                href="/register"
+                onClick={(e) => { 
+                  e.preventDefault();
                   setMobileMenuOpen(false); 
                   if (onOpenMembership) {
                     onOpenMembership();
@@ -324,10 +351,10 @@ export default function Navbar({
                     handleNavClick('membership');
                   }
                 }}
-                className={`w-full py-2.5 rounded-lg ${tw`text-body`} font-bold bg-[#0b2e5b] text-white text-center transition-colors shadow-sm cursor-pointer`}
+                className={`block w-full py-2.5 rounded-lg ${tw`text-body`} font-bold bg-[#0b2e5b] text-white text-center transition-colors shadow-sm cursor-pointer`}
               >
                 Register for Sports
-              </button>
+              </a>
             </div>
           </div>
         </>

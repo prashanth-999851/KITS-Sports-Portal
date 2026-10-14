@@ -7,6 +7,7 @@ import ExecutiveBody from '../components/ExecutiveBody';
 import Achievements from '../components/Achievements';
 import Gallery from '../components/Gallery';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function MainPortalView() {
@@ -64,6 +65,11 @@ export default function MainPortalView() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] text-[var(--text-primary)] font-sans transition-colors duration-300">
+      <SEO
+        title="KITS Sports Club — Official Sports Portal | KKR & KSR Institute of Technology & Sciences"
+        description="Official Sports Management Portal of KKR & KSR Institute of Technology & Sciences (KITS Guntur). Register for sports, track memberships, view live scores, varsity athletes, and university honors."
+        canonicalPath="/"
+      />
       
       {/* Top Navbar */}
       <Navbar

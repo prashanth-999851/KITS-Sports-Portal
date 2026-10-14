@@ -9,8 +9,8 @@
       "sizes": "192x192 512x512"
     }
   ],
-  "start_url": "https://kitssports.netlify.app/",
-  "scope": "https://kitssports.netlify.app/",
+  "start_url": "/",
+  "scope": "/",
   "background_color": "#0b1e38",
   "theme_color": "#0b2e5b",
   "display": "standalone"
