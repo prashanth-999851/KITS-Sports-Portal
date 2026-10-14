@@ -21,6 +21,7 @@ import {
 import SessionExpiredModal from './components/SessionExpiredModal';
 import { AdminTablePageSkeleton } from '../components/LoadingSkeleton';
 import SEO from '../components/SEO';
+import { KiTS } from '../components/WordmarkRedI';
 
 export default function AdminLayout() {
   const { currentUser, logout, applications = [] } = useConvexState();
@@ -81,7 +82,7 @@ export default function AdminLayout() {
             <div className="flex items-center gap-3">
               <img src="/kits_logo.png?v=2" alt="KITS Logo" className="h-8 w-auto object-contain" />
               <div>
-                <h2 className="text-sm font-bold text-white leading-none">KITS Admin</h2>
+                <h2 className="text-sm font-bold text-white leading-none"><KiTS /> Admin</h2>
                 <p className="text-[10px] text-amber-400 font-semibold mt-0.5">Management Portal</p>
               </div>
             </div>

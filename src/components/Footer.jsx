@@ -1,6 +1,7 @@
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { tw } from '@/constants';
+import { KiTS } from './WordmarkRedI';
 
 export default function Footer({ setActiveSection }) {
   const eventsEnabled = useQuery(api.events.isEventsEnabled);
@@ -29,7 +30,7 @@ export default function Footer({ setActiveSection }) {
                 className="h-10 w-10 object-contain bg-white rounded-full p-0.5" 
               />
               <div>
-                <h4 className="text-sm font-bold text-white tracking-wide">K<span className="text-red-500">i</span>TS Sports Club</h4>
+                <h4 className="text-sm font-bold text-white tracking-wide"><KiTS /> Sports Club</h4>
                 <p className="text-[10px] text-slate-500">Official Sports Portal</p>
               </div>
             </div>
@@ -106,7 +107,7 @@ export default function Footer({ setActiveSection }) {
 
         {/* Bottom */}
         <div className="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
-          <p>© 2026 KiTS Sports Club. All Rights Reserved.</p>
+          <p>© 2026 KITS Sports Club. All Rights Reserved.</p>
         </div>
 
       </div>

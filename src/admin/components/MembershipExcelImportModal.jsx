@@ -86,6 +86,17 @@ export default function MembershipExcelImportModal({
     return { existingRollSet: rollSet, existingTrackingSet: trackingSet };
   }, [existingApplications]);
 
+  // Handle Clean Template Download with feedback
+  const handleDownloadTemplate = () => {
+    try {
+      downloadMembershipExcelTemplate();
+      showToast('Clean membership template downloaded successfully.', 'success');
+    } catch (err) {
+      console.error('Failed to download template:', err);
+      showToast('Failed to download Excel template. Please try again.', 'error');
+    }
+  };
+
   // Handle File Selection & Parse
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];
@@ -438,7 +449,7 @@ export default function MembershipExcelImportModal({
               </div>
               <button
                 type="button"
-                onClick={downloadMembershipExcelTemplate}
+                onClick={handleDownloadTemplate}
                 className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white shadow transition-all cursor-pointer whitespace-nowrap self-start sm:self-auto"
               >
                 <Download className="w-3.5 h-3.5" />

@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { normalizeSportName } from './jntukPlayerUtils';
+import { triggerExcelDownload } from './membershipExcelUtils';
 
 export const VALID_ACHIEVEMENT_TYPES = ['Trophy', 'Gold', 'Silver', 'Bronze'];
 
@@ -298,5 +299,5 @@ export function downloadAchievementExcelTemplate() {
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Achievements_Template');
 
-  XLSX.writeFile(workbook, 'KITS_Achievements_Import_Template.xlsx');
+  triggerExcelDownload(workbook, 'KITS_Achievements_Import_Template.xlsx');
 }

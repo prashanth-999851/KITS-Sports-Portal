@@ -5,6 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { ButtonSpinner } from '../../components/LoadingSkeleton';
 import { Lock, Mail, ShieldCheck, Eye, EyeOff, AlertCircle, Clock } from 'lucide-react';
 import SEO from '../../components/SEO';
+import { KiTS } from '../../components/WordmarkRedI';
 
 export default function AdminLoginPage() {
   const { currentUser, login } = useConvexState();
@@ -151,7 +152,7 @@ export default function AdminLoginPage() {
             alt="KiTS Logo" 
             className="h-16 w-16 object-contain mx-auto bg-white rounded-full p-1 shadow-md" 
           />
-          <h1 className="text-xl font-extrabold tracking-tight">KiTS Sports Directorate</h1>
+          <h1 className="text-xl font-extrabold tracking-tight"><KiTS /> Sports Directorate</h1>
           <p className="text-xs text-amber-400 font-semibold">Admin & Sports Officers Console</p>
         </div>
 

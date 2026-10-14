@@ -274,6 +274,45 @@ export function validateMembershipRow(
 }
 
 /**
+ * Triggers safe and robust browser/system download for an XLSX workbook.
+ * Uses binary ArrayBuffer -> Blob -> objectURL -> anchor click pattern,
+ * with fallback to XLSX.writeFile for non-browser environments.
+ */
+export function triggerExcelDownload(workbook, fileName) {
+  try {
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up after small delay to let browser complete download trigger
+      setTimeout(() => {
+        try {
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+        } catch {
+          // ignore cleanup errors
+        }
+      }, 1000);
+      return;
+    }
+  } catch (err) {
+    console.warn('Direct Blob download failed, attempting XLSX.writeFile fallback:', err);
+  }
+
+  // Fallback (e.g. Node environments or legacy browser contexts)
+  XLSX.writeFile(workbook, fileName);
+}
+
+/**
  * Generates and triggers download of a standardized clean Excel template
  * with column headers and institutional guidelines.
  */
@@ -337,5 +376,5 @@ export function downloadMembershipExcelTemplate() {
   XLSX.utils.book_append_sheet(workbook, guideSheet, 'Allowed Values & Rules');
 
   const fileName = 'KITS_Sports_Membership_Template.xlsx';
-  XLSX.writeFile(workbook, fileName);
+  triggerExcelDownload(workbook, fileName);
 }

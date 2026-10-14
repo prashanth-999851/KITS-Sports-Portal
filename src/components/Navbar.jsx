@@ -5,6 +5,7 @@ import { useConvexState } from '../context/ConvexStateContext';
 import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { tw } from '@/constants';
+import { KiTS } from './WordmarkRedI';
 
 export default function Navbar({
   activeSection,
@@ -139,7 +140,7 @@ export default function Navbar({
                 className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />
               <span className={`${tw`text-body`} font-bold text-[#0b2e5b] leading-tight tracking-wide group-hover:text-[#0d3a73] transition-colors`}>
-                K<span className="text-red-600">i</span>TS Sports Club
+                <KiTS /> Sports Club
               </span>
             </a>
 

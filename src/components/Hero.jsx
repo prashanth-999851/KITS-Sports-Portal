@@ -39,6 +39,8 @@ const SLIDESHOW_IMAGES = Object.entries(slideshowModules)
 // ==========================================
 const SLIDE_DURATION_MS = 8000;
 
+import { KiTS } from './WordmarkRedI';
+
 export default function Hero({ onJoinClick, onExploreClick }) {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const touchStartX = useRef(0);
@@ -133,7 +135,7 @@ export default function Hero({ onJoinClick, onExploreClick }) {
           {/* Title */}
           <div className="space-y-3">
             <h1 className="text-hero font-extrabold tracking-tight leading-[1.15] text-white drop-shadow-md">
-              K<span className="text-red-500">i</span>TS
+              <KiTS />
               <span className="block text-amber-400">Sports Club</span>
             </h1>
             <p className={`${tw`text-bodyLg`} text-slate-100 font-normal leading-relaxed max-w-md drop-shadow-md`}>
@@ -184,7 +186,7 @@ export default function Hero({ onJoinClick, onExploreClick }) {
           {/* Title */}
           <div className="space-y-2">
             <h1 className="text-hero font-extrabold tracking-tight leading-tight text-white">
-              K<span className="text-red-500">i</span>TS <span className="text-amber-400">Sports Club</span>
+              <KiTS /> <span className="text-amber-400">Sports Club</span>
             </h1>
             <p className={`${tw`text-bodyLg`} text-slate-300 font-normal max-w-md mx-auto`}>
               Official Platform for Sports Registrations, Tournaments, and Athletic Excellence.
