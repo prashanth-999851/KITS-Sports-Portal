@@ -1,5 +1,0 @@
-# Domain Canonicalization: Redirect www to apex production domain
-https://www.kitssports.in/*  https://kitssports.in/:splat  301!
-
-# SPA Fallback for client-side routing
-/*  /index.html  200
