@@ -51,6 +51,7 @@ export function ConvexStateProvider({ children }) {
   const qJntukPlayers = useQuery(api.jntukPlayers.list);
   const qEvents = useQuery(api.events.list, adminSessionToken ? { sessionToken: adminSessionToken } : "skip");
   const qEventsEnabled = useQuery(api.events.isEventsEnabled);
+  const qFinalYearEnabled = useQuery(api.registrations.isFinalYearEnabled);
   const qSessionValidation = useQuery(
     api.users.validateSession,
     adminSessionToken ? { sessionToken: adminSessionToken } : "skip"
@@ -260,6 +261,28 @@ export function ConvexStateProvider({ children }) {
   }));
 
   // Settings: transform to object format components expect
+  const yearRegistrationStatus = {
+    '1st Year': rawSettings.registration_enabled_1st_year !== undefined
+      ? rawSettings.registration_enabled_1st_year === 'true'
+      : true,
+    '2nd Year': rawSettings.registration_enabled_2nd_year !== undefined
+      ? rawSettings.registration_enabled_2nd_year === 'true'
+      : true,
+    '3rd Year': rawSettings.registration_enabled_3rd_year !== undefined
+      ? rawSettings.registration_enabled_3rd_year === 'true'
+      : true,
+    '4th Year': rawSettings.registration_enabled_4th_year !== undefined
+      ? rawSettings.registration_enabled_4th_year === 'true'
+      : (rawSettings.finalYearRegistrationsEnabled !== undefined
+          ? rawSettings.finalYearRegistrationsEnabled === 'true'
+          : (qFinalYearEnabled ?? true)),
+  };
+
+  const isFinalYearRegistrationsEnabled = yearRegistrationStatus['4th Year'];
+
+  const enabledAcademicYears = ['1st Year', '2nd Year', '3rd Year', '4th Year']
+    .filter(y => yearRegistrationStatus[y] !== false);
+
   const settings = {
     ...rawSettings,
     instituteName: rawSettings.instituteName || 'KKR & KSR Institute of Technology & Sciences',
@@ -268,6 +291,9 @@ export function ConvexStateProvider({ children }) {
     contactPhone: rawSettings.contactPhone || '+91 91827 55664',
     enableNotifications: rawSettings.enableNotifications !== 'false',
     darkThemeDefault: rawSettings.darkThemeDefault === 'true',
+    finalYearRegistrationsEnabled: isFinalYearRegistrationsEnabled,
+    yearRegistrationStatus,
+    enabledAcademicYears,
   };
 
   // Audit Logs
@@ -955,6 +981,49 @@ export function ConvexStateProvider({ children }) {
     await logAction('UPDATE_SETTINGS', 'System settings updated.');
   };
 
+  const toggleYearRegistration = async (year) => {
+    const keyMap = {
+      '1st Year': 'registration_enabled_1st_year',
+      '2nd Year': 'registration_enabled_2nd_year',
+      '3rd Year': 'registration_enabled_3rd_year',
+      '4th Year': 'registration_enabled_4th_year',
+    };
+    const key = keyMap[year];
+    if (!key) return;
+
+    const nextVal = !yearRegistrationStatus[year];
+    const updatePayload = { [key]: nextVal ? 'true' : 'false' };
+    if (year === '4th Year') {
+      updatePayload.finalYearRegistrationsEnabled = nextVal ? 'true' : 'false';
+    }
+
+    await updateSettings(updatePayload);
+    await logAction(
+      'UPDATE_SETTINGS',
+      `Registration intake for ${year} ${nextVal ? 'enabled' : 'disabled'} on public website.`
+    );
+    return nextVal;
+  };
+
+  const setAllYearsRegistration = async (enableAll) => {
+    const val = enableAll ? 'true' : 'false';
+    await updateSettings({
+      registration_enabled_1st_year: val,
+      registration_enabled_2nd_year: val,
+      registration_enabled_3rd_year: val,
+      registration_enabled_4th_year: val,
+      finalYearRegistrationsEnabled: val,
+    });
+    await logAction(
+      'UPDATE_SETTINGS',
+      `Registration intake for all academic years ${enableAll ? 'enabled' : 'disabled'} on public website.`
+    );
+  };
+
+  const toggleFinalYearRegistrations = async () => {
+    return await toggleYearRegistration('4th Year');
+  };
+
   // ========== EVENT MANAGEMENT ACTIONS ==========
   const [eventRegistrations, setEventRegistrations] = useState([]);
 
@@ -1159,6 +1228,12 @@ export function ConvexStateProvider({ children }) {
       addUser,
       toggleUserActive,
       updateSettings,
+      yearRegistrationStatus,
+      enabledAcademicYears,
+      toggleYearRegistration,
+      setAllYearsRegistration,
+      finalYearRegistrationsEnabled: isFinalYearRegistrationsEnabled,
+      toggleFinalYearRegistrations,
       // Event Management
       events,
       eventsEnabled: qEventsEnabled ?? false,

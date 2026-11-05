@@ -1,10 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useConvexState } from '../../context/ConvexStateContext';
+import { useToast } from '../../context/ToastContext';
 import { AdminDashboardSkeleton } from '../../components/LoadingSkeleton';
 import EmptyState from '../../components/EmptyState';
-import { Users, UserCheck, Clock, XCircle, Trophy, Calendar, Activity, Award, BarChart2, PieChart as PieIcon, FileText } from 'lucide-react';
+import { 
+  Users, 
+  UserCheck, 
+  Clock, 
+  XCircle, 
+  Trophy, 
+  Calendar, 
+  Activity, 
+  Award, 
+  BarChart2, 
+  PieChart as PieIcon, 
+  FileText,
+  Loader2
+} from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 import { computeJntukPlayerCounts } from '../../utils/jntukPlayerUtils';
+import { YEAR_METADATA } from '../../constants/academicRules';
 
 export default function DashboardPage() {
   const { 
@@ -18,8 +33,27 @@ export default function DashboardPage() {
     isLoadingSports,
     isLoadingAchievements,
     isLoadingJntukPlayers,
-    isLoadingExecutive 
+    isLoadingExecutive,
+    yearRegistrationStatus = {},
+    toggleYearRegistration
   } = useConvexState();
+  const { showToast } = useToast();
+  const [updatingYear, setUpdatingYear] = useState(null);
+
+  const handleToggleYear = async (year) => {
+    setUpdatingYear(year);
+    try {
+      const next = await toggleYearRegistration(year);
+      showToast(
+        `${year} registrations are now ${next ? 'ENABLED' : 'DISABLED'} on public website.`,
+        'success'
+      );
+    } catch (err) {
+      showToast('Failed to update setting: ' + (err.message || err), 'error');
+    } finally {
+      setUpdatingYear(null);
+    }
+  };
 
   const isDashboardLoading = 
     isLoading || 
@@ -100,9 +134,38 @@ export default function DashboardPage() {
           <h2 className="text-xl font-bold text-[var(--text-primary)]">System Analytics Dashboard</h2>
           <p className="text-xs text-[var(--text-muted)]">Real-time overview of registrations, sports, matches, and achievements.</p>
         </div>
-        <span className="text-xs text-blue-700 dark:text-blue-400 font-mono font-semibold px-3 py-1.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)]">
-          Live Data Sync Active
-        </span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider mr-1">
+            Intake:
+          </span>
+          {YEAR_METADATA.map((meta) => {
+            const isEnabled = yearRegistrationStatus[meta.year] !== false;
+            const isBusy = updatingYear === meta.year;
+            return (
+              <button
+                key={meta.year}
+                onClick={() => handleToggleYear(meta.year)}
+                disabled={isBusy}
+                title={`Click to ${isEnabled ? 'close' : 'open'} registrations for ${meta.year}`}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold border transition-all cursor-pointer disabled:opacity-50 ${
+                  isEnabled
+                    ? 'border-emerald-400/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/20'
+                    : 'border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-muted)] hover:bg-[var(--bg-card-subtle)] line-through'
+                }`}
+              >
+                {isBusy ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <span className={`w-1.5 h-1.5 rounded-full ${isEnabled ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                )}
+                <span>{meta.badge}</span>
+              </button>
+            );
+          })}
+          <span className="text-xs text-blue-700 dark:text-blue-400 font-mono font-semibold px-2.5 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-color)] ml-1">
+            Live Sync
+          </span>
+        </div>
       </div>
 
       {/* KPI Cards Grid */}

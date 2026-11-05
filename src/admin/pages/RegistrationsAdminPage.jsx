@@ -19,12 +19,19 @@ import {
   XCircle, 
   ExternalLink,
   MoreVertical,
-  ChevronDown
+  ChevronDown,
+  ToggleLeft,
+  ToggleRight,
+  GraduationCap,
+  Loader2,
+  CheckCheck,
+  Ban
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 import { 
-  ADMIN_ACADEMIC_YEARS
+  ADMIN_ACADEMIC_YEARS,
+  YEAR_METADATA
 } from '../../constants/academicRules';
 
 const ALL_FILTER_DEPARTMENTS = ['CSE', 'IT', 'ECE', 'EEE', 'CAI', 'CSM', 'CSD'];
@@ -40,9 +47,45 @@ export default function RegistrationsAdminPage() {
     updateApplication, 
     deleteApplication, 
     isLoading,
-    isLoadingApplications 
+    isLoadingApplications,
+    yearRegistrationStatus = {},
+    toggleYearRegistration,
+    setAllYearsRegistration
   } = useConvexState();
   const { showToast } = useToast();
+  const [updatingYear, setUpdatingYear] = useState(null); // specific year string or 'ALL'
+
+  const handleToggleYear = async (year) => {
+    setUpdatingYear(year);
+    try {
+      const nextState = await toggleYearRegistration(year);
+      showToast(
+        `${year} registrations are now ${nextState ? 'ENABLED' : 'DISABLED'} on the public website.`,
+        'success'
+      );
+    } catch (err) {
+      showToast('Failed to update setting: ' + (err.message || err), 'error');
+    } finally {
+      setUpdatingYear(null);
+    }
+  };
+
+  const handleSetAllYears = async (enableAll) => {
+    setUpdatingYear('ALL');
+    try {
+      await setAllYearsRegistration(enableAll);
+      showToast(
+        enableAll 
+          ? 'Registrations for ALL academic years are now ENABLED on public website.' 
+          : 'Registrations for ALL academic years are now DISABLED on public website.',
+        'success'
+      );
+    } catch (err) {
+      showToast('Failed to update settings: ' + (err.message || err), 'error');
+    } finally {
+      setUpdatingYear(null);
+    }
+  };
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -364,7 +407,11 @@ export default function RegistrationsAdminPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <span className="px-3 py-2 rounded-lg text-xs font-bold bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-secondary)]">
+            {YEAR_METADATA.filter(m => yearRegistrationStatus[m.year] !== false).length} of 4 Years Open
+          </span>
+
           {/* Export to Excel */}
           <button
             onClick={handleExportToExcel}
@@ -374,6 +421,119 @@ export default function RegistrationsAdminPage() {
             <FileSpreadsheet className="w-4 h-4" />
             <span>Export ({filteredApps.length}) to Excel</span>
           </button>
+        </div>
+      </div>
+
+      {/* Granular Academic Year Registration Intake Controls */}
+      <div className="p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border-color)] pb-3.5">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
+              <GraduationCap className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">
+                  Academic Year Public Registration Controls
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300">
+                  {YEAR_METADATA.filter(m => yearRegistrationStatus[m.year] !== false).length} / 4 Years Active
+                </span>
+              </div>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                Enable or disable student candidate intake for any academic year independently in real time.
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Bulk Actions */}
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              onClick={() => handleSetAllYears(true)}
+              disabled={updatingYear !== null}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <CheckCheck className="w-3.5 h-3.5" />
+              <span>Open All Years</span>
+            </button>
+            <button
+              onClick={() => handleSetAllYears(false)}
+              disabled={updatingYear !== null}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30 hover:bg-red-500/20 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <Ban className="w-3.5 h-3.5" />
+              <span>Close All</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 4 Years Interactive Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {YEAR_METADATA.map((meta) => {
+            const isEnabled = yearRegistrationStatus[meta.year] !== false;
+            const isBusy = updatingYear === meta.year || updatingYear === 'ALL';
+            const yearAppsCount = applications.filter(a => a.year === meta.year).length;
+
+            return (
+              <div
+                key={meta.year}
+                className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
+                  isEnabled
+                    ? 'bg-emerald-500/5 border-emerald-500/30 ring-1 ring-emerald-500/10'
+                    : 'bg-[var(--bg-card-subtle)] border-[var(--border-color)] opacity-85'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-extrabold text-[var(--text-primary)]">
+                        {meta.year}
+                      </span>
+                      <span className="text-[10px] text-[var(--text-muted)] font-semibold">
+                        ({meta.shortLabel})
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[var(--text-muted)] mt-0.5 leading-tight">
+                      {meta.subtitle}
+                    </p>
+                  </div>
+
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase shrink-0 ${
+                    isEnabled
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-slate-500 text-white'
+                  }`}>
+                    {isEnabled ? 'OPEN' : 'CLOSED'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-[var(--border-color)]/60 text-xs">
+                  <span className="text-[11px] text-[var(--text-muted)]">
+                    <strong className="text-[var(--text-primary)]">{yearAppsCount}</strong> Registered
+                  </span>
+
+                  <button
+                    onClick={() => handleToggleYear(meta.year)}
+                    disabled={isBusy}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 ${
+                      isEnabled
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                        : 'bg-slate-700 hover:bg-slate-800 text-white'
+                    }`}
+                  >
+                    {isBusy ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : isEnabled ? (
+                      <ToggleRight className="w-4 h-4 text-emerald-200" />
+                    ) : (
+                      <ToggleLeft className="w-4 h-4 text-slate-300" />
+                    )}
+                    <span>{isEnabled ? 'Enabled' : 'Disabled'}</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

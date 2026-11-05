@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
@@ -26,7 +26,7 @@ import {
   sanitizeInput 
 } from '../utils/sanitize';
 import { 
-  PUBLIC_ACADEMIC_YEARS, 
+  getPublicAcademicYears, 
   getAvailableDepartments, 
   getAvailableSections 
 } from '../constants/academicRules';
@@ -51,8 +51,16 @@ export default function RegistrationView({ onBack }) {
     applications = [], 
     students = [], 
     addStudentApplication,
-    uploadExperienceCertificate 
+    uploadExperienceCertificate,
+    yearRegistrationStatus = {},
+    enabledAcademicYears = ['1st Year', '2nd Year', '3rd Year', '4th Year'],
   } = useConvexState();
+
+  const availableAcademicYears = enabledAcademicYears.length > 0
+    ? enabledAcademicYears
+    : getPublicAcademicYears(yearRegistrationStatus);
+
+  const isAllRegistrationsClosed = availableAcademicYears.length === 0;
 
   const [activeTab, setActiveTab] = useState("Apply");
   const [trackingCode, setTrackingCode] = useState("");
@@ -102,6 +110,28 @@ export default function RegistrationView({ onBack }) {
       setFormData(prev => ({ ...prev, selectedSport: preselectedSport }));
     }
   }, [preselectedSport]);
+
+  const handleYearChange = useCallback((newYear) => {
+    setFormData(prev => {
+      const availableDepts = getAvailableDepartments(newYear);
+      const newDept = availableDepts.includes(prev.department) ? prev.department : availableDepts[0];
+      const availableSecs = getAvailableSections(newYear, newDept);
+      const curSecNum = (prev.section || '').replace('Section ', '');
+      const newSecNum = availableSecs.includes(curSecNum) ? curSecNum : availableSecs[0];
+      return {
+        ...prev,
+        year: newYear,
+        department: newDept,
+        section: `Section ${newSecNum}`
+      };
+    });
+  }, []);
+
+  useEffect(() => {
+    if (availableAcademicYears.length > 0 && !availableAcademicYears.includes(formData.year)) {
+      handleYearChange(availableAcademicYears[0]);
+    }
+  }, [availableAcademicYears, formData.year, handleYearChange]);
 
   const handleBack = () => {
     if (onBack) {
@@ -175,21 +205,6 @@ export default function RegistrationView({ onBack }) {
       const err = validateField(field, processedValue);
       setErrors(prev => ({ ...prev, [field]: err }));
     }
-  };
-
-  const handleYearChange = (newYear) => {
-    const availableDepts = getAvailableDepartments(newYear);
-    const newDept = availableDepts.includes(formData.department) ? formData.department : availableDepts[0];
-    const availableSecs = getAvailableSections(newYear, newDept);
-    const curSecNum = (formData.section || '').replace('Section ', '');
-    const newSecNum = availableSecs.includes(curSecNum) ? curSecNum : availableSecs[0];
-    
-    setFormData(prev => ({
-      ...prev,
-      year: newYear,
-      department: newDept,
-      section: `Section ${newSecNum}`
-    }));
   };
 
   const handleDepartmentChange = (newDept) => {
@@ -343,6 +358,11 @@ export default function RegistrationView({ onBack }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isAllRegistrationsClosed) {
+      showToast("Registrations are currently closed for all academic years.", "error");
+      return;
+    }
 
     if (!validateAll()) {
       showToast("Please correct the highlighted form errors before submitting.", "warning");
@@ -553,6 +573,14 @@ export default function RegistrationView({ onBack }) {
                   </button>
                 </div>
               </div>
+            ) : isAllRegistrationsClosed ? (
+              <div className="p-8 rounded-2xl bg-amber-50/80 border border-amber-200 text-center space-y-3 animate-fadeIn">
+                <AlertCircle className="w-12 h-12 text-amber-600 mx-auto" />
+                <h3 className="text-lg font-bold text-slate-800">Registrations Are Temporarily Closed</h3>
+                <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+                  Online student candidate intake is currently closed for all academic years by the Sports Directorate. Please check back later or track an existing application above.
+                </p>
+              </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 
@@ -643,8 +671,10 @@ export default function RegistrationView({ onBack }) {
                         onChange={(e) => handleYearChange(e.target.value)}
                         className={getInputClass("year")}
                       >
-                        {PUBLIC_ACADEMIC_YEARS.map(y => (
-                          <option key={y} value={y}>{y}</option>
+                        {availableAcademicYears.map(y => (
+                          <option key={y} value={y}>
+                            {y === '4th Year' ? '4th Year (Final Year)' : y}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -851,7 +881,7 @@ export default function RegistrationView({ onBack }) {
                 {/* Submit CTA */}
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isAllRegistrationsClosed}
                   className="w-full py-3 rounded-xl font-bold text-sm bg-[#0b2e5b] hover:bg-[#0d3a73] disabled:opacity-50 text-white transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-98"
                 >
                   {isSubmitting ? (

@@ -10,7 +10,7 @@ const DEFAULT_SPORTS = [
 ];
 
 export default function MembershipPortal({ applications, onAddApplication }) {
-  const { sports: rawSports = [] } = useConvexState();
+  const { sports: rawSports = [], yearRegistrationStatus = {} } = useConvexState();
   const [activeTab, setActiveTab] = useState("Apply");
   const [trackingCode, setTrackingCode] = useState("");
   const [trackedApp, setTrackedApp] = useState(null);
@@ -224,8 +224,18 @@ export default function MembershipPortal({ applications, onAddApplication }) {
                       }}
                       className={inputClass}
                     >
-                      <option value="2nd Year">2nd Year</option>
-                      <option value="3rd Year">3rd Year</option>
+                      {yearRegistrationStatus['1st Year'] !== false && (
+                        <option value="1st Year">1st Year</option>
+                      )}
+                      {yearRegistrationStatus['2nd Year'] !== false && (
+                        <option value="2nd Year">2nd Year</option>
+                      )}
+                      {yearRegistrationStatus['3rd Year'] !== false && (
+                        <option value="3rd Year">3rd Year</option>
+                      )}
+                      {yearRegistrationStatus['4th Year'] !== false && (
+                        <option value="4th Year">4th Year (Final Year)</option>
+                      )}
                     </select>
                   </div>
                   <div>

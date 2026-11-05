@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ButtonSpinner } from './LoadingSkeleton';
 import { useToast } from '../context/ToastContext';
 import { X, CheckCircle2, Trophy, Send } from 'lucide-react';
+import { useConvexState } from '../context/ConvexStateContext';
 import { 
   validateName, 
   validateEmail, 
@@ -10,13 +11,17 @@ import {
   sanitizeInput 
 } from '../utils/sanitize';
 import { 
-  PUBLIC_ACADEMIC_YEARS, 
+  getPublicAcademicYears, 
   getAvailableDepartments, 
   getAvailableSections 
 } from '../constants/academicRules';
 
 export default function RegistrationModal({ sportName, eventName, isOpen, onClose, onAddApplication }) {
   const { showToast } = useToast();
+  const { yearRegistrationStatus = {}, enabledAcademicYears = [] } = useConvexState();
+  const availableAcademicYears = enabledAcademicYears.length > 0
+    ? enabledAcademicYears
+    : getPublicAcademicYears(yearRegistrationStatus);
   const [formData, setFormData] = useState({
     name: "",
     rollNumber: "",
@@ -270,8 +275,10 @@ export default function RegistrationModal({ sportName, eventName, isOpen, onClos
                     onChange={(e) => handleYearChange(e.target.value)}
                     className={getInputClass("year")}
                   >
-                    {PUBLIC_ACADEMIC_YEARS.map(y => (
-                      <option key={y} value={y}>{y}</option>
+                    {availableAcademicYears.map(y => (
+                      <option key={y} value={y}>
+                        {y === '4th Year' ? '4th Year (Final Year)' : y}
+                      </option>
                     ))}
                   </select>
                 </div>

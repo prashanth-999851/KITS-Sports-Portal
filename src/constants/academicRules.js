@@ -3,13 +3,39 @@
  * Strict business rules for KKR & KSR Institute of Technology and Sciences.
  */
 
-// Public forms allow 1st, 2nd, and 3rd years for active sports enrollment
+// Public forms default academic years
 export const PUBLIC_ACADEMIC_YEARS = ['1st Year', '2nd Year', '3rd Year'];
 
 // Admin portal has full oversight including 4th years
 export const ADMIN_ACADEMIC_YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 
 export const ACADEMIC_YEARS = PUBLIC_ACADEMIC_YEARS;
+
+export const YEAR_REGISTRATION_KEYS = {
+  '1st Year': 'registration_enabled_1st_year',
+  '2nd Year': 'registration_enabled_2nd_year',
+  '3rd Year': 'registration_enabled_3rd_year',
+  '4th Year': 'registration_enabled_4th_year',
+};
+
+export const YEAR_METADATA = [
+  { year: '1st Year', shortLabel: '1st Year', subtitle: 'Freshman Intake & Trials', badge: '1st Yr' },
+  { year: '2nd Year', shortLabel: '2nd Year', subtitle: 'Sophomore Team Selection', badge: '2nd Yr' },
+  { year: '3rd Year', shortLabel: '3rd Year', subtitle: 'Junior Varsity & Tournaments', badge: '3rd Yr' },
+  { year: '4th Year', shortLabel: 'Final Year', subtitle: 'Senior Varsity & JNTUK Honors', badge: 'Final Yr' },
+];
+
+/**
+ * Returns available academic years for public registration forms.
+ * Supports granular statusMap { '1st Year': bool, ... } or legacy boolean allowFinalYear.
+ */
+export const getPublicAcademicYears = (allowFinalYearOrStatusMap = false) => {
+  if (typeof allowFinalYearOrStatusMap === 'object' && allowFinalYearOrStatusMap !== null) {
+    const list = ADMIN_ACADEMIC_YEARS.filter(y => allowFinalYearOrStatusMap[y] !== false);
+    return list;
+  }
+  return allowFinalYearOrStatusMap ? ADMIN_ACADEMIC_YEARS : PUBLIC_ACADEMIC_YEARS;
+};
 
 export const getAvailableDepartments = (year) => {
   return year === '4th Year'

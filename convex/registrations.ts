@@ -30,6 +30,58 @@ export const listApprovedPublic = query({
   },
 });
 
+/** Check if final year registrations are globally enabled (public). */
+export const isFinalYearEnabled = query({
+  args: {},
+  handler: async (ctx) => {
+    const settingRow = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "finalYearRegistrationsEnabled"))
+      .first();
+    if (settingRow) return settingRow.value === "true";
+
+    const row4th = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", "registration_enabled_4th_year"))
+      .first();
+    return row4th ? row4th.value === "true" : true;
+  },
+});
+
+/** Check registration status for each academic year (public). */
+export const getYearRegistrationSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("settings").collect();
+    const settingsMap: Record<string, string> = {};
+    for (const row of rows) {
+      settingsMap[row.key] = row.value;
+    }
+
+    const year1 = settingsMap["registration_enabled_1st_year"] !== undefined
+      ? settingsMap["registration_enabled_1st_year"] === "true"
+      : true;
+    const year2 = settingsMap["registration_enabled_2nd_year"] !== undefined
+      ? settingsMap["registration_enabled_2nd_year"] === "true"
+      : true;
+    const year3 = settingsMap["registration_enabled_3rd_year"] !== undefined
+      ? settingsMap["registration_enabled_3rd_year"] === "true"
+      : true;
+    const year4 = settingsMap["registration_enabled_4th_year"] !== undefined
+      ? settingsMap["registration_enabled_4th_year"] === "true"
+      : (settingsMap["finalYearRegistrationsEnabled"] !== undefined
+          ? settingsMap["finalYearRegistrationsEnabled"] === "true"
+          : true);
+
+    return {
+      "1st Year": year1,
+      "2nd Year": year2,
+      "3rd Year": year3,
+      "4th Year": year4,
+    };
+  },
+});
+
 export const list = query({
   args: { sessionToken },
   handler: async (ctx, args) => {
@@ -107,7 +159,40 @@ export const create = mutation({
       throw new Error("Please select your playing experience.");
     }
 
-    // 2. Conditional certificate enforcement
+    // 2. Strict validation of per-year registration status
+    const keyMap: Record<string, string> = {
+      "1st Year": "registration_enabled_1st_year",
+      "2nd Year": "registration_enabled_2nd_year",
+      "3rd Year": "registration_enabled_3rd_year",
+      "4th Year": "registration_enabled_4th_year",
+    };
+    const settingKey = keyMap[args.year];
+    if (settingKey) {
+      const setting = await ctx.db
+        .query("settings")
+        .withIndex("by_key", (q) => q.eq("key", settingKey))
+        .first();
+      
+      let isYearOpen = true;
+      if (setting) {
+        isYearOpen = setting.value === "true";
+      } else if (args.year === "4th Year") {
+        // Fallback for 4th year legacy setting key
+        const legacySetting = await ctx.db
+          .query("settings")
+          .withIndex("by_key", (q) => q.eq("key", "finalYearRegistrationsEnabled"))
+          .first();
+        if (legacySetting) {
+          isYearOpen = legacySetting.value === "true";
+        }
+      }
+
+      if (!isYearOpen) {
+        throw new Error(`Registrations for ${args.year} are currently closed. Please contact the sports department.`);
+      }
+    }
+
+    // 3. Conditional certificate enforcement
     let certFileId = "";
     if (experience === "Have Playing Experience") {
       const trimmedFileId = args.experienceCertificateFileId?.trim() || "";
