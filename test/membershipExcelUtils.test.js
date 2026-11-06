@@ -9,6 +9,7 @@ import {
   normalizeStatus,
   validateMembershipRow
 } from '../src/utils/membershipExcelUtils.js';
+import { validateRollNumber } from '../src/utils/sanitize.js';
 
 console.log('--- Running Membership Excel Utils Tests ---');
 
@@ -16,6 +17,8 @@ console.log('--- Running Membership Excel Utils Tests ---');
 console.log('Test 1: Testing normalization functions...');
 assert.strictEqual(normalizeRollNumber(' 22jr1a0501 '), '22JR1A0501');
 assert.strictEqual(normalizeRollNumber('23JR1a1205'), '23JR1A1205');
+assert.strictEqual(validateRollNumber('24JR1A44B6'), true);
+assert.strictEqual(validateRollNumber('24JR1A54B6'), false);
 
 assert.strictEqual(normalizeAcademicYear('1st'), '1st Year');
 assert.strictEqual(normalizeAcademicYear('2nd Year'), '2nd Year');
