@@ -114,23 +114,97 @@ export const list = query({
 export const getByTrackingId = query({
   args: { trackingId: v.string() },
   handler: async (ctx, args) => {
-    const reg = await ctx.db
+    const raw = args.trackingId?.trim() || "";
+    if (!raw || raw.length < 3) return null;
+    const upper = raw.toUpperCase();
+
+    // 1. Exact match on trackingId index
+    let reg = await ctx.db
       .query("registrations")
-      .withIndex("by_trackingId", (q) => q.eq("trackingId", args.trackingId))
+      .withIndex("by_trackingId", (q) => q.eq("trackingId", raw))
       .first();
-    if (!reg) return null;
-    let certificateUrl: string | null = null;
-    if (reg.experienceCertificateFileId && reg.experienceCertificateFileId.trim()) {
-      try {
-        certificateUrl = await ctx.storage.getUrl(reg.experienceCertificateFileId as any);
-      } catch {
-        certificateUrl = null;
-      }
+
+    // 2. Uppercase match on trackingId index
+    if (!reg && raw !== upper) {
+      reg = await ctx.db
+        .query("registrations")
+        .withIndex("by_trackingId", (q) => q.eq("trackingId", upper))
+        .first();
     }
-    return {
-      ...reg,
-      experienceCertificateUrl: certificateUrl,
-    };
+
+    // 3. Match in registrations by rollNumber or fallback trackingId
+    if (!reg) {
+      const allRegs = await ctx.db.query("registrations").collect();
+      reg = allRegs.find(
+        (r) =>
+          (r.trackingId && r.trackingId.trim().toUpperCase() === upper) ||
+          (r.rollNumber && r.rollNumber.trim().toUpperCase() === upper)
+      ) || null;
+    }
+
+    if (reg) {
+      let certificateUrl: string | null = null;
+      if (reg.experienceCertificateFileId && reg.experienceCertificateFileId.trim()) {
+        try {
+          certificateUrl = await ctx.storage.getUrl(reg.experienceCertificateFileId as any);
+        } catch {
+          certificateUrl = null;
+        }
+      }
+      return {
+        _id: reg._id,
+        id: reg.trackingId,
+        trackingId: reg.trackingId,
+        name: reg.studentName,
+        studentName: reg.studentName,
+        rollNumber: reg.rollNumber,
+        department: reg.department,
+        year: reg.year,
+        section: reg.section || "",
+        gender: reg.gender || "Male",
+        email: reg.email,
+        phone: reg.phone,
+        preferredSports: Array.isArray(reg.preferredSports)
+          ? reg.preferredSports
+          : (reg.preferredSports ? [reg.preferredSports] : []),
+        playingExperience: reg.playingExperience || "",
+        status: reg.status || "Under Review",
+        remarks: reg.remarks || "",
+        appliedDate: reg.appliedDate || "",
+        experienceCertificateUrl: certificateUrl,
+      };
+    }
+
+    // 4. Match in master students table by rollNumber
+    const student = await ctx.db
+      .query("students")
+      .withIndex("by_rollNumber", (q) => q.eq("rollNumber", upper))
+      .first();
+
+    if (student) {
+      return {
+        _id: student._id,
+        id: student.rollNumber,
+        trackingId: student.rollNumber,
+        name: student.name,
+        studentName: student.name,
+        rollNumber: student.rollNumber,
+        department: student.department,
+        year: student.year,
+        section: student.section || "",
+        gender: student.gender || "Male",
+        email: student.email,
+        phone: student.phone,
+        preferredSports: [student.sportId || "Campus Sports"],
+        playingExperience: "Varsity Player",
+        status: student.status || "Active Member",
+        remarks: "Official Registered Sports Directorate Member",
+        appliedDate: student.createdAt ? student.createdAt.split("T")[0] : "",
+        experienceCertificateUrl: null,
+      };
+    }
+
+    return null;
   },
 });
 

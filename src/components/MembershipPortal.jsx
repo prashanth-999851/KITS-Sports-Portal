@@ -5,9 +5,10 @@ import { CheckCircle2, AlertCircle, FileText, Send } from 'lucide-react';
 
 const DEFAULT_SPORTS = [
   "Cricket", "Volleyball", "Basketball", "Badminton",
-  "Football", "Kabaddi", "Table Tennis", "Chess",
-  "Athletics", "Throwball", "Kho-Kho"
+  "Football", "Kabaddi", "Table Tennis", "Throwball", "Kho-Kho"
 ];
+
+const EXCLUDED_REGISTRATION_SPORTS = ['athletics', 'athletic', 'chess'];
 
 export default function MembershipPortal({ applications, onAddApplication }) {
   const { sports: rawSports = [], yearRegistrationStatus = {} } = useConvexState();
@@ -19,9 +20,10 @@ export default function MembershipPortal({ applications, onAddApplication }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Merge loaded sports with fallback to ensure options are always available
-  const availableSports = rawSports.length > 0 
+  const availableSports = (rawSports.length > 0 
     ? rawSports.map(s => typeof s === 'string' ? s : s.name).filter(Boolean)
-    : DEFAULT_SPORTS;
+    : DEFAULT_SPORTS
+  ).filter(sport => !EXCLUDED_REGISTRATION_SPORTS.includes(String(sport).trim().toLowerCase()));
 
   const [formData, setFormData] = useState({
     name: "",

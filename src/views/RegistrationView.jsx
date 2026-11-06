@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SEO from '../components/SEO';
+import { useQuery } from 'convex/react';
+import { api } from '../../convex/_generated/api';
 import { useConvexState } from '../context/ConvexStateContext';
 import { useToast } from '../context/ToastContext';
 import { ButtonSpinner } from '../components/LoadingSkeleton';
@@ -12,10 +14,13 @@ import {
   Send, 
   Search, 
   Clock,
-  Upload,
-  Trash2,
-  ExternalLink,
-  Loader2
+  Upload, 
+  Trash2, 
+  ExternalLink, 
+  Loader2,
+  Copy,
+  Check,
+  RotateCcw
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
@@ -33,9 +38,10 @@ import {
 
 const DEFAULT_SPORTS = [
   "Cricket", "Volleyball", "Basketball", "Badminton",
-  "Football", "Kabaddi", "Table Tennis", "Chess",
-  "Athletics", "Throwball", "Kho-Kho"
+  "Football", "Kabaddi", "Table Tennis", "Throwball", "Kho-Kho"
 ];
+
+const EXCLUDED_REGISTRATION_SPORTS = ['athletics', 'athletic', 'chess'];
 
 const EXPERIENCE_OPTIONS = [
   "No Previous Experience",
@@ -62,19 +68,36 @@ export default function RegistrationView({ onBack }) {
 
   const isAllRegistrationsClosed = availableAcademicYears.length === 0;
 
-  const [activeTab, setActiveTab] = useState("Apply");
-  const [trackingCode, setTrackingCode] = useState("");
+  const initialTab = searchParams.get('tab') === 'track' || searchParams.get('code') || searchParams.get('trackingId')
+    ? "Track"
+    : "Apply";
+  const initialTrackingCode = searchParams.get('code') || searchParams.get('trackingId') || "";
+
+  const [activeTab, setActiveTab] = useState(initialTab);
+  const [trackingCode, setTrackingCode] = useState(initialTrackingCode);
+  const [searchedCode, setSearchedCode] = useState(initialTrackingCode.trim().length >= 3 ? initialTrackingCode.trim() : null);
   const [trackError, setTrackError] = useState("");
-  const [trackedApp, setTrackedApp] = useState(null);
-  const [searchAttempted, setSearchAttempted] = useState(false);
+  const [searchAttempted, setSearchAttempted] = useState(initialTrackingCode.trim().length >= 3);
+  const [copiedTrackingId, setCopiedTrackingId] = useState(false);
   const [submittedCode, setSubmittedCode] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const preselectedSport = searchParams.get('sport') || "";
+  // Live reactive query to Convex backend (accessible publicly)
+  const backendTrackResult = useQuery(
+    api.registrations.getByTrackingId,
+    searchedCode ? { trackingId: searchedCode } : "skip"
+  );
+  const isTrackingLoading = searchedCode !== null && backendTrackResult === undefined;
 
-  const availableSports = rawSports.length > 0 
+  const preselectedSport = searchParams.get('sport') || "";
+  const initialSport = preselectedSport && !EXCLUDED_REGISTRATION_SPORTS.includes(preselectedSport.trim().toLowerCase())
+    ? preselectedSport
+    : "";
+
+  const availableSports = (rawSports.length > 0 
     ? rawSports.map(s => typeof s === 'string' ? s : s.name).filter(Boolean)
-    : DEFAULT_SPORTS;
+    : DEFAULT_SPORTS
+  ).filter(sport => !EXCLUDED_REGISTRATION_SPORTS.includes(String(sport).trim().toLowerCase()));
 
   const [formData, setFormData] = useState({
     name: "",
@@ -85,7 +108,7 @@ export default function RegistrationView({ onBack }) {
     section: "Section 1",
     email: "",
     phone: "",
-    selectedSport: preselectedSport || "",
+    selectedSport: initialSport,
     playingExperience: "",
     experienceCertificateFileId: ""
   });
@@ -106,7 +129,7 @@ export default function RegistrationView({ onBack }) {
   }, []);
 
   useEffect(() => {
-    if (preselectedSport) {
+    if (preselectedSport && !EXCLUDED_REGISTRATION_SPORTS.includes(preselectedSport.trim().toLowerCase())) {
       setFormData(prev => ({ ...prev, selectedSport: preselectedSport }));
     }
   }, [preselectedSport]);
@@ -427,10 +450,46 @@ export default function RegistrationView({ onBack }) {
     }
   };
 
+  const trackedApp = useMemo(() => {
+    if (!searchedCode) return null;
+    if (backendTrackResult) return backendTrackResult;
+
+    // Fallback: check applications or students from context if available
+    const code = searchedCode.toLowerCase().trim();
+    const foundApp = applications.find(a => 
+      (a.id && a.id.toLowerCase().trim() === code) || 
+      (a.rollNumber && a.rollNumber.toLowerCase().trim() === code)
+    );
+
+    if (foundApp) return foundApp;
+
+    const foundStudent = students.find(s => 
+      (s.rollNumber && s.rollNumber.toLowerCase().trim() === code) ||
+      (s.studentId && s.studentId.toLowerCase().trim() === code)
+    );
+
+    if (foundStudent) {
+      return {
+        id: foundStudent.studentId || foundStudent.rollNumber,
+        trackingId: foundStudent.rollNumber,
+        name: foundStudent.name,
+        rollNumber: foundStudent.rollNumber,
+        department: foundStudent.department,
+        year: foundStudent.year,
+        preferredSports: [foundStudent.sport || 'Campus Sports'],
+        status: foundStudent.status || 'Active Member',
+        remarks: 'Official Registered Sports Directorate Member',
+        appliedDate: foundStudent.createdAt ? foundStudent.createdAt.split('T')[0] : ''
+      };
+    }
+
+    return null;
+  }, [searchedCode, backendTrackResult, applications, students]);
+
   const handleTrackSearch = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setTrackError("");
-    const code = trackingCode.toLowerCase().trim();
+    const code = trackingCode.trim();
 
     if (!code || code.length < 3) {
       setTrackError("Please enter at least 3 characters of your Tracking Code or Roll Number.");
@@ -438,38 +497,25 @@ export default function RegistrationView({ onBack }) {
     }
 
     setSearchAttempted(true);
-    
-    // Check applications first
-    const foundApp = applications.find(a => 
-      (a.id && a.id.toLowerCase().trim() === code) || 
-      (a.rollNumber && a.rollNumber.toLowerCase().trim() === code)
-    );
+    setSearchedCode(code);
+  };
 
-    if (foundApp) {
-      setTrackedApp(foundApp);
-      return;
-    }
+  const handleClearTrack = () => {
+    setTrackingCode("");
+    setSearchedCode(null);
+    setSearchAttempted(false);
+    setTrackError("");
+  };
 
-    // Check master students roster next
-    const foundStudent = students.find(s => 
-      (s.rollNumber && s.rollNumber.toLowerCase().trim() === code) ||
-      (s.studentId && s.studentId.toLowerCase().trim() === code)
-    );
-
-    if (foundStudent) {
-      setTrackedApp({
-        id: foundStudent.studentId || foundStudent.rollNumber,
-        name: foundStudent.name,
-        rollNumber: foundStudent.rollNumber,
-        department: foundStudent.department,
-        preferredSports: [foundStudent.sport || 'Campus Sports'],
-        status: foundStudent.status || 'Active Member',
-        remarks: 'Official Registered Sports Directorate Member'
-      });
-      return;
-    }
-
-    setTrackedApp(null);
+  const handleCopyTrackingId = (codeToCopy) => {
+    if (!codeToCopy) return;
+    navigator.clipboard?.writeText(codeToCopy).then(() => {
+      setCopiedTrackingId(true);
+      showToast("Tracking ID copied to clipboard!", "success");
+      setTimeout(() => setCopiedTrackingId(false), 2000);
+    }).catch(() => {
+      showToast("Failed to copy Tracking ID", "error");
+    });
   };
 
   const getInputClass = (fieldName) => {
@@ -563,13 +609,17 @@ export default function RegistrationView({ onBack }) {
                   </button>
                   <button
                     onClick={() => {
-                      setTrackingCode(submittedCode);
+                      const codeToTrack = submittedCode;
+                      setTrackingCode(codeToTrack);
+                      setSearchedCode(codeToTrack);
+                      setSearchAttempted(true);
                       setActiveTab("Track");
                       setSubmittedCode(null);
                     }}
-                    className="flex-1 py-2.5 rounded-lg text-xs font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-colors cursor-pointer shadow-sm"
+                    className="flex-1 py-2.5 rounded-lg text-xs font-bold bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-colors cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
                   >
-                    Track Status Now
+                    <Search className="w-3.5 h-3.5" />
+                    <span>Track Status Now</span>
                   </button>
                 </div>
               </div>
@@ -901,30 +951,59 @@ export default function RegistrationView({ onBack }) {
 
         {/* TAB 2: TRACK STATUS */}
         {activeTab === "Track" && (
-          <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="rounded-2xl bg-white border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6 max-w-2xl mx-auto">
+            <div className="text-center space-y-1">
+              <h3 className="text-xl sm:text-2xl font-bold text-[#0b2e5b]">Track Application Status</h3>
+              <p className="text-xs sm:text-sm text-slate-500">
+                Enter your Tracking Code (e.g. KKR-2026-XXXX) or College Roll Number to check live application status
+              </p>
+            </div>
+
             <form onSubmit={handleTrackSearch} className="space-y-4" noValidate>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Enter Tracking ID or Roll Number
+                Tracking ID or College Roll Number
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Enter tracking ID or roll number"
-                  value={trackingCode}
-                  onChange={(e) => {
-                    setTrackingCode(e.target.value);
-                    if (trackError) setTrackError("");
-                  }}
-                  className={`flex-1 px-4 py-2.5 rounded-lg bg-slate-50 border text-slate-800 text-sm focus:bg-white focus:outline-none transition-colors ${
-                    trackError ? 'border-red-400 bg-red-50/30' : 'border-slate-200 focus:border-[#0b2e5b]'
-                  }`}
-                />
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="e.g. KKR-2026-1042 or 23JR1A12C1"
+                    value={trackingCode}
+                    onChange={(e) => {
+                      setTrackingCode(e.target.value);
+                      if (trackError) setTrackError("");
+                    }}
+                    className={`w-full px-4 py-2.5 rounded-xl bg-slate-50 border text-slate-800 text-sm focus:bg-white focus:outline-none transition-colors font-mono uppercase tracking-wide ${
+                      trackError ? 'border-red-400 bg-red-50/30' : 'border-slate-200 focus:border-[#0b2e5b]'
+                    }`}
+                  />
+                  {trackingCode && (
+                    <button
+                      type="button"
+                      onClick={handleClearTrack}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 text-xs font-bold cursor-pointer"
+                      title="Clear"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 rounded-lg font-bold text-xs bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm"
+                  disabled={isTrackingLoading}
+                  className="px-6 py-2.5 rounded-xl font-bold text-xs bg-[#0b2e5b] hover:bg-[#0d3a73] text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-60"
                 >
-                  <Search className="w-3.5 h-3.5" />
-                  <span>Check</span>
+                  {isTrackingLoading ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Checking...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-3.5 h-3.5" />
+                      <span>Check Status</span>
+                    </>
+                  )}
                 </button>
               </div>
               {trackError && (
@@ -932,58 +1011,184 @@ export default function RegistrationView({ onBack }) {
               )}
             </form>
 
-            {searchAttempted && !trackedApp && (
-              <div className="p-6 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-2 animate-fadeIn">
-                <AlertCircle className="w-10 h-10 text-amber-500 mx-auto" />
-                <h4 className="text-sm font-bold text-slate-800">No Record Found</h4>
-                <p className="text-xs text-slate-500">
-                  We couldn't find an application matching "{trackingCode}". Please verify your Tracking ID or College Roll Number.
-                </p>
+            {/* Loading Indicator */}
+            {isTrackingLoading && (
+              <div className="p-8 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-3 animate-fadeIn">
+                <Loader2 className="w-8 h-8 text-[#0b2e5b] animate-spin mx-auto" />
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-slate-800">Checking Directorate Records...</h4>
+                  <p className="text-xs text-slate-500">Querying live registration database</p>
+                </div>
               </div>
             )}
 
-            {trackedApp && (
-              <div className="p-6 rounded-xl bg-slate-50 border border-slate-200 space-y-4 animate-fadeIn">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+            {/* No Record Found Card */}
+            {searchAttempted && !isTrackingLoading && !trackedApp && (
+              <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-3 animate-fadeIn">
+                <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+                  <AlertCircle className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-bold text-slate-800">No Application Found</h4>
+                  <p className="text-xs text-slate-600">
+                    We could not find an application matching <span className="font-mono font-bold text-[#0b2e5b]">"{searchedCode}"</span>.
+                  </p>
+                </div>
+                <div className="text-[11px] text-slate-500 bg-white p-3.5 rounded-xl border border-slate-200 max-w-md mx-auto text-left space-y-1.5">
+                  <p className="font-semibold text-slate-700">Please check that:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    <li>The Tracking ID format is correct (e.g. <span className="font-mono font-bold">KKR-2026-XXXX</span>).</li>
+                    <li>Or you entered your exact Roll Number (e.g. <span className="font-mono font-bold">23JR1A12C1</span>).</li>
+                    <li>If you submitted recently, please verify and try again.</li>
+                  </ul>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("Apply")}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-[#0b2e5b] bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Submit New Registration</span>
+                </button>
+              </div>
+            )}
+
+            {/* Tracked Application Card */}
+            {!isTrackingLoading && trackedApp && (
+              <div className="rounded-2xl bg-white border border-slate-200 shadow-xs overflow-hidden space-y-0 animate-fadeIn">
+                
+                {/* Header Band */}
+                <div className="p-4 sm:p-5 bg-slate-50/70 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h4 className="text-base font-bold text-slate-800">{trackedApp.name}</h4>
-                    <span className="text-xs text-slate-500 font-mono">ID: {trackedApp.id || trackedApp.rollNumber}</span>
+                    <h4 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight">
+                      {trackedApp.name || trackedApp.studentName}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-slate-500 font-mono">
+                        Tracking ID: <span className="font-bold text-[#0b2e5b]">{trackedApp.id || trackedApp.trackingId || trackedApp.rollNumber}</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyTrackingId(trackedApp.id || trackedApp.trackingId || trackedApp.rollNumber)}
+                        title="Copy Tracking ID"
+                        className="p-1 rounded-md text-slate-400 hover:text-[#0b2e5b] hover:bg-slate-200/60 transition-colors cursor-pointer"
+                      >
+                        {copiedTrackingId ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
-                  <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold self-start sm:self-auto ${
+
+                  {/* Status Pill */}
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold self-start sm:self-auto border ${
                     trackedApp.status === 'Approved' || trackedApp.status === 'Active Member'
-                      ? 'bg-emerald-100 text-emerald-700'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       : trackedApp.status === 'Rejected'
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-amber-100 text-amber-700'
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : trackedApp.status === 'Suspended'
+                      ? 'bg-orange-50 text-orange-700 border-orange-200'
+                      : 'bg-amber-50 text-amber-700 border-amber-200'
                   }`}>
-                    <Clock className="w-3 h-3" />
-                    {trackedApp.status || 'Under Review'}
+                    {trackedApp.status === 'Approved' || trackedApp.status === 'Active Member' ? (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    ) : trackedApp.status === 'Rejected' ? (
+                      <AlertCircle className="w-3.5 h-3.5" />
+                    ) : (
+                      <Clock className="w-3.5 h-3.5" />
+                    )}
+                    <span>{trackedApp.status || 'Under Review'}</span>
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-                  <div>
-                    <span className="text-slate-400 block">Roll Number</span>
-                    <span className="font-semibold text-slate-700">{trackedApp.rollNumber}</span>
+                {/* Details Grid */}
+                <div className="p-4 sm:p-5 space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-400 block font-medium">Roll Number</span>
+                      <span className="font-bold text-slate-700 font-mono tracking-wide mt-0.5 block">
+                        {trackedApp.rollNumber}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 block font-medium">Year & Department</span>
+                      <span className="font-semibold text-slate-700 mt-0.5 block">
+                        {trackedApp.year ? `${trackedApp.year} / ` : ''}{trackedApp.department}
+                        {trackedApp.section ? ` (${trackedApp.section})` : ''}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-slate-400 block font-medium">Applied Sport Discipline</span>
+                      <span className="font-bold text-[#0b2e5b] mt-0.5 block">
+                        {Array.isArray(trackedApp.preferredSports)
+                          ? trackedApp.preferredSports.join(', ')
+                          : (trackedApp.preferredSports || 'Campus Sports')}
+                      </span>
+                    </div>
+
+                    {trackedApp.appliedDate && (
+                      <div>
+                        <span className="text-slate-400 block font-medium">Application Date</span>
+                        <span className="font-medium text-slate-600 mt-0.5 block">
+                          {trackedApp.appliedDate}
+                        </span>
+                      </div>
+                    )}
+
+                    {trackedApp.playingExperience && (
+                      <div>
+                        <span className="text-slate-400 block font-medium">Playing Experience</span>
+                        <span className="font-medium text-slate-600 mt-0.5 block">
+                          {trackedApp.playingExperience}
+                        </span>
+                      </div>
+                    )}
+
+                    {trackedApp.experienceCertificateUrl && (
+                      <div>
+                        <span className="text-slate-400 block font-medium">Certificate</span>
+                        <a
+                          href={trackedApp.experienceCertificateUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-semibold text-blue-600 hover:text-blue-800 hover:underline mt-0.5"
+                        >
+                          <span>View PDF</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <span className="text-slate-400 block">Department</span>
-                    <span className="font-semibold text-slate-700">{trackedApp.department}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block">Applied Sport</span>
-                    <span className="font-semibold text-[#0b2e5b]">
-                      {Array.isArray(trackedApp.preferredSports) ? trackedApp.preferredSports.join(', ') : trackedApp.preferredSports}
+
+                  {/* Directorate Remarks */}
+                  {trackedApp.remarks && (
+                    <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-100 text-xs text-slate-700 space-y-1">
+                      <span className="font-bold text-[#0b2e5b] block">Directorate Remarks:</span>
+                      <p className="leading-relaxed">{trackedApp.remarks}</p>
+                    </div>
+                  )}
+
+                  {/* Bottom Footer Actions */}
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400">
+                      Live verification status from Sports Directorate
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => handleTrackSearch()}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-[#0b2e5b] transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Refresh</span>
+                    </button>
                   </div>
+
                 </div>
 
-                {trackedApp.remarks && (
-                  <div className="p-3 rounded-lg bg-white border border-slate-200 text-xs text-slate-600 space-y-1">
-                    <span className="font-semibold text-slate-700 block">Directorate Remarks:</span>
-                    <p>{trackedApp.remarks}</p>
-                  </div>
-                )}
               </div>
             )}
           </div>
