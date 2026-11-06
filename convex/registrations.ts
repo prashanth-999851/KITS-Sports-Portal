@@ -19,6 +19,7 @@ export const listApprovedPublic = query({
           rollNumber: r.rollNumber || "—",
           department: r.department || "—",
           year: r.year || "—",
+          gender: r.gender || "",
           preferredSports: Array.isArray(r.preferredSports)
             ? r.preferredSports
             : (r.preferredSports ? [r.preferredSports] : []),

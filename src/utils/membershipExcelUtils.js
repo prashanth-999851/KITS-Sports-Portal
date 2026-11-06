@@ -77,8 +77,8 @@ export function normalizeSection(val) {
 export function normalizeGender(val) {
   if (!val) return '';
   const clean = String(val).trim().toLowerCase();
-  if (clean === 'f' || clean === 'female') return 'Female';
-  if (clean === 'm' || clean === 'male') return 'Male';
+  if (clean === 'f' || clean === 'female' || clean === 'women' || clean === 'woman' || clean === 'girls' || clean === 'girl') return 'Female';
+  if (clean === 'm' || clean === 'male' || clean === 'men' || clean === 'man' || clean === 'boys' || clean === 'boy') return 'Male';
   return String(val).trim();
 }
 

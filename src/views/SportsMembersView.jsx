@@ -7,6 +7,7 @@ import { useQuery } from 'convex/react';
 import { api } from '../../convex/_generated/api';
 import { Search, Users, ChevronRight, RefreshCw } from 'lucide-react';
 import { normalizeSportName } from '../utils/jntukPlayerUtils';
+import { normalizeGender } from '../utils/membershipExcelUtils';
 
 const DEFAULT_SPORTS_ORDER = [
   'Cricket',
@@ -146,6 +147,7 @@ function SportsMembersContent() {
       rollNumber: m.rollNumber || '—',
       department: m.department || '—',
       year: m.year || '—',
+      gender: m.gender || '',
       preferredSports: Array.isArray(m.preferredSports)
         ? m.preferredSports
         : (m.preferredSports ? [m.preferredSports] : []),
@@ -215,6 +217,26 @@ function SportsMembersContent() {
     return sportsWithMembers.find(s => s.sport === selectedSport) || null;
   }, [sportsWithMembers, selectedSport]);
 
+  const maleMembers = useMemo(() => {
+    if (!currentSportData) return [];
+    return currentSportData.members.filter(m => normalizeGender(m.gender) === 'Male');
+  }, [currentSportData]);
+
+  const femaleMembers = useMemo(() => {
+    if (!currentSportData) return [];
+    return currentSportData.members.filter(m => normalizeGender(m.gender) === 'Female');
+  }, [currentSportData]);
+
+  const otherMembers = useMemo(() => {
+    if (!currentSportData) return [];
+    return currentSportData.members.filter(m => {
+      const g = normalizeGender(m.gender);
+      return g !== 'Male' && g !== 'Female';
+    });
+  }, [currentSportData]);
+
+  const hasBothGenders = maleMembers.length > 0 && femaleMembers.length > 0;
+
   const filteredSportMembers = useMemo(() => {
     if (!currentSportData) return [];
     const q = searchQuery.toLowerCase().trim();
@@ -227,6 +249,45 @@ function SportsMembersContent() {
       m.year?.toLowerCase().includes(q)
     );
   }, [currentSportData, searchQuery]);
+
+  const filteredMaleMembers = useMemo(() => {
+    if (!hasBothGenders) return [];
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return maleMembers;
+
+    return maleMembers.filter(m =>
+      m.studentName?.toLowerCase().includes(q) ||
+      m.rollNumber?.toLowerCase().includes(q) ||
+      m.department?.toLowerCase().includes(q) ||
+      m.year?.toLowerCase().includes(q)
+    );
+  }, [hasBothGenders, maleMembers, searchQuery]);
+
+  const filteredFemaleMembers = useMemo(() => {
+    if (!hasBothGenders) return [];
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return femaleMembers;
+
+    return femaleMembers.filter(m =>
+      m.studentName?.toLowerCase().includes(q) ||
+      m.rollNumber?.toLowerCase().includes(q) ||
+      m.department?.toLowerCase().includes(q) ||
+      m.year?.toLowerCase().includes(q)
+    );
+  }, [hasBothGenders, femaleMembers, searchQuery]);
+
+  const filteredOtherMembers = useMemo(() => {
+    if (!hasBothGenders || otherMembers.length === 0) return [];
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return otherMembers;
+
+    return otherMembers.filter(m =>
+      m.studentName?.toLowerCase().includes(q) ||
+      m.rollNumber?.toLowerCase().includes(q) ||
+      m.department?.toLowerCase().includes(q) ||
+      m.year?.toLowerCase().includes(q)
+    );
+  }, [hasBothGenders, otherMembers, searchQuery]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col transition-colors duration-300">
@@ -320,82 +381,307 @@ function SportsMembersContent() {
                   </div>
 
                   {/* Right Content: Active Sport Member Table */}
-                  <div className="lg:col-span-8 xl:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                  {!hasBothGenders ? (
+                    /* Single Gender / Preserved Layout */
+                    <div className="lg:col-span-8 xl:col-span-9 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
 
-                    <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50">
-                      <div className="flex items-center gap-2.5">
-                        <h2 className="text-lg sm:text-xl font-bold text-[#0b2e5b]">
-                          {selectedSport}
-                        </h2>
-                        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0b2e5b] border border-blue-200">
-                          {currentSportData?.count || 0} {(currentSportData?.count === 1) ? 'Member' : 'Members'}
-                        </span>
+                      <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50">
+                        <div className="flex items-center gap-2.5">
+                          <h2 className="text-lg sm:text-xl font-bold text-[#0b2e5b]">
+                            {selectedSport}
+                          </h2>
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0b2e5b] border border-blue-200">
+                            {currentSportData?.count || 0} {(currentSportData?.count === 1) ? 'Member' : 'Members'}
+                          </span>
+                        </div>
+
+                        <div className="relative w-full sm:w-64">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder={`Search ${selectedSport || 'members'}...`}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0b2e5b] shadow-2xs transition-colors"
+                          />
+                        </div>
                       </div>
 
-                      <div className="relative w-full sm:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input
-                          type="text"
-                          placeholder={`Search ${selectedSport || 'members'}...`}
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0b2e5b] shadow-2xs transition-colors"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="bg-[#0b2e5b] text-white">
-                            <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider w-16">S.No</th>
-                            <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider">Regd No</th>
-                            <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider">Name</th>
-                            <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider">Year / Dept</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredSportMembers.length === 0 ? (
-                            <tr>
-                              <td colSpan={4} className="text-center py-10 text-xs text-slate-400">
-                                {searchQuery
-                                  ? `No members found matching "${searchQuery}" in ${selectedSport}.`
-                                  : `No approved members found for ${selectedSport}.`}
-                              </td>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="bg-[#0b2e5b] text-white">
+                              <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider w-16">S.No</th>
+                              <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider">Regd No</th>
+                              <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider">Name</th>
+                              <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider">Year / Dept</th>
                             </tr>
-                          ) : (
-                            filteredSportMembers.map((member, idx) => (
-                              <tr
-                                key={member.id || idx}
-                                className={`border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
-                                  idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
-                                }`}
-                              >
-                                <td className="px-4 py-3 text-xs font-bold text-slate-500">{idx + 1}</td>
-                                <td className="px-4 py-3 text-xs font-semibold text-[#0b2e5b] font-mono tracking-wide">
-                                  {member.rollNumber}
-                                </td>
-                                <td className="px-4 py-3 text-xs font-bold text-slate-800">
-                                  {member.studentName}
-                                </td>
-                                <td className="px-4 py-3 text-xs text-slate-600">
-                                  <span className="font-semibold">{member.year}</span>
-                                  <span className="text-slate-400 mx-1">/</span>
-                                  <span>{member.department}</span>
+                          </thead>
+                          <tbody>
+                            {filteredSportMembers.length === 0 ? (
+                              <tr>
+                                <td colSpan={4} className="text-center py-10 text-xs text-slate-400">
+                                  {searchQuery
+                                    ? `No members found matching "${searchQuery}" in ${selectedSport}.`
+                                    : `No approved members found for ${selectedSport}.`}
                                 </td>
                               </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                            ) : (
+                              filteredSportMembers.map((member, idx) => (
+                                <tr
+                                  key={member.id || idx}
+                                  className={`border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                                    idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
+                                  }`}
+                                >
+                                  <td className="px-4 py-3 text-xs font-bold text-slate-500">{idx + 1}</td>
+                                  <td className="px-4 py-3 text-xs font-semibold text-[#0b2e5b] font-mono tracking-wide">
+                                    {member.rollNumber}
+                                  </td>
+                                  <td className="px-4 py-3 text-xs font-bold text-slate-800">
+                                    {member.studentName}
+                                  </td>
+                                  <td className="px-4 py-3 text-xs text-slate-600">
+                                    <span className="font-semibold">{member.year}</span>
+                                    <span className="text-slate-400 mx-1">/</span>
+                                    <span>{member.department}</span>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
 
-                    <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
-                      <span>Showing {filteredSportMembers.length} of {currentSportData?.count || 0} members</span>
-                      <span className="font-semibold text-slate-500">{selectedSport}</span>
-                    </div>
+                      <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+                        <span>Showing {filteredSportMembers.length} of {currentSportData?.count || 0} members</span>
+                        <span className="font-semibold text-slate-500">{selectedSport}</span>
+                      </div>
 
-                  </div>
+                    </div>
+                  ) : (
+                    /* Dual Gender Side-by-Side View */
+                    <div className="lg:col-span-8 xl:col-span-9 space-y-6">
+
+                      {/* Header bar with total and gender counts, plus search */}
+                      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50/50">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+                          <h2 className="text-lg sm:text-xl font-bold text-[#0b2e5b]">
+                            {selectedSport}
+                          </h2>
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                            {currentSportData?.count || 0} {(currentSportData?.count === 1) ? 'Member' : 'Members'}
+                          </span>
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0b2e5b] border border-blue-200 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                            <span>Male: {maleMembers.length}</span>
+                          </span>
+                          <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0b2e5b] border border-blue-200 flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                            <span>Female: {femaleMembers.length}</span>
+                          </span>
+                        </div>
+
+                        <div className="relative w-full sm:w-64">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="text"
+                            placeholder={`Search ${selectedSport || 'members'}...`}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#0b2e5b] shadow-2xs transition-colors"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Side-by-Side Tables Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+
+                        {/* Male Members Card */}
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                          <div className="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between bg-blue-50/50">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                              <h3 className="text-sm sm:text-base font-bold text-[#0b2e5b]">
+                                Male Members
+                              </h3>
+                            </div>
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-[#0b2e5b] border border-blue-200">
+                              {filteredMaleMembers.length} {filteredMaleMembers.length === 1 ? 'Member' : 'Members'}
+                            </span>
+                          </div>
+
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="bg-[#0b2e5b] text-white">
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider w-12">S.No</th>
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider">Regd No</th>
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider">Name</th>
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider">Year / Dept</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {filteredMaleMembers.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={4} className="text-center py-8 text-xs text-slate-400">
+                                      {searchQuery
+                                        ? `No male members matching "${searchQuery}".`
+                                        : `No male members in ${selectedSport}.`}
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  filteredMaleMembers.map((member, idx) => (
+                                    <tr
+                                      key={member.id || idx}
+                                      className={`border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                                        idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
+                                      }`}
+                                    >
+                                      <td className="px-3 py-2.5 text-xs font-bold text-slate-500">{idx + 1}</td>
+                                      <td className="px-3 py-2.5 text-xs font-semibold text-[#0b2e5b] font-mono tracking-wide">
+                                        {member.rollNumber}
+                                      </td>
+                                      <td className="px-3 py-2.5 text-xs font-bold text-slate-800">
+                                        {member.studentName}
+                                      </td>
+                                      <td className="px-3 py-2.5 text-xs text-slate-600">
+                                        <span className="font-semibold">{member.year}</span>
+                                        <span className="text-slate-400 mx-1">/</span>
+                                        <span>{member.department}</span>
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          <div className="px-3.5 py-2.5 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+                            <span>Showing {filteredMaleMembers.length} of {maleMembers.length}</span>
+                            <span className="font-semibold text-blue-900/70">Male</span>
+                          </div>
+                        </div>
+
+                        {/* Female Members Card */}
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                          <div className="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between bg-blue-50/50">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                              <h3 className="text-sm sm:text-base font-bold text-[#0b2e5b]">
+                                Female Members
+                              </h3>
+                            </div>
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-[#0b2e5b] border border-blue-200">
+                              {filteredFemaleMembers.length} {filteredFemaleMembers.length === 1 ? 'Member' : 'Members'}
+                            </span>
+                          </div>
+
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="bg-[#0b2e5b] text-white">
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider w-12">S.No</th>
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider">Regd No</th>
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider">Name</th>
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider">Year / Dept</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {filteredFemaleMembers.length === 0 ? (
+                                  <tr>
+                                    <td colSpan={4} className="text-center py-8 text-xs text-slate-400">
+                                      {searchQuery
+                                        ? `No female members matching "${searchQuery}".`
+                                        : `No female members in ${selectedSport}.`}
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  filteredFemaleMembers.map((member, idx) => (
+                                    <tr
+                                      key={member.id || idx}
+                                      className={`border-b border-slate-100 transition-colors hover:bg-blue-50/40 ${
+                                        idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
+                                      }`}
+                                    >
+                                      <td className="px-3 py-2.5 text-xs font-bold text-slate-500">{idx + 1}</td>
+                                      <td className="px-3 py-2.5 text-xs font-semibold text-[#0b2e5b] font-mono tracking-wide">
+                                        {member.rollNumber}
+                                      </td>
+                                      <td className="px-3 py-2.5 text-xs font-bold text-slate-800">
+                                        {member.studentName}
+                                      </td>
+                                      <td className="px-3 py-2.5 text-xs text-slate-600">
+                                        <span className="font-semibold">{member.year}</span>
+                                        <span className="text-slate-400 mx-1">/</span>
+                                        <span>{member.department}</span>
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          <div className="px-3.5 py-2.5 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+                            <span>Showing {filteredFemaleMembers.length} of {femaleMembers.length}</span>
+                            <span className="font-semibold text-blue-900/70">Female</span>
+                          </div>
+                        </div>
+
+                      </div>
+
+                      {/* Unassigned / Other Members if any */}
+                      {otherMembers.length > 0 && (
+                        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                          <div className="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+                            <h3 className="text-sm sm:text-base font-bold text-slate-700">
+                              Other Members
+                            </h3>
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                              {filteredOtherMembers.length} {filteredOtherMembers.length === 1 ? 'Member' : 'Members'}
+                            </span>
+                          </div>
+                          <div className="overflow-x-auto">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="bg-[#0b2e5b] text-white">
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider w-12">S.No</th>
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider">Regd No</th>
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider">Name</th>
+                                  <th className="px-3 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider">Year / Dept</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {filteredOtherMembers.map((member, idx) => (
+                                  <tr
+                                    key={member.id || idx}
+                                    className={`border-b border-slate-100 transition-colors hover:bg-slate-50 ${
+                                      idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'
+                                    }`}
+                                  >
+                                    <td className="px-3 py-2.5 text-xs font-bold text-slate-500">{idx + 1}</td>
+                                    <td className="px-3 py-2.5 text-xs font-semibold text-[#0b2e5b] font-mono tracking-wide">
+                                      {member.rollNumber}
+                                    </td>
+                                    <td className="px-3 py-2.5 text-xs font-bold text-slate-800">
+                                      {member.studentName}
+                                    </td>
+                                    <td className="px-3 py-2.5 text-xs text-slate-600">
+                                      <span className="font-semibold">{member.year}</span>
+                                      <span className="text-slate-400 mx-1">/</span>
+                                      <span>{member.department}</span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
+                  )}
 
                 </div>
               )}
